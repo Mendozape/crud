@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'CT MORELIA',
+    'title' => 'CT MORELIA.',
     'title_prefix' => '',
     'title_postfix' => '',
 
