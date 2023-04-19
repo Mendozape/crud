@@ -9,10 +9,10 @@
     @endif
 
     @if(isset($client))
-        <form action="{{ route('client.update',$client) }}" method="post" >
+        <form action="{{ route('client.update',$client) }}" method="post" enctype="multipart/form-data">
             @method('PUT')
     @else
-        <form action="{{ route('client.store') }}" method="post" >
+        <form action="{{ route('client.store') }}" method="post" enctype="multipart/form-data">
     @endif
     
     @csrf
@@ -31,6 +31,10 @@
         @error('due')
             <p class="form-text text-danger">{{$message}}</p>
         @enderror
+    </div>
+    <div class="input-group mb-3">
+        <input type="file" class="form-control" id="image" name="image">
+        <label class="input-group-text" for="inputGroupFile02">Cargar imagen</label>
     </div>
     <div class="mb-3">
         <label for="comments" class="form-label">Comentarios</label>

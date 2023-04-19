@@ -41,7 +41,16 @@ class ClientController extends Controller
             'name'=>'required|max:40',
             'due'=>'required|numeric|gte:1'
         ]);
-        $clien= Client::create($request->only('name','due','comments'));
+        //$input=$request->all();
+        if($request->hasFile('image')){
+            $destination_path = 'public/images/products';
+            $image= $request->file('file');
+            $image_name = $image->getClientOriginalName();
+            $path=$request->file('image')->storeAs($destination_path,$image_name);
+            $input['image']=$image_name;
+        }
+        $clien= Client::create($request->only('name','due','comments','image'));
+        //$clien= Client::create($input);
         session::flash('user_added','El registro ha sido creado con éxito');
         return redirect()->route('client.index');
     }
