@@ -24,6 +24,7 @@
         <tr align="center">
             <th>Nombre</th>
             <th>Saldo</th>
+            <th>Imagen</th>
             <th>Comentarios</th>
             <th>Acciones</th>
         </tr>
@@ -32,6 +33,7 @@
             <tr>
               <td>{{ $details->name }}</td>
               <td>{{ $details->due }}</td>
+              <td><img src="{{ asset('storage/app/public/images/products/'.$details->image)}}" /></td>
               <td>{{ $details->comments }}</td>
               <td>
                 <a href="{{ route('client.edit',$details) }}" class="btn btn-warning">Editar</a>

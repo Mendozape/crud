@@ -33,8 +33,9 @@
         @enderror
     </div>
     <div class="input-group mb-3">
-        <input type="file" class="form-control" id="image" name="image">
-        <label class="input-group-text" for="inputGroupFile02">Cargar imagen</label>
+        <img src="{{ asset('storage/images/products/'.$client->image) }}" />    
+        <label for="ImageControl"/>Seleccione imagen</label>
+        <input type="file" class="form-control-file" name=" image" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" aria-label="Upload">
     </div>
     <div class="mb-3">
         <label for="comments" class="form-label">Comentarios</label>
