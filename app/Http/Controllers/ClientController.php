@@ -49,6 +49,7 @@ class ClientController extends Controller
             $path=$request->file('image')->storeAs($destination_path,$image_name);
             $input['image']=$image_name;
         }
+        
         //$clien= Client::create($request->only('name','due','comments','image'));
         $clien= Client::create($input);
         session::flash('user_added','El registro ha sido creado con éxito');

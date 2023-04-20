@@ -33,7 +33,7 @@
             <tr>
               <td>{{ $details->name }}</td>
               <td>{{ $details->due }}</td>
-              <td><img src="{{ asset('storage/app/public/images/products/'.$details->image)}}" /></td>
+              <td><img height="50px" src="{{ asset('storage/images/products/'.$details->image)}}" /></td>
               <td>{{ $details->comments }}</td>
               <td>
                 <a href="{{ route('client.edit',$details) }}" class="btn btn-warning">Editar</a>

@@ -32,8 +32,9 @@
             <p class="form-text text-danger">{{$message}}</p>
         @enderror
     </div>
+   
+    
     <div class="input-group mb-3">
-        <img src="{{ asset('storage/images/products/'.$client->image) }}" />    
         <label for="ImageControl"/>Seleccione imagen</label>
         <input type="file" class="form-control-file" name=" image" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" aria-label="Upload">
     </div>
