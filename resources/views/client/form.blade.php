@@ -14,7 +14,6 @@
     @else
         <form action="{{ route('client.store') }}" method="post" enctype="multipart/form-data">
     @endif
-    
     @csrf
     <div class="mb-3">
         <label for="name" class="form-label">Nombre</label>
@@ -30,7 +29,6 @@
             <p class="form-text text-danger">{{$message}}</p>
         @enderror
     </div>
-    
     @if(isset($client))
     <div class="input-group mb-3">
         <img height="50px" src="{{ asset('storage/images/products/'.$client->image) }}" />
