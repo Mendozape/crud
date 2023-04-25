@@ -311,13 +311,34 @@ return [
             'url'  => 'admin/blog',
             'can'  => 'manage-blog',
         ],
-        ['header' => 'CUENTA'],
         [
-            'text' => 'Configuración',
-            'url'  => 'user/profile',
-            'icon' => 'fas fa-fw fa-user',
+            'text' => 'Home',
+            'url'  => 'client/welcome',
+            'icon' => 'fas fa-fw fa-home',
         ],
-        ['header' => 'MENU'],
+        [
+            'text'    => 'CONFIGURACIÓN',
+            'icon'    => 'fas fa-fw fa-share',
+            'submenu' => [
+                [
+                    'text' => 'Profile',
+                    'url'  => 'user/profile',
+                    'icon' => 'fas fa-fw fa-user',
+                ],
+                [
+                    'text' => 'Roles',
+                    'url'  => '#',
+                ],
+                [
+                    'text' => 'Permisos',
+                    'url'  => '#',
+                ],
+                [
+                    'text' => 'Usuarios',
+                    'url'  => '#',
+                ],
+            ],
+        ],
         [
             'text' => 'CRUD',
             'url'  => 'client/',
