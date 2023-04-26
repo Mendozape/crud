@@ -3,7 +3,7 @@
 @section('content')
 <div class="container py-5" align="center">
     <h1>Listado</h1>
-      @can('client.edit')
+      @can('cliente-editar')
       <a href="{{ route('client.create') }}" class="btn btn-primary"> Altas</a>
       @endcan
       @if (Session::has('user_added'))
@@ -37,14 +37,17 @@
               <td>{{ $details->comments }}</td>
               <td><img height="50px"  src="{{ asset('storage/images/products/'.$details->image)}}" /></td>
               <td>
-                @can('client.edit')
+               
+              @can('cliente-editar')
                 <a href="{{ route('client.edit',$details) }}" class="btn btn-warning">Editar</a>
+              @endcan 
+              @can('cliente-borrar')  
                 <form action="{{ route('client.destroy',$details) }}" method="post" class="d-inline">
-                  @method('DELETE')
-                    @csrf
-                    <BUTTON type="submit" class="btn btn-danger" onclick="return confirm('Estas seguro de eliminar este cliente?')">Eliminar</BUTTON>
+                    @method('DELETE')
+                      @csrf
+                      <BUTTON type="submit" class="btn btn-danger" onclick="return confirm('Estas seguro de eliminar este cliente?')">Eliminar</BUTTON>
                 </form>
-                @endcan 
+              @endcan 
               </td>
             </tr>
           @empty

@@ -1,6 +1,8 @@
 <?php
 use App\Http\Controllers\ClientController;
 use Illuminate\Support\Facades\Route;
+use app\Http\Controllers\RolesController;
+use app\Http\Controllers\UsuariosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +32,8 @@ Route::middleware([
 });
 Route::middleware(['auth'])->group(function(){
     Route::resource('client',ClientController::class);
+    Route::resource('roles',RolesController::class);
+    Route::resource('usuarios',UsuariosController::class);
 });
 
 
