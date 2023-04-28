@@ -19,9 +19,9 @@ class DatabaseSeeder extends Seeder
         $this->call(UserSeeder::class);
         // \App\Models\User::factory(10)->create();
         
-        User::factory(10)->create()->each(function($user){
+        /*User::factory(10)->create()->each(function($user){
             $user->assignRole('Developer');
-        });
+        });*/
 
     }
 }

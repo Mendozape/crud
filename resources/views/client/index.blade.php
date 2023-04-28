@@ -3,7 +3,7 @@
 @section('content')
 <div class="container py-5" align="center">
     <h1>Listado</h1>
-      @can('cliente-editar')
+      @can('editar-cliente')
       <a href="{{ route('client.create') }}" class="btn btn-primary"> Altas</a>
       @endcan
       @if (Session::has('user_added'))
@@ -38,10 +38,10 @@
               <td><img height="50px"  src="{{ asset('storage/images/products/'.$details->image)}}" /></td>
               <td>
                
-              @can('cliente-editar')
+              @can('editar-cliente')
                 <a href="{{ route('client.edit',$details) }}" class="btn btn-warning">Editar</a>
               @endcan 
-              @can('cliente-borrar')  
+              @can('borrar-cliente')  
                 <form action="{{ route('client.destroy',$details) }}" method="post" class="d-inline">
                     @method('DELETE')
                       @csrf

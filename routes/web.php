@@ -1,8 +1,9 @@
 <?php
 use App\Http\Controllers\ClientController;
 use Illuminate\Support\Facades\Route;
-use app\Http\Controllers\RolesController;
-use app\Http\Controllers\UsuariosController;
+use App\Http\Controllers\RolesController;
+use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +21,7 @@ Route::get('/', function () {
 });
 
 Route::get('/client/welcome',[ClientController::class, 'welcome']);
-
+Route::get('/usuarios/index',[UsuariosController::class, 'index']);
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

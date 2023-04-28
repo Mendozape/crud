@@ -20,7 +20,7 @@ class RoleSeeder extends Seeder
         Manager=> Ver listado de usuarios y ver usuario
         Developer=>dashboard
         */
-        /*$admin=Role::create(['name'=>'Admin']);
+        $admin=Role::create(['name'=>'Admin']);
         $developer=Role::create(['name'=>'Developer']);
         Permission::create(['name'=>'bienvenida-cliente'])->syncRoles([$admin,$developer]);
         Permission::create(['name'=>'crear-cliente'])->syncRoles([$admin]);
@@ -30,14 +30,20 @@ class RoleSeeder extends Seeder
         Permission::create(['name'=>'Ver-rol'])->syncRoles([$admin,$developer]);
         Permission::create(['name'=>'crear-rol'])->syncRoles([$admin]);
         Permission::create(['name'=>'editar-rol'])->syncRoles([$admin]);
-        Permission::create(['name'=>'borrar-rol'])->syncRoles([$admin]);*/
-        $permisos=[
+        Permission::create(['name'=>'borrar-rol'])->syncRoles([$admin]);
+        /*$permisos=[
             'bienvenida-cliente',
             'crear-cliente',
-            'crear-cliente',
-            'crear-cliente',
-            'crear-cliente',
-
+            'editar-cliente',
+            'borrar-cliente',
+            
+            'ver-rol',
+            'crear-rol',
+            'editar-rol',
+            'borrar-rol',
         ];
+        foreach($permisos as $permiso){
+            Permission::create(['name'=>$permiso]);
+        }*/
     }
 }

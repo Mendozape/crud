@@ -335,7 +335,7 @@ return [
                 ],
                 [
                     'text' => 'Usuarios',
-                    'url'  => '#',
+                    'url'  => 'usuarios/',
                 ],
             ],
         ],

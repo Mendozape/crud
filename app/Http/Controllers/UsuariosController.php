@@ -7,12 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
-
-
+use Illuminate\Support\Facades\Session;
 
 class UsuariosController extends Controller
 {
-    
     /**
      * Display a listing of the resource.
      *
@@ -20,8 +18,11 @@ class UsuariosController extends Controller
      */
     public function index()
     {
-        $usuarios=User::paginate(5);
+       $usuarios=User::paginate(5);
         return view('usuarios.index',compact('usuarios'));
+        /*$usuarios=User::paginate(5);
+        return view('usuarios.index')
+        ->with('usuarios',$usuarios);*/
     }
 
     /**
