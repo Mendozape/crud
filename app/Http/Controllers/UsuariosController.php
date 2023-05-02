@@ -9,6 +9,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
+
+use spatie\Permission\Models\Permission;
+
+
 class UsuariosController extends Controller
 {
     /**
@@ -79,7 +83,7 @@ class UsuariosController extends Controller
         $user = User::find($id);
         $roles = Role::pluck('name','name')->all();
         $userRole = $user->roles->pluck('name','name')->all();
-        return view('usuarios.editar',compact('user'));
+        return view('usuarios.editar',compact('user','roles','userRole'));
     }
 
     /**
