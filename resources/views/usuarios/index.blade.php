@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-@section('title', 'CT MORELIA')
+@section('title', 'MY LARAVEL SYSTEM')
 @section('content')
 <div class="container py-5" align="center">
     <h1>Listado</h1>
@@ -8,6 +8,7 @@
 
         <head>
             <tr align="left">
+                <th style="display:none;">ID</th>
                 <th>Nombre</th>
                 <th>E-mail</th>
                 <th>Rol</th>
@@ -17,6 +18,7 @@
         <tbody align="left">
             @foreach ($usuarios as $details)
             <tr>
+                <td style="display:none;">{{ $details->id }}</td>
                 <td>{{ $details->name }}</td>
                 <td>{{ $details->email }}</td>
                 <td>
@@ -41,6 +43,6 @@
     <div class="pagination justify-content-end">
         {{ $usuarios->links() }}
     </div>
-    
+
 </div>
 @stop

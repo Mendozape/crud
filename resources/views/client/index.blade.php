@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-@section('title', 'CT MORELIA')
+@section('title', 'MY LARAVEL SYSTEM')
 @section('content')
 <div class="container py-5" align="center">
     <h1>Listado</h1>

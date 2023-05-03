@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'CT MORELIA')
+@section('title', 'MY LARAVEL SYSTEM')
 
 @section('content_header')
     <h1>CT MORELIA</h1>

@@ -1,5 +1,5 @@
 @extends('adminlte::page')
-@section('title', 'CT MORELIA')
+@section('title', 'MY LARAVEL SYSTEM')
 @section('content')
 <section class="section">
     <div class="section-header">

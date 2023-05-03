@@ -1,11 +1,11 @@
 @extends('adminlte::page')
-@section('title', 'CT MORELIA')
+@section('title', 'MY LARAVEL SYSTEM')
 @section('content')
 <div class="container py-5" align="left">
     @if(isset($client))
-        <h1>Editar clientes</h1>
+        <h1>Editar</h1>
     @else
-    <h1>Crear de clientes</h1>
+    <h1>Crear</h1>
     @endif
 
     @if(isset($client))
