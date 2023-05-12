@@ -7,7 +7,7 @@
     </div>
     <div class="section-body">
         <div class="row">
-            <div class="clo-lg-12">
+            <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
                         @if($errors->any())

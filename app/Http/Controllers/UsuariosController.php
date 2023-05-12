@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
 
+
 use spatie\Permission\Models\Permission;
 
 
@@ -58,7 +59,7 @@ class UsuariosController extends Controller
         $input['password'] = Hash::make($input['password']);
         $user = User::create($input);
         $user->assignRole($request->input('roles'));
-        return redirect()->route('usuarios.index');
+        return redirect()->route('usuarios.index')->with('user_added','El usuario ha sido creado con éxito');
     }
 
     /**
@@ -111,7 +112,7 @@ class UsuariosController extends Controller
         $user->update($input);
         DB::table('model_has_roles')->where('model_id',$id)->delete();
         $user->assignRole($request->input('roles'));
-        return redirect()->route('usuarios.index');
+        return redirect()->route('usuarios.index')->with('user_edited','El usuario ha sido editado con éxito');
     }
 
     /**
@@ -123,6 +124,6 @@ class UsuariosController extends Controller
     public function destroy($id)
     {
         User::find($id)->delete();
-        return redirect()->route('usuarios.index');
+        return redirect()->route('usuarios.index')->with('user_deleted','El registro ha sido eliminado con éxito');
     }
 }
