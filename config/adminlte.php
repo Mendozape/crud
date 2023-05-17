@@ -253,7 +253,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'client/welcome',
+    'dashboard_url' => '/home',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -313,7 +313,7 @@ return [
         ],
         [
             'text' => 'Home',
-            'url'  => 'client/welcome',
+            'url'  => '/home',
             'icon' => 'fas fa-fw fa-home',
         ],
         [
@@ -327,11 +327,7 @@ return [
                 ],
                 [
                     'text' => 'Roles',
-                    'url'  => '#',
-                ],
-                [
-                    'text' => 'Permisos',
-                    'url'  => '#',
+                    'url'  => 'roles/',
                 ],
                 [
                     'text' => 'Usuarios',

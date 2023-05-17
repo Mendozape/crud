@@ -19,8 +19,11 @@ use App\Http\Controllers\User;
 Route::get('/', function () {
     return view('auth.login');
 });
+Route::get('/home', function () {
+    return view('/home');
+});
 
-Route::get('/client/welcome',[ClientController::class, 'welcome']);
+//Route::get('/client/welcome',[ClientController::class, 'welcome']);
 Route::get('/usuarios/index',[UsuariosController::class, 'index']);
 Route::middleware([
     'auth:sanctum',
@@ -32,8 +35,8 @@ Route::middleware([
     })->name('dashboard');
 });
 Route::middleware(['auth'])->group(function(){
-    Route::resource('client',ClientController::class);
     Route::resource('roles',RolesController::class);
+    Route::resource('client',ClientController::class);
     Route::resource('usuarios',UsuariosController::class);
 });
 

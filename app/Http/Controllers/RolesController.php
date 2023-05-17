@@ -54,7 +54,7 @@ class RolesController extends Controller
         //$input=$request->all(); 
         $role= Role::create(['name'=>$request->input('name')]);
         $role->syncPermissions($request->input('permission'));
-        return redirect()->route('roles.index');
+        return redirect()->route('roles.index')->with('role_added','El role ha sido creado con éxito');
     }
 
     /**
@@ -81,7 +81,7 @@ class RolesController extends Controller
         $rolePermission = DB::table('role_has_permissions')->where('role_has_permissions.role_id',$id)
             ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
             ->all();
-            return view('roles.editar',compact('roles','permission','rolePermission'));
+            return view('roles.editar',compact('role','permission','rolePermission'));
     }
 
     /**
@@ -101,7 +101,7 @@ class RolesController extends Controller
         $role->name = $request->input('name');
         $role->save();
         $role->syncPermissions($request->input('permission'));
-        return redirect()->route('roles.index');
+        return redirect()->route('roles.index')->with('role_added','El role ha sido actualizado con éxito');
     }
 
     /**
@@ -113,7 +113,7 @@ class RolesController extends Controller
     public function destroy($id)
     {
         DB::table('roles')->where('id',$id)->delete();
-        return redirect()->route('roles.index');
+        return redirect()->route('roles.index')->with('role_added','El role ha sido eliminado con éxito');
 
     }
 }

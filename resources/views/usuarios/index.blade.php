@@ -4,7 +4,8 @@
 @section('content')
 <section class="section" align="center">
     <div class="section-header">
-        <a href="{{ route('usuarios.create') }}" class="btn btn-primary"> Nuevo</a>
+    <h3 class="page_heading">Usuarios</h3>    
+    <a href="{{ route('usuarios.create') }}" class="btn btn-primary"> Nuevo</a>
     </div>
     <div class="section-body">
         <div class="row">
@@ -31,7 +32,7 @@
                                     <td>
                                         @if(!empty($details->getRoleNames()))
                                         @foreach($details->getRoleNames() as $roleName)
-                                        <h5><span class="btn btn-danger">{{$roleName}}</span></h5>
+                                        <h5><span class="btn btn-dark btn-sm">{{$roleName}}</span></h5>
                                         @endforeach
                                         @endif
                                     </td>
