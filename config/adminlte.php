@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'CT MORELIA...',
+    'title' => 'MY SYSTEM',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -63,7 +63,7 @@ return [
     |
     */
 
-    'logo' => '<b>CT MORELIA</b>',
+    'logo' => '<b>MY LARAVEL SYSTEM</b>',
     'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
@@ -253,7 +253,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'client/welcome',
+    'dashboard_url' => '/home',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -311,13 +311,30 @@ return [
             'url'  => 'admin/blog',
             'can'  => 'manage-blog',
         ],
-        ['header' => 'CUENTA'],
         [
-            'text' => 'Configuración',
-            'url'  => 'user/profile',
-            'icon' => 'fas fa-fw fa-user',
+            'text' => 'Home',
+            'url'  => '/home',
+            'icon' => 'fas fa-fw fa-home',
         ],
-        ['header' => 'MENU'],
+        [
+            'text'    => 'CONFIGURACIÓN',
+            'icon'    => 'fas fa-fw fa-share',
+            'submenu' => [
+                [
+                    'text' => 'Profile',
+                    'url'  => 'user/profile',
+                    'icon' => 'fas fa-fw fa-user',
+                ],
+                [
+                    'text' => 'Roles',
+                    'url'  => 'roles/',
+                ],
+                [
+                    'text' => 'Usuarios',
+                    'url'  => 'usuarios/',
+                ],
+            ],
+        ],
         [
             'text' => 'CRUD',
             'url'  => 'client/',

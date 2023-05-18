@@ -1,12 +1,18 @@
 <?php
 namespace App\Http\Controllers;
-
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
 class ClientController extends Controller
 {
+    /*function __construct()
+    {
+        $this->middleware('permission:cliente-borrar |cliente-editar | cliente-crear | cliente-bienvenida')->only('index');
+        $this->middleware('permission:cliente-crear',['only'=>['create','store']]);
+        $this->middleware('permission:cliente-editar',['only'=>['edit','update']]);
+        $this->middleware('permission:cliente-borrar',['only'=>['edit','update']]);
+    }*/
     /**
      * Display a listing of the resource.
      *
@@ -15,6 +21,7 @@ class ClientController extends Controller
     public function index()
     {
        $client=Client::paginate(5);
+//$client->fragment('Registros')->SetPageName('Pagina')->withQueryString();
         return view('client.index')
         ->with('clientes',$client);
     }
@@ -52,8 +59,8 @@ class ClientController extends Controller
         
         //$clien= Client::create($request->only('name','due','comments','image'));
         $clien= Client::create($input);
-        session::flash('user_added','El registro ha sido creado con éxito');
-        return redirect()->route('client.index');
+        //session::flash('user_added','El registro ha sido creado con éxito');
+        return redirect()->route('client.index')->with('user_added','El registro ha sido creado con éxito');
     }
 
     /**
@@ -96,8 +103,8 @@ class ClientController extends Controller
         $client->due     = $request['due'];
         $client->comments= $request['comments'];
         $client->save();
-        Session::flash('user_edited','El registro ha sido editado con éxito');
-        return redirect()->route('client.index');
+        //Session::flash('user_edited','El registro ha sido editado con éxito');
+        return redirect()->route('client.index')->with('user_edited','El registro ha sido editado con éxito');
     }
 
     /**
@@ -109,8 +116,8 @@ class ClientController extends Controller
     public function destroy(Client $client)
     {
         $client->delete();
-        Session::flash('user_deleted','El registro ha sido eliminado con éxito');
-        return redirect()->route('client.index');
+        //Session::flash('user_deleted','El registro ha sido eliminado con éxito');
+        return redirect()->route('client.index')->with('user_deleted','El registro ha sido eliminado con éxito');;
     }
     public function welcome()
     {
