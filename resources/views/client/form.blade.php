@@ -29,12 +29,6 @@
             <p class="form-text text-danger">{{$message}}</p>
         @enderror
     </div>
-<<<<<<< HEAD
-   
-    
-    <div class="input-group mb-3">
-        <label for="ImageControl"/>Seleccione imagen</label>
-=======
     @if(isset($client))
     <div class="input-group mb-3">
         <img height="50px" src="{{ asset('storage/images/products/'.$client->image) }}" />
@@ -42,7 +36,6 @@
     @endif
     <div class="input-group mb-3">
         <label  for="ImageControl"/>Seleccione imagen</label>
->>>>>>> 572bdba48657fdb5a1b1774794eac02d49a7bdbd
         <input type="file" class="form-control-file" name=" image" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" aria-label="Upload">
     </div>
     <div class="mb-3">
