@@ -22,7 +22,6 @@
                         </div>
                         @endif
                         {!! Form::model($user,['method'=>'PUT','route'=>['usuarios.update',$user->id]]) !!}
-                        @csrf
                         <div class="col-xs-12 col-sm-12 col-md-12">
                             <div class=" form-group">
                                 <label for="name">Nombre</label>

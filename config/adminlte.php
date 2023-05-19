@@ -326,6 +326,10 @@ return [
                     'icon' => 'fas fa-fw fa-user',
                 ],
                 [
+                    'text' => 'Permisos',
+                    'url'  => 'permisos/',
+                ],
+                [
                     'text' => 'Roles',
                     'url'  => 'roles/',
                 ],

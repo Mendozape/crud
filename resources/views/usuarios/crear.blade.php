@@ -22,7 +22,6 @@
                         </div>
                         @endif
                         {!! Form::open(array('route'=>'usuarios.store','method'=>'POST')) !!}
-                        @csrf
                         <div class="col-xs-12 col-sm-12 col-md-12">
                             <div class=" form-group">
                                 <label for="name">Nombre</label>

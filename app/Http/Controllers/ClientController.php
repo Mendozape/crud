@@ -6,13 +6,13 @@ use Illuminate\Support\Facades\Session;
 
 class ClientController extends Controller
 {
-    /*function __construct()
+    function __construct()
     {
-        $this->middleware('permission:cliente-borrar |cliente-editar | cliente-crear | cliente-bienvenida')->only('index');
-        $this->middleware('permission:cliente-crear',['only'=>['create','store']]);
-        $this->middleware('permission:cliente-editar',['only'=>['edit','update']]);
-        $this->middleware('permission:cliente-borrar',['only'=>['edit','update']]);
-    }*/
+        $this->middleware('permission:crear-cliente|editar-cliente|borrar-cliente|bienvenida-cliente')->only('index');
+        $this->middleware('permission:crear-cliente',['only'=>['create','store']]);
+        $this->middleware('permission:editar-cliente',['only'=>['edit','update']]);
+        $this->middleware('permission:borrar-cliente',['only'=>['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      *

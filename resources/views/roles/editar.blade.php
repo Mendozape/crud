@@ -22,7 +22,6 @@
                         </div>
                         @endif
                         {!! Form::model($role,['method'=>'PUT','route'=>['roles.update',$role->id]]) !!}
-                        @csrf
                         <div class="col-xs-12 col-sm-12 col-md-12">
                             <div class=" form-group">
                                 <label for="name">Nombre del rol</label>
