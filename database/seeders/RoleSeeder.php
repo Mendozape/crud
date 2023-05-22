@@ -1,7 +1,6 @@
 <?php
 
 namespace Database\Seeders;
-
 use GuzzleHttp\Promise\Create;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;

@@ -5,9 +5,15 @@ use Illuminate\Http\Request;
 //agregamos
 use spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
-
 class PermisosController extends Controller
 {
+    function __construct()
+    {
+        $this->middleware('permission:ver-permiso|crear-permiso|editar-permiso|borrar-permiso',['only'=>['index']]);
+        $this->middleware('permission:crear-permiso',['only'=>['create','store']]);
+        $this->middleware('permission:editar-permiso',['only'=>['edit','update']]);
+        $this->middleware('permission:borrar-permiso',['only'=>['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +21,7 @@ class PermisosController extends Controller
      */
     public function index()
     {
-        $permisos=Permission::paginate(5);
+        $permisos=Permission::paginate(10);
         return view('permisos.index',compact('permisos'));
     }
 
@@ -26,7 +32,8 @@ class PermisosController extends Controller
      */
     public function create()
     {
-        //
+        $permission = Permission::get();
+        return view('permisos.crear',compact('permission'));
     }
 
     /**
@@ -37,7 +44,13 @@ class PermisosController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name'=>'required'
+        ]);
+        //$input=$request->all(); 
+        $permiso= Permission::create(['name'=>$request->input('name')]);
+        //$permiso->syncPermissions($request->input('permission'));
+        return redirect()->route('permisos.index')->with('permiso_added','El permiso ha sido creado con éxito');
     }
 
     /**
