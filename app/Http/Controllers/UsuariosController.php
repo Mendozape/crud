@@ -60,7 +60,7 @@ class UsuariosController extends Controller
             'name'=>'required',
             'email'=>'required | email | unique:users,email',
             'password'=>'required | same:confirm-password',
-            'roles'=>'required'
+            'roles'=>'required|min:1'
         ]);
         $input = $request->all();
         $input['password'] = Hash::make($input['password']);
@@ -89,9 +89,13 @@ class UsuariosController extends Controller
     public function edit($id)
     {
         $user = User::find($id);
-        $roles = Role::pluck('name','name')->all();
-        $userRole = $user->roles->pluck('name','name')->all();
-        return view('usuarios.editar',compact('user','roles','userRole'));
+        $roles = Role::get();
+        $roleUsuario = DB::table('model_has_roles')->where('model_has_roles.model_id',$id)
+            ->pluck('model_has_roles.role_id','model_has_roles.role_id')
+            ->all();
+        return view('usuarios.editar',compact('user','roles','roleUsuario'));
+
+        
     }
 
     /**
@@ -107,7 +111,7 @@ class UsuariosController extends Controller
             'name'=>'required',
             'email'=>'required | email | unique:users,email,'.$id,
             'password'=>'same:confirm-password',
-            'roles'=>'required|integer'
+            'roles'=>'required|min:1'
         ]);
         $input = $request->all();
         if(!empty($input['password'])){
