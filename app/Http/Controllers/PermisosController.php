@@ -72,7 +72,12 @@ class PermisosController extends Controller
      */
     public function edit($id)
     {
-        //
+        $permiso = Permission::find($id);
+        $permissions = Permission::get();
+        //$rolePermission = DB::table('role_has_permissions')->where('role_has_permissions.role_id',$id)
+          //  ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
+           // ->all();
+            return view('permisos.editar',compact('permiso','permissions'));
     }
 
     /**
@@ -84,7 +89,14 @@ class PermisosController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'name'=>'required'
+        ]);
+        $permiso = Permission::find($id);
+        $permiso->name = $request->input('name');
+        $permiso->save();
+        //$permiso->syncPermissions($request->input('permission'));
+        return redirect()->route('permisos.index')->with('permiso_edited','El permiso ha sido actualizado con éxito');
     }
 
     /**
@@ -95,6 +107,7 @@ class PermisosController extends Controller
      */
     public function destroy($id)
     {
-        //
+        DB::table('permissions')->where('id',$id)->delete();
+        return redirect()->route('permisos.index')->with('permiso_deleted','El permiso ha sido eliminado con éxito');
     }
 }

@@ -107,7 +107,7 @@ class UsuariosController extends Controller
             'name'=>'required',
             'email'=>'required | email | unique:users,email,'.$id,
             'password'=>'same:confirm-password',
-            'roles'=>'required'
+            'roles'=>'required|integer'
         ]);
         $input = $request->all();
         if(!empty($input['password'])){
