@@ -74,10 +74,7 @@ class PermisosController extends Controller
     {
         $permiso = Permission::find($id);
         $permissions = Permission::get();
-        //$rolePermission = DB::table('role_has_permissions')->where('role_has_permissions.role_id',$id)
-          //  ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
-           // ->all();
-            return view('permisos.editar',compact('permiso','permissions'));
+        return view('permisos.editar',compact('permiso','permissions'));
     }
 
     /**

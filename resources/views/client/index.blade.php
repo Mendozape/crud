@@ -4,7 +4,7 @@
 <section class="section">
   <div class="section-header" align="center">
     <h1>Listado</h1>
-    @can('editar-cliente')
+    @can('crear-cliente')
     <a href="{{ route('client.create') }}" class="btn btn-primary"> Altas</a>
     @endcan
   </div>
@@ -17,8 +17,8 @@
               <tr>
                 <th>Nombre</th>
                 <th>Saldo</th>
-                <th>Imagen</th>
                 <th>Comentarios</th>
+                <th>Imagen</th>
                 <th>Acciones</th>
               </tr>
               <tbody>

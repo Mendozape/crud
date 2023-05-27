@@ -21,9 +21,11 @@ class ClientController extends Controller
     public function index()
     {
        $client=Client::paginate(5);
+       //$permisos = Permission::pluck('name','id');
 //$client->fragment('Registros')->SetPageName('Pagina')->withQueryString();
         return view('client.index')
         ->with('clientes',$client);
+        //return view('client.index',compact('client','permisos'));
     }
 
     /**
@@ -102,6 +104,13 @@ class ClientController extends Controller
         $client->name    = $request['name'];
         $client->due     = $request['due'];
         $client->comments= $request['comments'];
+        if($request->hasFile('image')){
+            $destination_path = 'public/images/products';
+            $image= $request->file('image');
+            $image_name = $image->getClientOriginalName();
+            $path=$request->file('image')->storeAs($destination_path,$image_name);
+            $client->image=$image_name;
+        }
         $client->save();
         //Session::flash('user_edited','El registro ha sido editado con éxito');
         return redirect()->route('client.index')->with('user_edited','El registro ha sido editado con éxito');

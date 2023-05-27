@@ -21,7 +21,8 @@
                   <th style="display:none;">ID</th>
                   <th>Nombre</th>
                   <th>E-mail</th>
-                  <th>Rol</th>
+                  <th>Role</th>
+                  <th>Permisos</th>
                   <th>Acciones</th>
                 </tr>
               </head>
@@ -34,7 +35,12 @@
                   <td>
                     @if(!empty($details->getRoleNames()))
                     @foreach($details->getRoleNames() as $roleName)
-                    <h5><span class="btn btn-dark btn-sm">{{$roleName}}</span></h5>
+                    <h5><span class="btn btn-primary btn-sm">{{$roleName}}</span></h5>
+                    @endforeach
+                  </td>
+                  <td>
+                    @foreach($details->getAllPermissions()->pluck('name') as $permisos2)
+                    <span class="btn btn-primary btn-sm">{{$permisos2}}</span> </br>
                     @endforeach
                     @endif
                   </td>
@@ -42,7 +48,7 @@
                     @can('editar-usuario')
                     <a href="{{ route('usuarios.edit',$details->id)}}" class="btn btn-info">Editar</a>
                     @endcan
-                    @can('eliminar-usuario')
+                    @can('borrar-usuario')
                     <form action="{{ route('usuarios.destroy',$details->id) }}" method="post" class="d-inline form-delete">
                       @method('DELETE')
                       @csrf

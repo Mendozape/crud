@@ -46,7 +46,7 @@
         @enderror
     </div>
     @if(isset($client))
-        <button type="submit" class="btn btn-info">Editar clientes</button>
+        <button type="submit" class="btn btn-info">Guardar cambios</button>
     @else
         <button type="submit" class="btn btn-info">Guardar clientes</button>
     @endif

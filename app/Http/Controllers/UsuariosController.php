@@ -11,18 +11,19 @@ use Illuminate\Support\Facades\Session;
 
 
 
+
 use spatie\Permission\Models\Permission;
 
 
 class UsuariosController extends Controller
 {
-    /*function __construct()
+    function __construct()
     {
         $this->middleware('permission:ver-usuario|crear-usuario|editar-usuario|borrar-usuario',['only'=>['index']]);
         $this->middleware('permission:crear-usuario',['only'=>['create','store']]);
         $this->middleware('permission:editar-usuario',['only'=>['edit','update']]);
         $this->middleware('permission:borrar-usuario',['only'=>['destroy']]);
-    }*/
+    }
     /**
      * Display a listing of the resource.
      *
@@ -31,10 +32,8 @@ class UsuariosController extends Controller
     public function index()
     {
        $usuarios=User::paginate(5);
-        return view('usuarios.index',compact('usuarios'));
-        /*$usuarios=User::paginate(5);
-        return view('usuarios.index')
-        ->with('usuarios',$usuarios);*/
+       $permisos = Permission::pluck('name','id');
+        return view('usuarios.index',compact('usuarios','permisos'));
     }
 
     /**
@@ -89,13 +88,8 @@ class UsuariosController extends Controller
     public function edit($id)
     {
         $user = User::find($id);
-        $roles = Role::get();
-        $roleUsuario = DB::table('model_has_roles')->where('model_has_roles.model_id',$id)
-            ->pluck('model_has_roles.role_id','model_has_roles.role_id')
-            ->all();
-        return view('usuarios.editar',compact('user','roles','roleUsuario'));
-
-        
+        $roles = Role::pluck('name','id');  
+        return view('usuarios.editar',compact('user','roles'));
     }
 
     /**
