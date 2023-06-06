@@ -47,18 +47,18 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'name'=>'required|max:40',
             'due'=>'required|numeric|gte:1'
         ]);
         $input=$request->all();
         if($request->hasFile('image')){
-            $destination_path = 'public/images/products';
             $image= $request->file('image');
             $image_name = $image->getClientOriginalName();
-            $path=$request->file('image')->storeAs($destination_path,$image_name);
+            //$request->file('image')->storeAs($destination_path,$image_name);
+            $request->image->move(public_path('images'), $image_name);
             $input['image']=$image_name;
         }
-        
         //$clien= Client::create($request->only('name','due','comments','image'));
         $clien= Client::create($input);
         //session::flash('user_added','El registro ha sido creado con éxito');
@@ -98,17 +98,16 @@ class ClientController extends Controller
     public function update(Request $request, Client $client)
     {
         $request->validate([
-            'name'=>'required|max:40',
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'due'=>'required|numeric|gte:1'
         ]);
         $client->name    = $request['name'];
         $client->due     = $request['due'];
         $client->comments= $request['comments'];
         if($request->hasFile('image')){
-            $destination_path = 'public/images/products';
             $image= $request->file('image');
             $image_name = $image->getClientOriginalName();
-            $path=$request->file('image')->storeAs($destination_path,$image_name);
+            $request->image->move(public_path('images'), $image_name);
             $client->image=$image_name;
         }
         $client->save();
