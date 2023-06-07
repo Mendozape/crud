@@ -30,6 +30,12 @@ class RoleSeeder extends Seeder
         Permission::create(['name'=>'crear-rol'])->syncRoles([$admin]);
         Permission::create(['name'=>'editar-rol'])->syncRoles([$admin]);
         Permission::create(['name'=>'borrar-rol'])->syncRoles([$admin]);
+
+        Permission::create(['name'=>'editar-permiso'])->syncRoles([$admin,$developer]);
+        Permission::create(['name'=>'borrar-permiso'])->syncRoles([$admin]);
+        Permission::create(['name'=>'ver-permiso'])->syncRoles([$admin]);
+        Permission::create(['name'=>'crear-permiso'])->syncRoles([$admin]);
+
         /*$permisos=[
             'bienvenida-cliente',
             'crear-cliente',
@@ -40,6 +46,11 @@ class RoleSeeder extends Seeder
             'crear-rol',
             'editar-rol',
             'borrar-rol',
+
+            'editar-permiso',
+            'borrar-permiso',
+            'ver-permiso',
+            'crear-permiso',
         ];
         foreach($permisos as $permiso){
             Permission::create(['name'=>$permiso]);
