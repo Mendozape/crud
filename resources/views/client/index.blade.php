@@ -16,7 +16,7 @@
             <table class="table">
               <tr>
                 <th>Nombre</th>
-                <th>Saldo</th>
+                <th>Sueldo</th>
                 <th>Comentarios</th>
                 <th>Imagen</th>
                 <th>Acciones</th>
