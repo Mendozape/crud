@@ -12,7 +12,7 @@
         <div class="card">
           <div class="card-body">
             @can('crear-usuario')
-            <a href="{{ route('usuarios.create') }}" class="btn btn-warning"> New User</a>
+            <a href="{{ route('usuarios.create') }}" class="btn btn-warning"> New User.</a>
             @endcan
             <table class="table">
 
