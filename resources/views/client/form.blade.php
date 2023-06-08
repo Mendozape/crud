@@ -31,7 +31,7 @@
                 <input type="text" name="name" class="form-control" placeholder="Nombre del cliente" value="{{old('name') ?? @$client->name }}">
             </div>
             <div class="mb-3">
-                <label for="due" class="form-label">Saldo</label>
+                <label for="due" class="form-label">Sueldo</label>
                 <input type="text" name="due" class="form-control" placeholder="Saldo del cliente" step="0.01" value="{{ old('due') ?? @$client->due }}">
             </div>
             @if(isset($client))
