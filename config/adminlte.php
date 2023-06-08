@@ -337,6 +337,10 @@ return [
                     'text' => 'Usuarios',
                     'url'  => 'usuarios/',
                 ],
+                [
+                    'text' => 'Select user',
+                    'url'  => 'select/',
+                ],
             ],
         ],
         [

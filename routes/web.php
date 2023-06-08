@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\PermisosController;
+use App\Http\Controllers\SelectController;
 use App\Http\Controllers\User;
 
 /*
@@ -40,6 +41,7 @@ Route::middleware(['auth'])->group(function(){
     Route::resource('roles',RolesController::class);
     Route::resource('client',ClientController::class);
     Route::resource('usuarios',UsuariosController::class);
+    Route::resource('select',SelectController::class);
 });
 
 
