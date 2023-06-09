@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
+use GuzzleHttp\Psr7\Response;
 use Spatie\Permission\Models\Role;
 use spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
+
 class SelectController extends Controller
 {
     function __construct()
@@ -20,6 +22,7 @@ class SelectController extends Controller
     public function index(){
         $roles = Role::pluck('name','id')->all(); 
         return view('select.index')->with('roles',$roles);
+        //return 'asdad';
     }
 
     /**
@@ -62,14 +65,19 @@ class SelectController extends Controller
      */
     public function edit($id)
     {
-        header('Content-type: application/json; charset=utf-8');
+        //header('Content-type: application/json; charset=utf-8');
         $rolePermission = DB::table('role_has_permissions')->where('role_has_permissions.role_id',$id)
         ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
         ->all();
-        $jsondata = array(
+        /*$jsondata = array(
             "rolePermission" => $rolePermission
         );
-        echo json_encode($jsondata, JSON_FORCE_OBJECT);
+        echo json_encode($jsondata, JSON_FORCE_OBJECT);*/
+        $ab=array(
+            'test'=>'helloo'
+        );
+        //return response()->json($ab,201);
+        return 'dasdad';
     }
 
     /**
