@@ -23,6 +23,8 @@ class SelectController extends Controller
         $roles = Role::pluck('name','id')->all(); 
         return view('select.index')->with('roles',$roles);
         //return 'asdad';
+        //$ab='adsa';
+        //return response()->json($ab);
     }
 
     /**
@@ -32,7 +34,8 @@ class SelectController extends Controller
      */
     public function create()
     {
-        //
+      $a='it works';
+      return response()->json($a);
     }
 
     /**
@@ -76,8 +79,9 @@ class SelectController extends Controller
         $ab=array(
             'test'=>'helloo'
         );
-        //return response()->json($ab,201);
-        return 'dasdad';
+        $ab='lato';
+        return response()->json($ab);
+        //return 'dasdad';
     }
 
     /**

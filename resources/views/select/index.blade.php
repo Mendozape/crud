@@ -55,10 +55,11 @@
     $('#roles').change(function(){ 
         var role = $('#roles').val();
        //alert(role);
-        $.ajax({
-            url: '/select/edit',
+        $.ajax({  
+            url: '/select/create',
+             
             type: 'GET',
-            //dataType: 'json',
+            dataType: 'json',
             data: {role: role,"_token":"{{ csrf_token() }}"},
             success: function(data) {
                 alert(data);
@@ -66,6 +67,6 @@
                 //$('#permissions').html(html);
             }
         });
-    }
+    });
 </script>
 @stop
