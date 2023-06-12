@@ -44,28 +44,25 @@
 @section('js')
 <script src="{{asset('js/app.js')}}"></script>
 <script>
-    /*$(document).ready(function() {
-        $('#users').on('change',function(){
-            var user=$(this).val();
-            alert('sdfsf');
-        });
-    });*/
-
-    //function showSelectedValue() {
-    $('#roles').change(function(){ 
+    $(document).ready(function() {
+        $('#roles').on('change',function(){
         var role = $('#roles').val();
-       //alert(role);
-        $.ajax({  
-            url: '/select/create',
-             
+        var url ='{{ route("select.edit",":role") }}';
+        url = url.replace(':role', role);
+        $.ajax({
+            url:url,
             type: 'GET',
             dataType: 'json',
             data: {role: role,"_token":"{{ csrf_token() }}"},
-            success: function(data) {
-                alert(data);
-                //var html = '<option value="">Select permission</option>';
-                //$('#permissions').html(html);
+            success: function(datos) {
+                //alert(data);
+                var html = '<option value="">Select permission</option>';
+                for (var e in datos) {
+                    html += '<option value="' + datos[e] + '">' + datos[e] + '</option>';
+                }
+                $('#permissions').html(html);
             }
+        });
         });
     });
 </script>

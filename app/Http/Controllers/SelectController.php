@@ -34,7 +34,7 @@ class SelectController extends Controller
      */
     public function create()
     {
-      $a='it works';
+      $a='it works2';
       return response()->json($a);
     }
 
@@ -73,14 +73,11 @@ class SelectController extends Controller
         ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
         ->all();
         /*$jsondata = array(
-            "rolePermission" => $rolePermission
-        );
-        echo json_encode($jsondata, JSON_FORCE_OBJECT);*/
-        $ab=array(
-            'test'=>'helloo'
-        );
-        $ab='lato';
-        return response()->json($ab);
+            "al"            => $row,
+            "entidades"     => General::entidades(),
+            "paises"        => General::paises(),
+        );*/
+        return response()->json($rolePermission);
         //return 'dasdad';
     }
 
