@@ -13,6 +13,7 @@
           <div class="card-body">
             @can('crear-usuario')
             <a href="{{ route('usuarios.create') }}" class="btn btn-warning"> Nuevo</a>
+            <a href="{{ route('pdfList') }}" class="btn btn-warning"> Generar lista en PDF</a>
             @endcan
             <table class="table">
 

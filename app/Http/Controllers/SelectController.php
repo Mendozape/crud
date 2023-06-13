@@ -34,8 +34,10 @@ class SelectController extends Controller
      */
     public function create()
     {
-      $a='it works2';
-      return response()->json($a);
+        $jsondata = array(
+            "permiso" => $_GET['permiso'],
+        );
+        return response()->json($jsondata);
     }
 
     /**
@@ -74,7 +76,7 @@ class SelectController extends Controller
         ->all();
         $role = Role::findByName($roleName[0]);
         $jsondata = array(
-            "permissions"            => $role->permissions->pluck('name'),
+            "permissions" => $role->permissions->pluck('name'),
         );
         return response()->json($jsondata);
     }
@@ -100,5 +102,13 @@ class SelectController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function listado()
+    {
+        $jsondata = array(
+            "permiso" => $_POST['permiso'],
+        );
+        return response()->json($jsondata);
     }
 }

@@ -27,6 +27,7 @@ Route::get('/home', function () {
 
 //Route::get('/client/welcome',[ClientController::class, 'welcome']);
 Route::get('/usuarios/index',[UsuariosController::class, 'index']);
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -42,7 +43,7 @@ Route::middleware(['auth'])->group(function(){
     Route::resource('client',ClientController::class);
     Route::resource('usuarios',UsuariosController::class);
     Route::resource('select',SelectController::class);
-    //Route::post('/select',[SelectController::class,'index']);
+    Route::get('/pdfUserList','\App\Http\Controllers\UsuariosController@pdfUsersListado')->name('pdfList');
 });
 
 

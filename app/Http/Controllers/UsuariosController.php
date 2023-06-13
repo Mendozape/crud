@@ -8,11 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
-
-
-
-
 use spatie\Permission\Models\Permission;
+use Barryvdh\DomPDF\Facade as PDF;
 
 
 class UsuariosController extends Controller
@@ -130,5 +127,11 @@ class UsuariosController extends Controller
     {
         User::find($id)->delete();
         return redirect()->route('usuarios.index')->with('user_deleted','El registro ha sido eliminado con éxito');
+    }               
+    public function pdfUsersListado(){
+        $users= User::all();
+        $pdf= PDF::loadView('usuarios.index',compact('users'));
+        return $pdf->download('users.pdf'); 
+
     }
 }
