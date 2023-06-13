@@ -10,24 +10,20 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                    
                    <form method="POST" enctype="multipart/form-data">
                     @csrf
                         <div class="col-xs-12 col-sm-12 col-md-12">
                             <div class=" form-group">
                                 <label for="name">Role</label>
-                                <!--<select name="roles" id="roles" class="form-control" onchange="showSelectedValue()"></select>-->
-                                <select id='roles' >
-                                    <option value="1">Admin</option>
-                                    <option value="2">Prog</option>
-                                </select>
-
+                                {!! Form::select('roles', [null => 'Select role'] + $roles,null, array('class'=>'form-control', 'id' => 'roles')) !!}
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-12">
                             <div class=" form-group">
                                 <label for="name">Permissions</label>
-                                <select name="select" name="permissions" id="permissions" class="form-control"></select>
+                                
+                                
+                                <select name="permissions" id="permissions" class="form-control"></select>
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-12 col-md-12">
@@ -45,24 +41,24 @@
 <script src="{{asset('js/app.js')}}"></script>
 <script>
     $(document).ready(function() {
-        $('#roles').on('change',function(){
-        var role = $('#roles').val();
-        var url ='{{ route("select.edit",":role") }}';
-        url = url.replace(':role', role);
-        $.ajax({
-            url:url,
-            type: 'GET',
-            dataType: 'json',
-            data: {role: role,"_token":"{{ csrf_token() }}"},
-            success: function(datos) {
-                //alert(data);
-                var html = '<option value="">Select permission</option>';
-                for (var e in datos) {
-                    html += '<option value="' + datos[e] + '">' + datos[e] + '</option>';
+        $("#roles").on("change", function() {
+            var role = $('#roles').val();
+            var url ='{{ route("select.edit",":role") }}';
+            url = url.replace(':role', role);
+            $.ajax({
+                url:url,
+                type: 'GET',
+                dataType: 'json',
+                data: {role: role,"_token":"{{ csrf_token() }}"},
+                success: function(datos) {
+                    //alert(data);
+                    var html = '<option value="">Select permission</option>';
+                    for (var e in datos.permissions) {
+                        html += '<option value="' + datos.permissions[e] + '">' + datos.permissions[e] + '</option>';
+                    }
+                    $('#permissions').html(html);
                 }
-                $('#permissions').html(html);
-            }
-        });
+            });
         });
     });
 </script>

@@ -69,16 +69,14 @@ class SelectController extends Controller
     public function edit($id)
     {
         //header('Content-type: application/json; charset=utf-8');
-        $rolePermission = DB::table('role_has_permissions')->where('role_has_permissions.role_id',$id)
-        ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
+        $roleName = DB::table('roles')->where('roles.id',$id)
+        ->pluck('name')
         ->all();
-        /*$jsondata = array(
-            "al"            => $row,
-            "entidades"     => General::entidades(),
-            "paises"        => General::paises(),
-        );*/
-        return response()->json($rolePermission);
-        //return 'dasdad';
+        $role = Role::findByName($roleName[0]);
+        $jsondata = array(
+            "permissions"            => $role->permissions->pluck('name'),
+        );
+        return response()->json($jsondata);
     }
 
     /**
