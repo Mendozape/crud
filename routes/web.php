@@ -43,7 +43,8 @@ Route::middleware(['auth'])->group(function(){
     Route::resource('client',ClientController::class);
     Route::resource('usuarios',UsuariosController::class);
     Route::resource('select',SelectController::class);
-    Route::get('/pdfUserList','\App\Http\Controllers\UsuariosController@pdfUsersListado')->name('pdfList');
+    Route::get('/pdfUserList',[UsuariosController::class, 'pdfUserListado'])->name('pdfList');
+    Route::get('/invoice',[UsuariosController::class, 'invoice'])->name('invoice');
 });
 
 

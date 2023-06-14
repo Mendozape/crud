@@ -9,7 +9,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use spatie\Permission\Models\Permission;
-use Barryvdh\DomPDF\Facade as PDF;
+use Barryvdh\DomPDF\Facade\PDF;
 
 
 class UsuariosController extends Controller
@@ -128,10 +128,16 @@ class UsuariosController extends Controller
         User::find($id)->delete();
         return redirect()->route('usuarios.index')->with('user_deleted','El registro ha sido eliminado con éxito');
     }               
-    public function pdfUsersListado(){
-        $users= User::all();
-        $pdf= PDF::loadView('usuarios.index',compact('users'));
-        return $pdf->download('users.pdf'); 
+    public function pdfUserListado(){
+        $usuarios= User::all();
+        $pdf= PDF::loadView('usuarios.usersPDF',compact('usuarios'));
+        return $pdf->download('usuarios.pdf'); 
+
+    }
+    public function invoice(){
+        $user= User::where('id','4') -> first();
+        $pdf= PDF::loadView('usuarios.invoice',compact('user'));
+        return $pdf->download('invoice.pdf'); 
 
     }
 }
