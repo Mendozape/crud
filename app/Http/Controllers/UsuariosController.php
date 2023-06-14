@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use spatie\Permission\Models\Permission;
 use Barryvdh\DomPDF\Facade\PDF;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class UsuariosController extends Controller
@@ -138,6 +139,11 @@ class UsuariosController extends Controller
         $user= User::where('id','4') -> first();
         $pdf= PDF::loadView('usuarios.invoice',compact('user'));
         return $pdf->download('invoice.pdf'); 
+    }
+    public function export(){
+        $usuarios= User::all();
+        $excel= Excel::loadView('usuarios.usersExcel',compact('usuarios'));
+        return $pdf->download('usuarios.pdf'); 
 
     }
 }

@@ -45,6 +45,8 @@ Route::middleware(['auth'])->group(function(){
     Route::resource('select',SelectController::class);
     Route::get('/pdfUserList',[UsuariosController::class, 'pdfUserListado'])->name('pdfList');
     Route::get('/invoice',[UsuariosController::class, 'invoice'])->name('invoice');
+    Route::get('/excel',[UsuariosController::class, 'excelUsers'])->name('excel');
+
 });
 
 
