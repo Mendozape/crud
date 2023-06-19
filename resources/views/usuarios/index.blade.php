@@ -15,7 +15,7 @@
             <a href="{{ route('usuarios.create') }}" class="btn btn-warning"> Nuevo</a>
             <a href="{{ route('pdfList') }}" class="btn btn-warning"> Generar lista en PDF</a>
             <a href="{{ route('invoice') }}" class="btn btn-warning"> Generar factura</a>
-            <a href="{{ route('excel') }}" class="btn btn-warning"> Generar listado en excel</a>
+            <a href="{{ route('export-users') }}" class="btn btn-warning"> Generar listado en excel</a>
             @endcan
             <table class="table">
 

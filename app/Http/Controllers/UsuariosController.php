@@ -140,10 +140,4 @@ class UsuariosController extends Controller
         $pdf= PDF::loadView('usuarios.invoice',compact('user'));
         return $pdf->download('invoice.pdf'); 
     }
-    public function export(){
-        $usuarios= User::all();
-        $excel= Excel::loadView('usuarios.usersExcel',compact('usuarios'));
-        return $pdf->download('usuarios.pdf'); 
-
-    }
 }

@@ -341,6 +341,10 @@ return [
                     'text' => 'Select user',
                     'url'  => 'select/',
                 ],
+                [
+                    'text' => 'Excel import & export',
+                    'url'  => 'excel/importFile',
+                ],
             ],
         ],
         [

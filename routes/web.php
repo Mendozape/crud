@@ -5,7 +5,7 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
-use App\Http\Controllers\User;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,7 +45,10 @@ Route::middleware(['auth'])->group(function(){
     Route::resource('select',SelectController::class);
     Route::get('/pdfUserList',[UsuariosController::class, 'pdfUserListado'])->name('pdfList');
     Route::get('/invoice',[UsuariosController::class, 'invoice'])->name('invoice');
-    Route::get('/excel',[UsuariosController::class, 'excelUsers'])->name('excel');
+    //Route::get('/excel',[UsuariosController::class, 'excelUsers'])->name('excel');
+    Route::get('/excel/importFile',[UserController::class,'importView'])->name('import-view');
+    Route::post('/import',[UserController::class,'import'])->name('import');
+    Route::get('/export-users',[UserController::class,'exportUsers'])->name('export-users');
 
 });
 
