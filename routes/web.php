@@ -21,12 +21,6 @@ use App\Http\Controllers\UserController;
 Route::get('/', function () {
     return view('auth.login');
 });
-Route::get('/home', function () {
-    return view('/home');
-});
-
-//Route::get('/client/welcome',[ClientController::class, 'welcome']);
-Route::get('/usuarios/index',[UsuariosController::class, 'index']);
 
 Route::middleware([
     'auth:sanctum',
@@ -37,7 +31,10 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+Route::get('/livewire', function () { return view('/livewire/counter'); });
 Route::middleware(['auth'])->group(function(){
+    Route::get('/home', function () { return view('/home'); });
+    
     Route::resource('permisos',PermisosController::class);
     Route::resource('roles',RolesController::class);
     Route::resource('client',ClientController::class);
@@ -45,11 +42,9 @@ Route::middleware(['auth'])->group(function(){
     Route::resource('select',SelectController::class);
     Route::get('/pdfUserList',[UsuariosController::class, 'pdfUserListado'])->name('pdfList');
     Route::get('/invoice',[UsuariosController::class, 'invoice'])->name('invoice');
-    //Route::get('/excel',[UsuariosController::class, 'excelUsers'])->name('excel');
     Route::get('/excel/importFile',[UserController::class,'importView'])->name('import-view');
     Route::post('/import',[UserController::class,'import'])->name('import');
     Route::get('/export-users',[UserController::class,'exportUsers'])->name('export-users');
-
 });
 
 

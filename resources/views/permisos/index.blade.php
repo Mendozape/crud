@@ -1,6 +1,5 @@
 @extends('adminlte::page')
 @section('title', 'MY LARAVEL SYSTEM')
-
 @section('content')
 <section class="section" align="center">
     <div class="section-header">

@@ -317,6 +317,11 @@ return [
             'icon' => 'fas fa-fw fa-home',
         ],
         [
+            'text' => 'CRUD BLADE & PHP',
+            'url'  => 'client/',
+            'icon' => 'fas fa-fw fa-user',
+        ],
+        [
             'text'    => 'CONFIGURACIÓN',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
@@ -348,9 +353,14 @@ return [
             ],
         ],
         [
-            'text' => 'CRUD',
-            'url'  => 'client/',
-            'icon' => 'fas fa-fw fa-user',
+            'text'    => 'LIVEWIRE',
+            'icon'    => 'fas fa-fw fa-share',
+            'submenu' => [
+                [
+                    'text' => 'Counter',
+                    'url'  => 'livewire',
+                ]
+            ],
         ],
     ],
 
