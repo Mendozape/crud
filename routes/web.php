@@ -6,6 +6,7 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Livewire\Counter;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,10 +32,12 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
-Route::get('/livewire', function () { return view('/livewire/counter'); });
+//Route::get('/livewire', function () { return view('/livewire/counter'); });
+
 Route::middleware(['auth'])->group(function(){
     Route::get('/home', function () { return view('/home'); });
-    
+    Route::get('/livewire',function () { return view('/livewire/home'); });
+    Route::get('/crudlive',function () { return view('/livewire/crud/home'); });
     Route::resource('permisos',PermisosController::class);
     Route::resource('roles',RolesController::class);
     Route::resource('client',ClientController::class);

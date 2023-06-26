@@ -1,6 +1,9 @@
 <?php
+
 namespace App\Http\Livewire;
+
 use Livewire\Component;
+
 class Counter extends Component
 {
     public $count = 0;
@@ -8,8 +11,16 @@ class Counter extends Component
     {
         $this->count++;
     }
+    public function decrement()
+    {
+        if ($this->count <= 0) {
+            $this->count = 0;
+        } else {
+            $this->count--;
+        }
+    }
     public function render()
     {
-        return view('livewire.counter',compact('count'));
+        return view('livewire.counter', ['count' => $this->count]);
     }
 }

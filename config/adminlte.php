@@ -359,7 +359,11 @@ return [
                 [
                     'text' => 'Counter',
                     'url'  => 'livewire',
-                ]
+                ],
+                [
+                    'text' => 'CRUD with Livewire',
+                    'url'  => 'crudlive',
+                ],
             ],
         ],
     ],
