@@ -15,7 +15,7 @@ class Clients extends Component
         $clientes =Client::when($this->due, function ($query){
             return $query->where('due', '>',2);
         })->paginate(5); 
-        return view('livewire.clients',['clientes' => $clientes]);
+        return view('livewire.crud.clients',['clientes' => $clientes]);
     }
     public function updatingActive(){
         $this->resetPage();

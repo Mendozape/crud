@@ -47,6 +47,7 @@
     </div>
 </section>
 @stop
+
 @section('js')
 <script src="{{asset('js/app.js')}}"></script>
 @if (Session::has('permiso_deleted'))

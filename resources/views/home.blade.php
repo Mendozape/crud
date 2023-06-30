@@ -104,6 +104,4 @@
 @section('footer')
 <p>Copyright © 2023 mendodevelopments All rights reserved. Version 1.0</p>
 @stop
-@section('css')
-<link href="{{asset('css/app.css')}}" rel="stylesheet">
-@stop
+

@@ -8,3 +8,6 @@
     <livewire:clients />
     @livewireScripts
 @stop
+@section('css')
+<link href="{{asset('css/app.css')}}" rel="stylesheet">
+@stop
