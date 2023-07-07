@@ -10,24 +10,10 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="flex justify-between">
-
-                            
-                            
-                            <div class="d-flex flex-row bd-highlight mb-3">
-                                <div class="p-2 bd-highlight">Flex item 4</div>
-                                <div class="p-2 bd-highlight">Flex item 5</div>
-                                <div class="p-2 bd-highlight">Flex item 6</div>
-                            </div>
-                            <div class="d-flex flex-row bd-highlight mb-3">
-                                <div class="p-2 bd-highlight">Flex item 1</div>
-                                <div class="p-2 bd-highlight">Flex item 2</div>
-                                <div class="p-2 bd-highlight">Flex item 3</div>
-                            </div>
-                            <div class="d-flex flex-row bd-highlight mb-3">
-                                Saldo mayor a ?
-                            </div>
-                            
+                        <div class="d-flex justify-content-end">
+                       
+                        <input wire:model="clients" type="checkbox" />       
+                        Saldo mayor a 2?
                         </div>
                         <table class="table">
                             <tr>

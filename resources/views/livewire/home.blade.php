@@ -4,6 +4,6 @@
 @stop
 
 @section('content')
-    @livewire('counter')
+    <livewire:counter />
     @livewireScripts
 @stop
