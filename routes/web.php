@@ -36,7 +36,7 @@ Route::middleware([
 //Route::get('/livewire', function () { return view('/livewire/counter'); });
 
 Route::middleware(['auth'])->group(function(){
-    Route::get('/home', function () { return view('/home'); });
+    Route::get('/home', function () { return view('/index'); });
     Route::get('/livewire',function () { return view('/livewire/home'); });
     Route::get('/crudlive',function () { return view('/livewire/crud/home'); });
     Route::resource('permisos',PermisosController::class);
@@ -52,3 +52,6 @@ Route::middleware(['auth'])->group(function(){
 });
 
 
+
+//Route Hooks - Do not delete//
+	Route::view('clients', 'livewire.clients.index')->middleware('auth');
