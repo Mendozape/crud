@@ -5,10 +5,7 @@
 @import 'variables';
 
 // Bootstrap
-@import 'bootstrap/scss/bootstrap';
+@import '~bootstrap/scss/bootstrap';
 
-// Font Awesome Free
-@import "@fortawesome/fontawesome-free/css/all.css";
+@import '/node_modules/@fortawesome/fontawesome-free/css/all.min.css';
 
-// Bootstrap Icons
-@import "bootstrap-icons/font/bootstrap-icons.css";

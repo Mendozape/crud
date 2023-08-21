@@ -27,7 +27,7 @@
             @endif
             @csrf
             <div class="mb-3">
-                <label for="name" class="form-label">Nombre</label>
+                <label for="name" class="form-label">Escribe tu Nombre</label>
                 <input type="text" name="name" class="form-control" placeholder="Nombre del cliente" value="{{old('name') ?? @$client->name }}">
             </div>
             <div class="mb-3">
@@ -41,7 +41,7 @@
             @endif
             <div class="input-group mb-3">
                 <label for="ImageControl" />Seleccione imagen</label>
-                <input type="file" class="form-control-file" name=" image" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" aria-label="Upload">
+                <input type="file" class="form-control-file" name="image" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" aria-label="Upload">
             </div>
             <div class="mb-3">
                 <label for="comments" class="form-label">Comentarios</label>

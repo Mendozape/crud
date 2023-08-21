@@ -1,4 +1,5 @@
 @extends('adminlte::page')
+
 @section('title', 'MY LARAVEL SYSTEM')
 @section('content_header')
 <h1>Dashboard</h1>
@@ -69,7 +70,7 @@
                             <div class="col-md-4 col-xl-4">
                                 <div class="card bg-success text-white p-2">
                                     <div class="card-subtitle">
-                                        <h5>Usuarios</h5>
+                                        <h5>Usuario</h5>
                                         <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">{{ App\Models\User::count(); }}</span></h2>
                                         <p class="m-b-0 text-right"> <a href="/client" class="text-white">Ver más</a></p>
                                     </div>

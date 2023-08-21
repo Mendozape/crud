@@ -4,6 +4,7 @@ use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
+
 class ClientController extends Controller
 {
     function __construct()
@@ -55,11 +56,9 @@ class ClientController extends Controller
         if($request->hasFile('image')){
             $image= $request->file('image');
             $image_name = $image->getClientOriginalName();
-            //$request->file('image')->storeAs($destination_path,$image_name);
-            $request->image->move(public_path('images'), $image_name);
+            $request->image->move(public_path('storage/images'), $image_name);
             $input['image']=$image_name;
         }
-        //$clien= Client::create($request->only('name','due','comments','image'));
         $clien= Client::create($input);
         //session::flash('user_added','El registro ha sido creado con éxito');
         return redirect()->route('client.index')->with('user_added','El registro ha sido creado con éxito');

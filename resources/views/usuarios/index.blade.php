@@ -71,6 +71,7 @@
 </section>
 @stop
 @section('js')
+@vite(['resources/sass/app.scss', 'resources/js/app.js'])
 <script src="{{asset('js/app.js')}}"></script>
 @if (Session::has('user_deleted'))
 <script>

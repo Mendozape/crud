@@ -1,5 +1,5 @@
-//Import Bootstrap File
-import './bootstrap';
-
 // Import our custom CSS
-import '../sass/app.scss'
+import './bootstrap';
+import '../sass/app.scss';
+import {swal} from 'sweetalert2';
+window.swal = swal;

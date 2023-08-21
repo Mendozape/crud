@@ -1,71 +1,74 @@
 {
-  "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build"
-  },
-  "devDependencies": {
-    "@fortawesome/fontawesome-free": "^6.2.1",
-    "@popperjs/core": "^2.11.6",
-    "autoprefixer": "^10.4.14",
-    "axios": "^1.1.2",
-    "bootstrap": "^5.2.3",
-    "bootstrap-icons": "^1.10.3",
-    "laravel-vite-plugin": "^0.7.2",
-    "lodash": "^4.17.19",
-    "postcss": "^8.4.26",
-    "sass": "^1.56.1",
-    "tailwind": "^4.0.0",
-    "tailwindcss": "^3.3.3",
-    "vite": "^4.4.3"
-  },
-  "name": "crud-users",
-  "description": "<p align=\"center\"><a href=\"https://laravel.com\" target=\"_blank\"><img src=\"https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg\" width=\"400\"></a></p>",
-  "version": "1.0.0",
-  "main": "postcss.config.js",
-  "directories": {
-    "test": "tests"
-  },
-  "dependencies": {
-    "anymatch": "^3.1.3",
-    "asynckit": "^0.4.0",
-    "binary-extensions": "^2.2.0",
-    "braces": "^3.0.2",
-    "chokidar": "^3.5.3",
-    "combined-stream": "^1.0.8",
-    "delayed-stream": "^1.0.0",
-    "esbuild": "^0.18.12",
-    "fill-range": "^7.0.1",
-    "follow-redirects": "^1.15.2",
-    "form-data": "^4.0.0",
-    "glob-parent": "^5.1.2",
-    "immutable": "^4.3.1",
-    "is-binary-path": "^2.1.0",
-    "is-extglob": "^2.1.1",
-    "is-glob": "^4.0.3",
-    "is-number": "^7.0.0",
-    "mime-db": "^1.52.0",
-    "mime-types": "^2.1.35",
-    "nanoid": "^3.3.6",
-    "normalize-path": "^3.0.0",
-    "picocolors": "^1.0.0",
-    "picomatch": "^2.3.1",
-    "proxy-from-env": "^1.1.0",
-    "readdirp": "^3.6.0",
-    "rollup": "^3.26.2",
-    "source-map-js": "^1.0.2",
-    "to-regex-range": "^5.0.1",
-    "vite-plugin-full-reload": "^1.0.5"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Mendozape/crud-users.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Mendozape/crud-users/issues"
-  },
-  "homepage": "https://github.com/Mendozape/crud-users#readme"
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "devDependencies": {
+        "@fortawesome/fontawesome-free": "^6.2.1",
+        "@popperjs/core": "^2.11.6",
+        "autoprefixer": "^10.4.14",
+        "axios": "^1.1.2",
+        "bootstrap": "^5.2.3",
+        "bootstrap-icons": "^1.10.3",
+        "laravel-vite-plugin": "^0.7.8",
+        "lodash": "^4.17.19",
+        "postcss": "^8.4.27",
+        "sass": "^1.56.1",
+        "tailwind": "^4.0.0",
+        "tailwindcss": "^3.3.3",
+        "vite": "^4.4.7"
+    },
+    "name": "crud-users",
+    "description": "<p align=\"center\"><a href=\"https://laravel.com\" target=\"_blank\"><img src=\"https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg\" width=\"400\"></a></p>",
+    "version": "1.0.0",
+    "main": "postcss.config.js",
+    "directories": {
+        "test": "tests"
+    },
+    "dependencies": {
+        "@tailwindcss/forms": "^0.5.4",
+        "anymatch": "^3.1.3",
+        "asynckit": "^0.4.0",
+        "binary-extensions": "^2.2.0",
+        "braces": "^3.0.2",
+        "chokidar": "^3.5.3",
+        "combined-stream": "^1.0.8",
+        "delayed-stream": "^1.0.0",
+        "esbuild": "^0.18.12",
+        "fill-range": "^7.0.1",
+        "follow-redirects": "^1.15.2",
+        "form-data": "^4.0.0",
+        "glob-parent": "^5.1.2",
+        "immutable": "^4.3.1",
+        "is-binary-path": "^2.1.0",
+        "is-extglob": "^2.1.1",
+        "is-glob": "^4.0.3",
+        "is-number": "^7.0.0",
+        "mime-db": "^1.52.0",
+        "mime-types": "^2.1.35",
+        "nanoid": "^3.3.6",
+        "normalize-path": "^3.0.0",
+        "picocolors": "^1.0.0",
+        "picomatch": "^2.3.1",
+        "proxy-from-env": "^1.1.0",
+        "readdirp": "^3.6.0",
+        "rollup": "^3.26.2",
+        "source-map-js": "^1.0.2",
+        "sweetalert2": "^11.7.23",
+        "to-regex-range": "^5.0.1",
+        "vite-plugin-full-reload": "^1.0.5"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Mendozape/crud-users.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Mendozape/crud-users/issues"
+    },
+    "homepage": "https://github.com/Mendozape/crud-users#readme",
+    "type": "module"
 }

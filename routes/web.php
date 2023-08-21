@@ -27,6 +27,7 @@ Route::get('/', function () {
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
+
     'verified'
 ])->group(function () {
     Route::get('/dashboard', function () {
@@ -55,3 +56,4 @@ Route::middleware(['auth'])->group(function(){
 
 //Route Hooks - Do not delete//
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
+
