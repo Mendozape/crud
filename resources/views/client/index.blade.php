@@ -61,7 +61,6 @@
 @stop
 
 
-
 @section('js')
 @vite(['resources/js/app.js'])
 @if (Session::has('user_deleted'))
