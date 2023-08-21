@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'MY LARAVEL SYSTEM',
+    'title' => 'MY LARAVEL',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -63,7 +63,7 @@ return [
     |
     */
 
-    'logo' => '<b>MY LARAVEL SYSTEM</b>',
+    'logo' => '<b>MY LARAVEL</b>',
     'logo_img' => 'vendor/adminlte/dist/img/laravel.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,

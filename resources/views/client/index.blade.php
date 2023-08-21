@@ -6,7 +6,7 @@
   <div class="section-header" align="center">
     <h1>Listado</h1>
     @can('crear-cliente')
-    <a href="{{ route('client.create') }}" class="btn btn-primary">Altasx</a>
+    <a href="{{ route('client.create') }}" class="btn btn-primary">Altas</a>
     @endcan
   </div>
   <div class="section-body">
@@ -55,13 +55,16 @@
         </div>
       </div>
     </div>
-    
+
   </div>
-  
 </section>
 @stop
+
+
+
 @section('js')
 @vite(['resources/js/app.js'])
+@if (Session::has('user_deleted'))
 <script>
   Swal.fire(
     'Borrado!',
@@ -69,49 +72,41 @@
     'Exito'
   )
 </script>
-@if (Session::has('user_deleted'))
-  <script>
-    Swal.fire(
-      'Borrado!',
-      'El registro ha sido eliminado.',
-      'Exito'
-    )
-  </script>
-  @endif
-  @if (Session::has('user_edited'))
-  <script>
-    Swal.fire(
-      'Editado!',
-      'El registro ha sido editado.',
-      'Exito'
-    )
-  </script>
-  @endif
-  @if (Session::has('user_added'))
-  <script>
-    Swal.fire(
-      'Agregado!',
-      'El registro ha sido agregado.',
-      'Exito'
-    )
-  </script>
-  @endif
-  <script>
-    $('.form-delete').submit(function(e) {
-      e.preventDefault();
-      Swal.fire({
-        title: 'Está seguro?',
-        text: "No se podrá revertir!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, Eliminarlo!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.submit();
-        }
-      })
-    });
-  </script>
+@endif
+@if (Session::has('user_edited'))
+<script>
+  Swal.fire(
+    'Editado!',
+    'El registro ha sido editado.',
+    'Exito'
+  )
+</script>
+@endif
+@if (Session::has('user_added'))
+<script>
+  Swal.fire(
+    'Agregado!',
+    'El registro ha sido agregado.',
+    'Exito'
+  )
+</script>
+@endif
+<script>
+  $('.form-delete').submit(function(e) {
+    e.preventDefault();
+    Swal.fire({
+      title: 'Está seguro?',
+      text: "No se podrá revertir!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, Eliminarlo!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.submit();
+      }
+    })
+  });
+</script>
 @stop

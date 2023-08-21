@@ -1,5 +1,7 @@
 // Import our custom CSS
+import jQuery from 'jquery';
+window.$ = jQuery;
 import './bootstrap';
 import '../sass/app.scss';
-import {swal} from 'sweetalert2';
-window.swal = swal;
+import Swal from 'sweetalert2';
+window.Swal = Swal;
