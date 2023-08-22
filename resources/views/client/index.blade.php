@@ -1,7 +1,7 @@
+@section('plugins.Sweetalert2', true);
 @extends('adminlte::page')
 @section('title', 'MY LARAVEL SYSTEM')
 @section('content')
-
 <section class="section">
   <div class="section-header" align="center">
     <h1>Listado</h1>
@@ -57,10 +57,9 @@
     </div>
 
   </div>
+  
 </section>
 @stop
-
-
 @section('js')
 @vite(['resources/js/app.js'])
 @if (Session::has('user_deleted'))

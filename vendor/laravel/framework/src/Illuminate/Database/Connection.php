@@ -1080,7 +1080,7 @@ class Connection implements ConnectionInterface
      */
     protected function escapeString($value)
     {
-        return $this->getPdo()->quote($value);
+        return $this->getReadPdo()->quote($value);
     }
 
     /**
@@ -1546,6 +1546,22 @@ class Connection implements ConnectionInterface
     public function getQueryLog()
     {
         return $this->queryLog;
+    }
+
+    /**
+     * Get the connection query log with embedded bindings.
+     *
+     * @return array
+     */
+    public function getRawQueryLog()
+    {
+        return array_map(fn (array $log) => [
+            'raw_query' => $this->queryGrammar->substituteBindingsIntoRawSql(
+                $log['query'],
+                $this->prepareBindings($log['bindings'])
+            ),
+            'time' => $log['time'],
+        ], $this->getQueryLog());
     }
 
     /**

@@ -96,9 +96,11 @@ class Builder implements BuilderContract
         'avg',
         'count',
         'dd',
+        'ddRawSql',
         'doesntExist',
         'doesntExistOr',
         'dump',
+        'dumpRawSql',
         'exists',
         'existsOr',
         'explain',
@@ -116,6 +118,7 @@ class Builder implements BuilderContract
         'rawValue',
         'sum',
         'toSql',
+        'toRawSql',
     ];
 
     /**
@@ -1136,10 +1139,21 @@ class Builder implements BuilderContract
 
         $column = $this->model->getUpdatedAtColumn();
 
-        $values = array_merge(
-            [$column => $this->model->freshTimestampString()],
-            $values
-        );
+        if (! array_key_exists($column, $values)) {
+            $timestamp = $this->model->freshTimestampString();
+
+            if (
+                $this->model->hasSetMutator($column)
+                || $this->model->hasAttributeSetMutator($column)
+                || $this->model->hasCast($column)
+            ) {
+                $timestamp = $this->model->newInstance()
+                    ->forceFill([$column => $timestamp])
+                    ->getAttributes()[$column];
+            }
+
+            $values = array_merge([$column => $timestamp], $values);
+        }
 
         $segments = preg_split('/\s+as\s+/i', $this->query->from);
 

@@ -24,8 +24,7 @@ class ClientController extends Controller
        $client=Client::paginate(5);
        //$permisos = Permission::pluck('name','id');
 //$client->fragment('Registros')->SetPageName('Pagina')->withQueryString();
-        return view('client.index')
-        ->with('clientes',$client);
+        return view('client.index')->with('clientes',$client);
         //return view('client.index',compact('client','permisos'));
     }
 
@@ -83,8 +82,7 @@ class ClientController extends Controller
      */
     public function edit(Client $client)
     {
-        return view('client.form')
-                    ->with('client',$client);
+        return view('client.form')->with('client',$client);
     }
 
     /**
@@ -110,8 +108,9 @@ class ClientController extends Controller
             $client->image=$image_name;
         }
         $client->save();
-        //Session::flash('user_edited','El registro ha sido editado con éxito');
-        return redirect()->route('client.index')->with('user_edited','El registro ha sido editado con éxito');
+        Session::flash('user_edited','El registro ha sido editado con éxito');
+        //return redirect()->route('client.index')->with('user_edited','El registro ha sido editado con éxito');
+        return redirect()->route('client.index');
     }
 
     /**
