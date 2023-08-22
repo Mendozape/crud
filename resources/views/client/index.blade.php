@@ -1,12 +1,12 @@
-@section('plugins.Sweetalert2', true);
 @extends('adminlte::page')
+@section('plugins.Sweetalert2', true);
 @section('title', 'MY LARAVEL SYSTEM')
 @section('content')
 <section class="section">
   <div class="section-header" align="center">
     <h1>Listado</h1>
     @can('crear-cliente')
-    <a href="{{ route('client.create') }}" class="btn btn-primary">Altas</a>
+    <a href="{{ route('client.create') }}" class="btn btn-primary">Altasx</a>
     @endcan
   </div>
   <div class="section-body">
@@ -60,7 +60,7 @@
   
 </section>
 @stop
-@section('js')
+@push('js')
 @vite(['resources/js/app.js'])
 @if (Session::has('user_deleted'))
 <script>
@@ -107,4 +107,4 @@
     })
   });
 </script>
-@stop
+@endpush
