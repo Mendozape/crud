@@ -1,6 +1,6 @@
 @extends('adminlte::page')
+@section('plugins.Sweetalert2', true)
 @section('title', 'MY LARAVEL SYSTEM')
-
 @section('content')
 <section class="section" align="center">
     <div class="section-header">
@@ -49,7 +49,7 @@
 </section>
 @stop
 @section('js')
-<script src="{{asset('js/app.js')}}"></script>
+@vite(['resources/js/app.js'])
 @if (Session::has('role_deleted'))
 <script>
     Swal.fire(

@@ -21,7 +21,8 @@ class ClientController extends Controller
      */
     public function index()
     {
-       $client=Client::paginate(5);
+       //$client=Client::paginate(5);
+       $client=Client::all();
        //$permisos = Permission::pluck('name','id');
 //$client->fragment('Registros')->SetPageName('Pagina')->withQueryString();
         return view('client.index')->with('clientes',$client);

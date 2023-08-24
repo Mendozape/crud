@@ -1,4 +1,5 @@
 @extends('adminlte::page')
+@section('plugins.Sweetalert2', true)
 @section('title', 'MY LARAVEL SYSTEM')
 @section('content')
 <section class="section" align="center">
@@ -11,7 +12,7 @@
                 <div class="card">
                     <div class="card-body">
                         @can('crear-permisos')
-                        <a href="{{ route('permisos.create') }}" class="btn btn-warning"> Nuevo</a>
+                        <a href="{{ route('permisos.create') }}" class="btn btn-warning"> Nuevos</a>
                         @endcan
                         <table class="table">
 
@@ -49,7 +50,7 @@
 @stop
 
 @section('js')
-<script src="{{asset('js/app.js')}}"></script>
+@vite(['resources/js/app.js'])
 @if (Session::has('permiso_deleted'))
 <script>
     Swal.fire(

@@ -1,6 +1,11 @@
 @extends('adminlte::page')
-@section('plugins.Sweetalert2', true);
+@section('plugins.Sweetalert2', true)
 @section('title', 'MY LARAVEL SYSTEM')
+@section('css')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+@stop
 @section('content')
 <section class="section">
   <div class="section-header" align="center">
@@ -14,14 +19,16 @@
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <table class="table">
-              <tr>
-                <th>Nombre</th>
-                <th>Salario</th>
-                <th>Comentarios</th>
-                <th>Imagen</th>
-                <th>Acciones</th>
-              </tr>
+            <table class="table" id="clientes">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Salario</th>
+                  <th>Comentarios</th>
+                  <th>Imagen</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
               <tbody>
                 @forelse ($clientes as $details)
                 <tr>
@@ -50,18 +57,42 @@
                 @endforelse
               </tbody>
             </table>
-            <div class="pagination justify-content-center"> {!! $clientes->links() !!} </div>
           </div>
         </div>
       </div>
     </div>
 
   </div>
-  
+
 </section>
 @stop
-@push('js')
+@section('js')
 @vite(['resources/js/app.js'])
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<script>
+  
+  new DataTable('#clientes', {
+    responsive: true,
+    autoWidth: false,
+    pageLength : 5,
+    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, 'Todos']],
+    "language": {
+      info: 'mostrando página _PAGE_ de _PAGES_',
+      infoEmpty: 'No registros encontrados',
+      infoFiltered: '(filtered from _MAX_ total records)',
+      lengthMenu: 'mostrando _MENU_ registros por página',
+      zeroRecords: 'No registros encontrados',
+      paginate: {
+        previous: "anterior",
+        next: "siguiente"
+      }
+    }
+  });
+  
+</script>
 @if (Session::has('user_deleted'))
 <script>
   Swal.fire(
@@ -107,4 +138,4 @@
     })
   });
 </script>
-@endpush
+@stop
