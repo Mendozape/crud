@@ -1,20 +1,16 @@
 @extends('adminlte::page')
 @section('plugins.Sweetalert2', true)
 @section('title', 'MY LARAVEL SYSTEM')
-@section('css')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-@stop
+
 @section('content')
 <section class="section">
-  <div class="section-header" align="center">
+  <div class="section-header" align="center" >
     <h1>Listado</h1>
     @can('crear-cliente')
-    <a href="{{ route('client.create') }}" class="btn btn-primary">Altasx</a>
+    <a href="{{ route('client.create') }}" class="btn btn-primary">Altas</a>
     @endcan
   </div>
-  <div class="section-body">
+  <div class="section-body mt-2">
     <div class="row">
       <div class="col-lg-12">
         <div class="card">
@@ -66,6 +62,11 @@
 
 </section>
 @stop
+@section('css')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+@stop
 @section('js')
 @vite(['resources/js/app.js'])
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -73,7 +74,6 @@
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 <script>
-  
   new DataTable('#clientes', {
     responsive: true,
     autoWidth: false,
