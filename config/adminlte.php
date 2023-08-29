@@ -362,9 +362,10 @@ return [
                     'url'  => 'livewire',
                 ],
                 [
-                    'text' => 'CRUD with Livewire',
-                    'url'  => 'crudlive',
+                    'text' => 'CRUD Clients',
+                    'url'  => 'clients',
                 ],
+                
             ],
         ],
     ],

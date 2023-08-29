@@ -39,7 +39,7 @@ Route::middleware([
 Route::middleware(['auth'])->group(function(){
     Route::get('/home', function () { return view('/index'); });
     Route::get('/livewire',function () { return view('/livewire/home'); });
-    Route::get('/crudlive',function () { return view('/livewire/crud/home'); });
+    //Route::get('/crudlive',function () { return view('/livewire/crud/home'); });
     Route::resource('permisos',PermisosController::class);
     Route::resource('roles',RolesController::class);
     Route::resource('client',ClientController::class);
@@ -55,5 +55,6 @@ Route::middleware(['auth'])->group(function(){
 
 
 //Route Hooks - Do not delete//
+	//Route::view('users', 'livewire.users.index')->middleware('auth');
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
 

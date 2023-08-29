@@ -3,7 +3,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="createDataModalLabel">Create New Client</h5>
+                <h5 class="modal-title" id="createDataModalLabel">Create New Clientx</h5>
                 <button wire:click.prevent="cancel()" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
            <div class="modal-body">
@@ -20,10 +20,7 @@
                         <label for="comments"></label>
                         <input wire:model="comments" type="text" class="form-control" id="comments" placeholder="Comments">@error('comments') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
-                    <div class="form-group">
-                        <label for="image"></label>
-                        <input wire:model="image" type="text" class="form-control" id="image" placeholder="Image">@error('image') <span class="error text-danger">{{ $message }}</span> @enderror
-                    </div>
+                    
 
                 </form>
             </div>
@@ -58,10 +55,7 @@
                         <label for="comments"></label>
                         <input wire:model="comments" type="text" class="form-control" id="comments" placeholder="Comments">@error('comments') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
-                    <div class="form-group">
-                        <label for="image"></label>
-                        <input wire:model="image" type="text" class="form-control" id="image" placeholder="Image">@error('image') <span class="error text-danger">{{ $message }}</span> @enderror
-                    </div>
+                    
 
                 </form>
             </div>
