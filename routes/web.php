@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function(){
 
 
 //Route Hooks - Do not delete//
+	Route::view('employees', 'livewire.employees.index')->middleware('auth');
 	//Route::view('users', 'livewire.users.index')->middleware('auth');
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
 
