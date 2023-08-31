@@ -3,9 +3,6 @@
 <livewire:styles />
 @stop
 @section('content')
-    <livewire:employees />
+    <livewire:dataTables />
     <livewire:scripts />
-@stop
-@section('js')
-@vite(['resources/js/app.js'])
 @stop

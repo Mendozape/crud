@@ -6,3 +6,6 @@
     <livewire:clients />
     @livewireScripts
 @stop
+@section('js')
+@vite(['resources/js/app.js'])
+@stop

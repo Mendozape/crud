@@ -20,7 +20,10 @@
                         <label for="comments"></label>
                         <input wire:model="comments" type="text" class="form-control" id="comments" placeholder="Comments">@error('comments') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
-                    
+                    <div class="form-group">
+                        <label for="image"></label>
+                        <input wire:model="image" type="text" class="form-control" id="image" placeholder="Image">@error('image') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
 
                 </form>
             </div>
@@ -55,7 +58,10 @@
                         <label for="comments"></label>
                         <input wire:model="comments" type="text" class="form-control" id="comments" placeholder="Comments">@error('comments') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
-                    
+                    <div class="form-group">
+                        <label for="image"></label>
+                        <input wire:model="image" type="text" class="form-control" id="image" placeholder="Image">@error('image') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
 
                 </form>
             </div>

@@ -1,6 +1,3 @@
-@extends('adminlte::page')
-@section('title', 'CRUD LIVEWIRE')
-@section('content')
 <div class="container-fluid">
 	<div class="row justify-content-center">
 		<div class="col-md-12">
@@ -71,7 +68,3 @@
 		</div>
 	</div>
 </div>
-@stop
-@section('js')
-@vite(['resources/js/app.js'])
-@stop

@@ -14,6 +14,7 @@
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
     <!-- Scripts -->
     @vite(['resources/js/app.js'])
+    <livewire:styles />
 </head>
 <body>
     <div id="app">
@@ -73,6 +74,7 @@
 
         <main class="py-4">
             @yield('content')
+            <livewire:scripts />
         </main>
     </div>
 </body>

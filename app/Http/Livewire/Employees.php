@@ -12,6 +12,7 @@ class Employees extends Component
 
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $due, $comments, $image;
+    public $modal=false;
 
     public function render()
     {
@@ -64,11 +65,34 @@ class Employees extends Component
     {
         $record = Employee::findOrFail($id);
         $this->selected_id = $id; 
+		$this->name = $record-> name;
+		$this->due = $record-> due;
+        $this->comments = $record-> comments;
+		$this->image = $record-> image;
+    }
+    /*public function abrirModal()
+    {
+        $this->modal = true; 
+    }
+    public function limpiar()
+    {
+        
 		$this->name = '';
+		$this->comments = '';
+		$this->image = '';
+    }
+
+    public function editar($id)
+    {
+        $record = Employee::findOrFail($id);
+        $this->selected_id = $id; 
+		$this->name = $record-> name;
+        $this->due = $record-> due;
 		$this->comments = $record-> comments;
 		$this->image = $record-> image;
-       
-    }
+        $this->abrirModal();
+        $this->dispatchBrowserEvent('closeModal');
+    }*/
 
     public function update()
     {
