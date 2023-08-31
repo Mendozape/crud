@@ -8,6 +8,7 @@ use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Livewire\Counter;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes

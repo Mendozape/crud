@@ -64,10 +64,10 @@ class Employees extends Component
     {
         $record = Employee::findOrFail($id);
         $this->selected_id = $id; 
-		$this->name = $record-> name;
-		$this->due = $record-> due;
+		$this->name = '';
 		$this->comments = $record-> comments;
 		$this->image = $record-> image;
+       
     }
 
     public function update()

@@ -1,8 +1,5 @@
 @extends('adminlte::page')
 @section('title', 'CRUD LIVEWIRE')
-@section('content_header')
-    @livewireStyles
-@stop
 @section('content')
 <div class="container-fluid">
 	<div class="row justify-content-center">
@@ -74,7 +71,6 @@
 		</div>
 	</div>
 </div>
-@livewireScripts
 @stop
 @section('js')
 @vite(['resources/js/app.js'])
