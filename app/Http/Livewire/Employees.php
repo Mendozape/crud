@@ -60,7 +60,22 @@ class Employees extends Component
 		$this->dispatchBrowserEvent('closeModal');
 		session()->flash('message', 'Employee Successfully created.');
     }
-
+    
+    public function closeModal()
+    {
+        $this->modal = false; 
+    }
+    public function cleanData()
+    {
+        
+		$this->name = '';
+		$this->comments = '';
+		$this->image = '';
+    }
+    public function openModal()
+    {
+        $this->modal = true; 
+    }
     public function edit($id)
     {
         $record = Employee::findOrFail($id);
@@ -69,30 +84,8 @@ class Employees extends Component
 		$this->due = $record-> due;
         $this->comments = $record-> comments;
 		$this->image = $record-> image;
+        $this->modal = true;
     }
-    /*public function abrirModal()
-    {
-        $this->modal = true; 
-    }
-    public function limpiar()
-    {
-        
-		$this->name = '';
-		$this->comments = '';
-		$this->image = '';
-    }
-
-    public function editar($id)
-    {
-        $record = Employee::findOrFail($id);
-        $this->selected_id = $id; 
-		$this->name = $record-> name;
-        $this->due = $record-> due;
-		$this->comments = $record-> comments;
-		$this->image = $record-> image;
-        $this->abrirModal();
-        $this->dispatchBrowserEvent('closeModal');
-    }*/
 
     public function update()
     {
@@ -111,7 +104,7 @@ class Employees extends Component
 			'comments' => $this-> comments,
 			'image' => $this-> image
             ]);
-
+            $this->cerrarModal();
             $this->resetInput();
             $this->dispatchBrowserEvent('closeModal');
 			session()->flash('message', 'Employee Successfully updated.');
