@@ -19,9 +19,9 @@
 						</div>
 					</div>
 				</div>
-				
 				<div class="card-body">
 						@include('livewire.employees.modals')
+						
 				<div class="table-responsive">
 					<table class="table table-bordered table-sm">
 						<thead class="thead">
