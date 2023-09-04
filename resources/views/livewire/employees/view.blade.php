@@ -19,7 +19,6 @@
 						</div>
 					</div>
 				</div>
-				
 				<div class="card-body">
 						@include('livewire.employees.modals')
 						

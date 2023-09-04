@@ -1,11 +1,8 @@
 <?php
-
 namespace App\Http\Livewire;
-
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Employee;
-
 class Employees extends Component
 {
     use WithPagination;
@@ -13,7 +10,7 @@ class Employees extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $due, $comments, $image;
     public $modal=false;
-
+    
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
@@ -61,32 +58,40 @@ class Employees extends Component
 		session()->flash('message', 'Employee Successfully created.');
     }
     
-    public function closeModal()
+    /*public function abrirModal()
     {
-        $this->modal = false; 
+        $this->modal = true; 
     }
-    public function cleanData()
+    public function limpiar()
     {
         
 		$this->name = '';
 		$this->comments = '';
 		$this->image = '';
     }
-    public function openModal()
+
+    public function editar($id)
     {
-        $this->modal = true; 
+        $record = Employee::findOrFail($id);
+        $this->selected_id = $id; 
+		$this->name = $record-> name;
+        $this->due = $record-> due;
+		$this->comments = $record-> comments;
+		$this->image = $record-> image;
+        $this->abrirModal();
+        $this->dispatchBrowserEvent('closeModal');
     }
     public function edit($id)
     {
         $record = Employee::findOrFail($id);
         $this->selected_id = $id; 
 		$this->name = $record-> name;
-		$this->due = $record-> due;
-        $this->comments = $record-> comments;
+        $this->due = $record-> due;
+		$this->comments = $record-> comments;
 		$this->image = $record-> image;
-        $this->modal = true;
+        //$this->modal = true;
+        //$this->dispatchBrowserEvent('closeModal');
     }
-
     public function update()
     {
         $this->validate([
