@@ -6,7 +6,6 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\Livewire\Counter;
 
 
 /*

@@ -1,7 +1,10 @@
 import loadash from 'lodash';
 window._ = loadash;
 
-
+import jQuery from 'jquery';
+window.$ = jQuery;
+import Swal from 'sweetalert2';
+window.Swal = Swal;
 import * as Popper from '@popperjs/core';
 window.Popper = Popper;
 import 'bootstrap';
