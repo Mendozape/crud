@@ -20,8 +20,8 @@
 					</div>
 				</div>
 				<div class="card-body">
-						@include('livewire.employees.modals')
-						
+					@include('livewire.employees.modals')
+					
 				<div class="table-responsive">
 					<table class="table table-bordered table-sm">
 						<thead class="thead">
@@ -42,11 +42,17 @@
 								<td>{{ $row->due }}</td>
 								<td>{{ $row->comments }}</td>
 								<td>{{ $row->image }}</td>
-								<td width="90">								
-									<button type="button" wire:click="edit({{$row->id}})" class="btn btn-primary">Edit</button>
-									@if($modal)
-										@include('livewire.employees.edit')
-									@endif
+								<td width="90">
+									<div class="dropdown">
+										<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+											Actions
+										</a>
+										<ul class="dropdown-menu">
+											<li><a data-bs-toggle="modal" data-bs-target="#updateDataModal" class="dropdown-item" wire:click="edit({{ $row->id }})"><i class="fa fa-edit"></i> Edit </a></li>
+											
+										</ul>
+									</div>
+									<a class="btn btn-danger" wire:click="destroy({{ $row->id }})">Delete</a>
 								</td>
 							</tr>
 							@empty

@@ -11,24 +11,44 @@
     </div>
 </div>
 @livewireScripts
+<script>
+    Livewire.on('deleteEmployee')
+    Swal.fire(
+    'Borrado!',
+    'El usuario ha sido eliminado.',
+    'Exito'
+  )
+
+    window.addEventListener('closeModal', event => {
+     $("#updateDataModal").modal('hide');
+    })
+    Livewire.on('deleteEmployee', employeeId => {
+                Swal.fire({
+                    title: '¿Estas seguro que deseas eliminar el empleado?',
+                    text: "Esta acción no se puede revertir",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Borrar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Livewire.emitTo('employees', 'destroy', employeeId);
+                        Swal.fire(
+                            'Eliminado',
+                            'El empleado ha sido eliminado',
+                            'success'
+                        )
+                    }
+                })
+    });
+    livewire.on('close2', (postId) => {
+     $('#updateDataModal' + postId).modal('hide');
+ })
+</script>
 @endsection
+
 @section('js')
 @vite(['resources/js/app.js'])
-<script>
-    window.addEventListener('closeModal', event => {
-        //$('#updateDataModal').modal('hide');
-        $('#updateDataModal').removeClass('in');
-        $('.modal-backdrop').remove();
-        $('#updateDataModal').hide();
-        //$("#updateDataModal").modal("hide");
-        /*$("#updateDataModal").removeClass("in");
-        $(".modal-backdrop").remove();
-        $('body').removeClass('modal-open');
-        $('body').css('padding-right', '');
-        $("#updateDataModal").hide();*/
-        $('#updateDataModal').on('shown', function () {
-      $('#updateDataModal').modal('hide');
-})
-    })
-</script>
 @stop

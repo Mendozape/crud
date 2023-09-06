@@ -10,18 +10,18 @@ class Employees extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $due, $comments, $image;
     public $modal=false;
+    protected $listeners = ['destroy'];
     
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        return view('livewire.employees.view', [
-            'employees' => Employee::latest()
+        $employees = Employee::latest()
 						->orWhere('name', 'LIKE', $keyWord)
 						->orWhere('due', 'LIKE', $keyWord)
 						->orWhere('comments', 'LIKE', $keyWord)
 						->orWhere('image', 'LIKE', $keyWord)
-						->paginate(10),
-        ]);
+						->paginate(10);
+        return view('livewire.employees.view', compact('employees'));
     }
 	
     public function cancel()
@@ -58,11 +58,8 @@ class Employees extends Component
 		session()->flash('message', 'Employee Successfully created.');
     }
     
-    /*public function abrirModal()
-    {
-        $this->modal = true; 
-    }
-    public function limpiar()
+    
+    /*public function limpiar()
     {
         
 		$this->name = '';
@@ -80,6 +77,10 @@ class Employees extends Component
 		$this->image = $record-> image;
         $this->abrirModal();
         $this->dispatchBrowserEvent('closeModal');
+    }*/
+    public function openModal()
+    {
+        $this->modal = true; 
     }
     public function edit($id)
     {
@@ -89,8 +90,9 @@ class Employees extends Component
         $this->due = $record-> due;
 		$this->comments = $record-> comments;
 		$this->image = $record-> image;
-        //$this->modal = true;
-        //$this->dispatchBrowserEvent('closeModal');
+        //$this->openModal();
+        //$this->emit('showx');
+        //$this->dispatchBrowserEvent('showx');
     }
     public function update()
     {
@@ -109,10 +111,13 @@ class Employees extends Component
 			'comments' => $this-> comments,
 			'image' => $this-> image
             ]);
-            $this->cerrarModal();
+            //$this->cerrarModal();
+            //$this->emit('close2');
             $this->resetInput();
+            //$this->emit('close2',$this->selected_id);
+            //$this->dispatchBrowserEvent('close2', $this->selected_id);
             $this->dispatchBrowserEvent('closeModal');
-			session()->flash('message', 'Employee Successfully updated.');
+			//session()->flash('message', 'Employee Successfully updated.');
         }
     }
 
@@ -121,5 +126,10 @@ class Employees extends Component
         if ($id) {
             Employee::where('id', $id)->delete();
         }
+        $this->dispatchBrowserEvent('swal:modal', [
+            'type' => 'success',
+            'message' => 'User Delete Successfully!', 
+            'text' => 'It will not list on users table soon.'
+        ]);
     }
 }
