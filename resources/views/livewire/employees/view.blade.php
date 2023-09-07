@@ -52,7 +52,7 @@
 											
 										</ul>
 									</div>
-									<a class="btn btn-danger" wire:click="destroy({{ $row->id }})">Delete</a>
+									<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})">Delete</a>
 								</td>
 							</tr>
 							@empty

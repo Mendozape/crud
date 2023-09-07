@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Livewire;
+use App\Models\Employee;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Employee;
+
 class Employees extends Component
 {
     use WithPagination;
@@ -10,8 +11,7 @@ class Employees extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $due, $comments, $image;
     public $modal=false;
-    protected $listeners = ['destroy'];
-    
+    protected $listeners = ['borrar' => 'destroy'] ;
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
@@ -123,14 +123,9 @@ class Employees extends Component
 
     public function destroy($id)
     {
-    
+        //dd('Employees destroy');
         if ($id) {
             Employee::where('id', $id)->delete();
         }
-        $this->dispatchBrowserEvent('swal:modal', [
-            'type' => 'success',
-            'message' => 'User Delete Successfully!', 
-            'text' => 'It will not list on users table soon.'
-        ]);
     }
 }

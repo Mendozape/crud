@@ -12,17 +12,13 @@
 </div>
 @livewireScripts
 <script>
-    Livewire.on('deleteEmployee')
-    Swal.fire(
-    'Borrado!',
-    'El usuario ha sido eliminado.',
-    'Exito'
-  )
-
+    livewire.on('closdeleteEmployeee2', () => {
+        Swal.fire('Any fool can use a computer')
+    })
     window.addEventListener('closeModal', event => {
      $("#updateDataModal").modal('hide');
     })
-    Livewire.on('deleteEmployee', employeeId => {
+    Livewire.on('borrar2', employeeId => {
                 Swal.fire({
                     title: '¿Estas seguro que deseas eliminar el empleado?',
                     text: "Esta acción no se puede revertir",
@@ -34,11 +30,9 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        Livewire.emitTo('employees', 'destroy', employeeId);
+                        Livewire.emitTo('employees', 'borrar', employeeId);
                         Swal.fire(
-                            'Eliminado',
-                            'El empleado ha sido eliminado',
-                            'success'
+                            'Eliminado'
                         )
                     }
                 })
