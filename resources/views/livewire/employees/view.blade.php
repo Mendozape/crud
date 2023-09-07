@@ -49,9 +49,9 @@
 										</a>
 										<ul class="dropdown-menu">
 											<li><a data-bs-toggle="modal" data-bs-target="#updateDataModal" class="dropdown-item" wire:click="edit({{ $row->id }})"><i class="fa fa-edit"></i> Edit </a></li>
-											
 										</ul>
 									</div>
+									<!--<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})">Delete</a>-->
 									<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})">Delete</a>
 								</td>
 							</tr>
