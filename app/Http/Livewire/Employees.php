@@ -11,7 +11,7 @@ class Employees extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $due, $comments, $image;
     public $modal=false;
-    protected $listeners = ['borrar' => 'destroy'] ;
+    protected $listeners = ['destroy'] ;
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
