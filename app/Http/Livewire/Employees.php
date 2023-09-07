@@ -123,6 +123,7 @@ class Employees extends Component
 
     public function destroy($id)
     {
+    
         if ($id) {
             Employee::where('id', $id)->delete();
         }
