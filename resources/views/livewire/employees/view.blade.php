@@ -31,7 +31,7 @@
 									<th>Due</th>
 									<th>Comments</th>
 									<th>Image</th>
-									<td>ACTIONS</td>
+									<th>ACTIONS</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -42,27 +42,19 @@
 									<td>{{ $row->due }}</td>
 									<td>{{ $row->comments }}</td>
 									<td>{{ $row->image }}</td>
-									<td width="90">
-										<!--<div class="dropdown">
-											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-												Actions
-											</a>
-											<ul class="dropdown-menu">
-												<li><a data-bs-toggle="modal" data-bs-target="#updateDataModal" class="dropdown-item" wire:click="edit({{ $row->id }})"><i class="fa fa-edit"></i> Edit </a></li>
-											</ul>
-										</div>
-										<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})">Delete</a>
-										<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})">Delete</a>
+									<td>
 										<div class="dropdown">
 											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 												Actions
 											</a>
 											<ul class="dropdown-menu">
 												<li><a data-bs-toggle="modal" data-bs-target="#updateDataModal" class="dropdown-item" wire:click="edit({{ $row->id }})"><i class="fa fa-edit"></i> Edit </a></li>
-												<li><a class="dropdown-item"  wire:click="destroy({{$row->id}})"><i class="fa fa-trash"></i> Delete </a></li>  
+												<li><a class="dropdown-item" wire:click="predestroy({{ $row->id }})"><i class="fa fa-trash"></i> Delete </a></li>
 											</ul>
-										</div>	-->
-										<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})">Delete</a>
+										</div>
+										<!-- 
+										<a class="btn btn-primary" wire:click="edit({{ $row->id }})">Editar</a>
+										<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})" id="delete">Delete</a>-->
 									</td>
 								</tr>
 								@empty
@@ -78,4 +70,30 @@
 			</div>
 		</div>
 	</div>
+	@push('js')
+	<script>
+		window.addEventListener('swal:confirm', event => {
+			Swal.fire({
+				title: event.detail.title,
+				text: event.detail.text,
+				html: event.detail.html,
+				icon: event.detail.type,
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				cancelButtonColor: '#33cc33',
+				confirmButtonText: event.detail.confirmButtonText
+			}).then((result) => {
+				if (result.isConfirmed) {
+					window.livewire.emit('destroy', event.detail.id);
+					Swal.fire({
+						icon: 'success',
+						title: 'Employee deleted successfully',
+						showConfirmButton: false,
+						timer: 1500
+					})
+				}
+			})
+		});
+	</script>
+	@endpush
 </div>

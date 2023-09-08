@@ -27,7 +27,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal" id="close_add">Close</button>
                 <button type="button" wire:click.prevent="store()" class="btn btn-primary">Save</button>
             </div>
         </div>
@@ -66,7 +66,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal" id="cerrar">Close</button>
+                <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal" id="close_edit">Close</button>
                 <button type="button" wire:click.prevent="update()" class="btn btn-primary">Save</button>
             </div>
        </div>

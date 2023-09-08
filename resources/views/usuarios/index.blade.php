@@ -77,7 +77,7 @@
 <script>
   Swal.fire(
     'Borrado!',
-    'El usuario ha sido eliminado.',
+    'El usuario ha sido eliminadoxx.',
     'Exito'
   )
 </script>
