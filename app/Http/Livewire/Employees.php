@@ -126,6 +126,21 @@ class Employees extends Component
         //dd('Employees destroy');
         if ($id) {
             Employee::where('id', $id)->delete();
-        }
+           /* $this->dispatchBrowserEvent('swal', [
+                'title' => 'Employee deleted successfully',
+                'timer'=>3000,
+                'icon'=>'success',
+                'toast'=>true
+            ]);*/
+        }/*else{
+            $this->dispatchBrowserEvent('swal', [
+                'title' => 'Something went wrong',
+                'timer'=>3000,
+                'icon'=>'success',
+                'toast'=>true
+            ]);
+
+        }*/
+       
     }
 }
