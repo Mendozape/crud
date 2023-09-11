@@ -56,7 +56,8 @@ class ClientController extends Controller
         if($request->hasFile('image')){
             $image= $request->file('image');
             $image_name = $image->getClientOriginalName();
-            $request->image->move(public_path('storage/images'), $image_name);
+            $request->image->store('images');
+            //$request->image->move(public_path('storage/images'), $image_name);
             $input['image']=$image_name;
         }
         $clien= Client::create($input);

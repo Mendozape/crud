@@ -5,7 +5,8 @@ namespace App\Http\Livewire;
 use App\Models\Employee;
 use Livewire\Component;
 use Livewire\WithPagination;
-
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 class Employees extends Component
 {
     use WithPagination;
@@ -14,6 +15,7 @@ class Employees extends Component
     public $selected_id, $keyWord, $name, $due, $comments, $image;
     public $modal = false;
     protected $listeners = ['destroy'];
+    use WithFileUploads;
     public function render()
     {
         $keyWord = '%' . $this->keyWord . '%';
@@ -41,43 +43,32 @@ class Employees extends Component
 
     public function store()
     {
+        
         $this->validate([
             'name' => 'required',
             'due' => 'required|numeric|gte:1',
             'comments' => 'required',
-            'image' => 'required',
+            'image' => 'image|max:1024',
         ]);
+       
+        //if($this->name->hasFile('image')){
+            //$image= $this->name;
+            //$image_name = $image->getClientOriginalName();
+            $image_name=$this->image->getClientOriginalName();
+       // }
+        //$this->image->store('images');
+        //Storage::disk('local')->put('asdad.txt', 'images');
+        Storage::disk('public')->get($this->image);
         Employee::create([
             'name' => $this->name,
             'due' => $this->due,
             'comments' => $this->comments,
-            'image' => $this->image
+            'image' => $image_name
         ]);
         $this->emit('saved', $this->name);
         $this->resetInput();
         //session()->flash('message', 'Employee Successfully created.');
     }
-
-
-    /*public function limpiar()
-    {
-        
-		$this->name = '';
-		$this->comments = '';
-		$this->image = '';
-    }
-
-    public function editar($id)
-    {
-        $record = Employee::findOrFail($id);
-        $this->selected_id = $id; 
-		$this->name = $record-> name;
-        $this->due = $record-> due;
-		$this->comments = $record-> comments;
-		$this->image = $record-> image;
-        $this->abrirModal();
-        $this->dispatchBrowserEvent('closeModal');
-    }*/
     public function openModal()
     {
         $this->modal = true;
@@ -114,20 +105,18 @@ class Employees extends Component
     }
     public function predestroy($id)
     {
-        $this->dispatchBrowserEvent('swal:confirm', [
-            'type' => 'warning',
-            'title' => __('Are you sure?'),
-            'html' => __('Are you <strong>agree</strong>?'),
-            'confirmButtonText' => __('SURE???'),
+        $record = Employee::findOrFail($id);
+       $this->dispatchBrowserEvent('swal:confirm', [
+            'html' => $record->name,
             'id' => $id
         ]);
     }
     public function destroy($id)
     {
+        $record = Employee::find($id);
         if ($id) {
             Employee::where('id', $id)->delete();
-            //$this->emit('test','adasd');
+            $this->dispatchBrowserEvent('swal:deleted', ['title' => $record->name]);
         }
     }
-    
 }

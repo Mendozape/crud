@@ -41,7 +41,7 @@
 									<td>{{ $row->name }}</td>
 									<td>{{ $row->due }}</td>
 									<td>{{ $row->comments }}</td>
-									<td>{{ $row->image }}</td>
+									<td><img height="50px" src="{{ asset('storage/images/'.$row->image)}}" /></td>
 									<td>
 										<div class="dropdown">
 											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -52,9 +52,6 @@
 												<li><a class="dropdown-item" wire:click="predestroy({{ $row->id }})"><i class="fa fa-trash"></i> Delete </a></li>
 											</ul>
 										</div>
-										<!-- 
-										<a class="btn btn-primary" wire:click="edit({{ $row->id }})">Editar</a>
-										<a class="btn btn-danger" wire:click="$emit('borrar2', {{ $row->id }})" id="delete">Delete</a>-->
 									</td>
 								</tr>
 								@empty
@@ -70,30 +67,4 @@
 			</div>
 		</div>
 	</div>
-	@push('js')
-	<script>
-		window.addEventListener('swal:confirm', event => {
-			Swal.fire({
-				title: event.detail.title,
-				text: event.detail.text,
-				html: event.detail.html,
-				icon: event.detail.type,
-				showCancelButton: true,
-				confirmButtonColor: '#d33',
-				cancelButtonColor: '#33cc33',
-				confirmButtonText: event.detail.confirmButtonText
-			}).then((result) => {
-				if (result.isConfirmed) {
-					window.livewire.emit('destroy', event.detail.id);
-					Swal.fire({
-						icon: 'success',
-						title: 'Employee deleted successfully',
-						showConfirmButton: false,
-						timer: 1500
-					})
-				}
-			})
-		});
-	</script>
-	@endpush
 </div>
