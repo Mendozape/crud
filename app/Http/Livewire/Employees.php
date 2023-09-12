@@ -12,7 +12,7 @@ class Employees extends Component
     use WithPagination;
 
     protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $due, $comments, $image;
+    public $selected_id, $keyWord, $name, $due, $comments, $image,$existe;
     public $modal = false;
     protected $listeners = ['destroy'];
     use WithFileUploads;
@@ -43,16 +43,15 @@ class Employees extends Component
 
     public function store()
     {
-        
         $this->validate([
             'name' => 'required',
             'due' => 'required|numeric|gte:1',
             'comments' => 'required',
             'image' => 'image|max:2048',
         ]);
-       
-        if($this->name->hasFile('image')){
+        if (!empty($this->image)) {
             $image_name = $this->image->getClientOriginalName();
+            //dd($image_name);
             $this->image->storeAs('public/images', $image_name);
         }
         Employee::create([
@@ -65,18 +64,23 @@ class Employees extends Component
         $this->resetInput();
         //session()->flash('message', 'Employee Successfully created.');
     }
-    public function openModal()
-    {
-        $this->modal = true;
-    }
+    
     public function edit($id)
     {
+        $this->reset();
+        //$this->openModal();
         $record = Employee::findOrFail($id);
         $this->selected_id = $id;
         $this->name = $record->name;
         $this->due = $record->due;
         $this->comments = $record->comments;
         $this->image = $record->image;
+        $this->existe=Storage::disk('public')->exists($this->image);
+        //dd( $this->existe );
+    }
+    public function openModal()
+    {
+        $this->modal = true;
     }
     public function update()
     {
@@ -86,9 +90,14 @@ class Employees extends Component
             'comments' => 'required',
             'image' => 'required',
         ]);
-
+        //dd( $this->image);
         if ($this->selected_id) {
             $record = Employee::find($this->selected_id);
+            if (!empty($this->image)) {
+                $image_name = $this->image->getClientOriginalName();
+                //dd($image_name);
+                $this->image->storeAs('public/images', $image_name);
+            }
             $record->update([
                 'name' => $this->name,
                 'due' => $this->due,

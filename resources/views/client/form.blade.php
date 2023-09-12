@@ -36,7 +36,7 @@
             </div>
             @if(isset($client))
             <div class="input-group mb-3">
-                <img height="50px" src="{{ asset('storage/images/'.$client->image)}}" />
+                <img height="50px" src="{{ asset('storage/'.$client->image)}}" />
             </div>
             @endif
             <div class="input-group mb-3">

@@ -369,7 +369,6 @@ return [
                     'text' => 'CRUD employee',
                     'url'  => 'employees',
                 ],
-                
             ],
         ],
     ],
