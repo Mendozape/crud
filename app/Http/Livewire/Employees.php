@@ -48,17 +48,13 @@ class Employees extends Component
             'name' => 'required',
             'due' => 'required|numeric|gte:1',
             'comments' => 'required',
-            'image' => 'image|max:1024',
+            'image' => 'image|max:2048',
         ]);
        
-        //if($this->name->hasFile('image')){
-            //$image= $this->name;
-            //$image_name = $image->getClientOriginalName();
-            $image_name=$this->image->getClientOriginalName();
-       // }
-        //$this->image->store('images');
-        //Storage::disk('local')->put('asdad.txt', 'images');
-        Storage::disk('public')->get($this->image);
+        if($this->name->hasFile('image')){
+            $image_name = $this->image->getClientOriginalName();
+            $this->image->storeAs('public/images', $image_name);
+        }
         Employee::create([
             'name' => $this->name,
             'due' => $this->due,
