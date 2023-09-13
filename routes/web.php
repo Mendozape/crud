@@ -6,6 +6,10 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+
+
 
 
 /*
@@ -58,4 +62,6 @@ Route::middleware(['auth'])->group(function(){
 	Route::view('employees', 'livewire.employees.index')->middleware('auth');
 	//Route::view('users', 'livewire.users.index')->middleware('auth');
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
+    
+    Route::get('local/temp/{path}', function (string $path){ return Storage::disk('local')->download($path);})->name('local.temp');
 

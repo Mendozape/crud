@@ -7,6 +7,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 class Employees extends Component
 {
     use WithPagination;
@@ -74,7 +75,12 @@ class Employees extends Component
         $this->due = $record->due;
         $this->comments = $record->comments;
         $this->image = $record->image;
-        //dd( $this->image2);
+        /*if($this->image) {
+            $this->image = $record->image;
+        }*/
+        //$this->image = $record->image;
+        //$ubica=Storage::disk('public')->temporaryUrl('pp12.jpeg', now()->addMinutes(5));
+        //dd( $ubica);
         //$this->image2 = $record->image;
         //$this->existe=Storage::disk('public')->exists($this->image);
         //dd(  $this->image);

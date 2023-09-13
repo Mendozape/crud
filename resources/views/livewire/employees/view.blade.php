@@ -20,7 +20,8 @@
 					</div>
 				</div>
 				<div class="card-body">
-					@include('livewire.employees.modals')
+					@include('livewire.employees.create')
+					@include('livewire.employees.edit')
 					<div class="table-responsive">
 						<table class="table table-bordered table-sm">
 							<thead class="thead">
@@ -40,7 +41,7 @@
 									<td>{{ $row->name }}</td>
 									<td>{{ $row->due }}</td>
 									<td>{{ $row->comments }}</td>
-									<td><img height="50px" src="{{ asset('storage/images/'.$row->image)}}" /></td>
+									<td><img height="50px" src="{{ asset('storage/'.$row->image)}}" /></td>
 									<td>
 										<div class="dropdown">
 											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
