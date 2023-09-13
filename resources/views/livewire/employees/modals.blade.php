@@ -1,4 +1,5 @@
 
+<form wire:submit.prevent="store">
     <div wire:ignore.self class="modal fade" id="createDataModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -20,24 +21,31 @@
                             <label for="comments"></label>
                             <input wire:model="comments" type="text" class="form-control" id="comments" placeholder="Comments">@error('comments') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
+                        <!--<div class="form-group">
+                            @if ($image)
+                                Photo Preview:<br>
+                                <img class="img img-circle" style="width:50px;" src=""><br>                                                      
+                            @endif 
+                        </div>-->
                         <div class="form-group">
-                            <label for="ImageControl" />Seleccione imagen</label>
-                            <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">@error('image') <span class="error text-danger">{{ $message }}</span> @enderror
+                            <label for="ImageControl" />Select photo</label>
+                            <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">
+                            @error('image') <span class="error text-danger">{{ $message }}</span> @enderror                                                      
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <!--<button type="submit">Save</button>-->
-                    <button type="button" wire:click.prevent="store()" class="btn btn-primary">Save</button>
+                    <button type="submit">Save</button>
+                    <!--<button type="button" wire:click.prevent="store()" class="btn btn-primary">Save</button>-->
                     <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal" id="close_add">Close</button>
                 </div>
             </div>
         </div>
     </div>
-
+</form>
 <!-- Edit Modal -->
-
-<div wire:ignore.self class="modal fade" id="updateDataModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel">
+<form wire:submit.prevent="update">
+<div wire:ignore.self class="modal fade" id="updateDataModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" >
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -47,7 +55,6 @@
             <div class="modal-body">
                 <form>
                     <input type="hidden" wire:model="selected_id">
-                    <input type="hidden" wire:model="existe">
                     <div class="form-group">
 
                         <label for="name">Name</label>
@@ -62,21 +69,23 @@
                         <input wire:model="comments" type="text" class="form-control" id="comments" placeholder="Comments">@error('comments') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
-                    @if($image && $existe)
-                        <img class="img img-circle" style="width:50px;"  src="{{ asset('storage/'.$image)}}" /><br>
-                    @else
-                        <img class="img img-circle" style="width:50px;"  src="{{ asset('storage/no-image.jpg')}}" /><br>
-                    @endif
-                        <label for="ImageControl" />Select new image</label>
-                        <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">@error('image') <span class="error text-danger">{{ $message }}</span> @enderror
+                        @if ($image)
+                        <img class="img img-circle" style="width:50px;" src="{{ asset('storage/images/'.$image)}}" /><br>                                                      
+                        @endif 
                     </div>
-
+                    <div class="form-group">
+                        <label for="ImageControl" />Select photo</label>
+                        <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">
+                        @error('image') <span class="error text-danger">{{ $message }}</span> @enderror                                                      
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="submit">Save changes</button>
                 <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal" id="close_edit">Close</button>
-                <button type="button" wire:click.prevent="update()" class="btn btn-primary">Save</button>
+                <!--<button type="button" wire:click.prevent="update()" class="btn btn-primary">Save</button>-->
             </div>
         </div>
     </div>
 </div>
+</form>

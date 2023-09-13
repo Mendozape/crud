@@ -12,8 +12,7 @@ class Employees extends Component
     use WithPagination;
 
     protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $due, $comments, $image,$existe;
-    public $modal = false;
+    public $selected_id, $keyWord, $name, $due, $comments, $image,$image2,$existe;
     protected $listeners = ['destroy'];
     use WithFileUploads;
     public function render()
@@ -67,7 +66,7 @@ class Employees extends Component
     
     public function edit($id)
     {
-        $this->reset();
+        $this->resetInput();
         //$this->openModal();
         $record = Employee::findOrFail($id);
         $this->selected_id = $id;
@@ -75,12 +74,10 @@ class Employees extends Component
         $this->due = $record->due;
         $this->comments = $record->comments;
         $this->image = $record->image;
-        $this->existe=Storage::disk('public')->exists($this->image);
-        //dd( $this->existe );
-    }
-    public function openModal()
-    {
-        $this->modal = true;
+        //dd( $this->image2);
+        //$this->image2 = $record->image;
+        //$this->existe=Storage::disk('public')->exists($this->image);
+        //dd(  $this->image);
     }
     public function update()
     {
