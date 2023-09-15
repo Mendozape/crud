@@ -20,7 +20,7 @@
 					</div>
 				</div>
 				<div class="card-body">
-					@include('livewire.employees.create')
+					
 					@include('livewire.employees.edit')
 					<div class="table-responsive">
 						<table class="table table-bordered table-sm">

@@ -4,6 +4,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -21,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Paginator::useBootstrap();
-        Storage::disk('public')->buildTemporaryUrlsUsing(function ($path, $expiration, $options) {
+        Storage::disk('local')->buildTemporaryUrlsUsing(function ($path, $expiration, $options) {
             return URL::temporarySignedRoute(
                 'local.temp',
                 $expiration, 

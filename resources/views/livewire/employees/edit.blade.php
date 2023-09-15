@@ -21,10 +21,10 @@
                         <input wire:model="due" type="text" class="form-control" id="due" placeholder="Due">@error('due') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
-                        @if ($image)
+                        
                             Photo Preview:<br>
-                            <img class="img img-circle" style="width:50px;" src="{{ return Storage::disk('public')->temporaryUrl($image, now()->addMinutes(5)); }}"><br>                                                      
-                        @endif 
+                            <img class="img img-circle" style="width:50px;" src=""><br>                                                      
+                         
                     </div>
                     <div class="form-group">
                         <label for="ImageControl" />Select photo</label>

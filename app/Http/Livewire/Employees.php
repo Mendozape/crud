@@ -8,6 +8,7 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use App\Http\Controllers\FileController;
 class Employees extends Component
 {
     use WithPagination;
@@ -76,6 +77,10 @@ class Employees extends Component
         $this->due = $record->due;
         $this->comments = $record->comments;
         $this->image = $record->image;
+        return redirect()->route('local.temp',$this->image);
+        $disk = Storage::disk('local');
+        return $disk->temporaryUrl($this->path, now()->addMinutes(5));
+
         //$this->tempo=$this->tempourl($record->image);
         //dd( $this->tempo);
         /*if($this->image) {
