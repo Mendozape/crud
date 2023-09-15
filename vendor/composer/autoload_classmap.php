@@ -32,6 +32,7 @@ return array(
     'App\\Http\\Kernel' => $baseDir . '/app/Http/Kernel.php',
     'App\\Http\\Livewire\\Clients' => $baseDir . '/app/Http/Livewire/Clients.php',
     'App\\Http\\Livewire\\Counter' => $baseDir . '/app/Http/Livewire/Counter.php',
+    'App\\Http\\Livewire\\DataTables' => $baseDir . '/app/Http/Livewire/DataTables.php',
     'App\\Http\\Livewire\\Employees' => $baseDir . '/app/Http/Livewire/Employees.php',
     'App\\Http\\Livewire\\Users' => $baseDir . '/app/Http/Livewire/Users.php',
     'App\\Http\\Middleware\\Authenticate' => $baseDir . '/app/Http/Middleware/Authenticate.php',

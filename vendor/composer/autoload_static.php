@@ -708,6 +708,7 @@ class ComposerStaticInitfeb9d89bf84401448835db904fa82230
         'App\\Http\\Kernel' => __DIR__ . '/../..' . '/app/Http/Kernel.php',
         'App\\Http\\Livewire\\Clients' => __DIR__ . '/../..' . '/app/Http/Livewire/Clients.php',
         'App\\Http\\Livewire\\Counter' => __DIR__ . '/../..' . '/app/Http/Livewire/Counter.php',
+        'App\\Http\\Livewire\\DataTables' => __DIR__ . '/../..' . '/app/Http/Livewire/DataTables.php',
         'App\\Http\\Livewire\\Employees' => __DIR__ . '/../..' . '/app/Http/Livewire/Employees.php',
         'App\\Http\\Livewire\\Users' => __DIR__ . '/../..' . '/app/Http/Livewire/Users.php',
         'App\\Http\\Middleware\\Authenticate' => __DIR__ . '/../..' . '/app/Http/Middleware/Authenticate.php',

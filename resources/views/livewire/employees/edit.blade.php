@@ -10,6 +10,7 @@
             <div class="modal-body">
                 <form>
                     <input type="hidden" wire:model="selected_id">
+                    <input type="hidden" wire:model="tempo">
                     <div class="form-group">
 
                         <label for="name">Name</label>
@@ -20,20 +21,15 @@
                         <input wire:model="due" type="text" class="form-control" id="due" placeholder="Due">@error('due') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
-                        <label for="comments">Comments</label>
-                        <input wire:model="comments" type="text" class="form-control" id="comments" placeholder="Comments">@error('comments') <span class="error text-danger">{{ $message }}</span> @enderror
-                    </div>
-                    <div class="form-group">
-                        @if (isset($image))
-                            <img class="img img-circle" style="width:50px;" src="{{ asset('storage/'.$image)}}" /><br>
-                        @else
-                            <img class="img img-circle" style="width:50px;" src="{{ $image->temporaryUrl() }}">                                               
-                        @endif
+                        @if ($image)
+                            Photo Preview:<br>
+                            <img class="img img-circle" style="width:50px;" src="{{ return Storage::disk('public')->temporaryUrl($image, now()->addMinutes(5)); }}"><br>                                                      
+                        @endif 
                     </div>
                     <div class="form-group">
                         <label for="ImageControl" />Select photo</label>
                         <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">
-                        @error('image') <span class="error text-danger">{{ $message }}</span> @enderror                                                      
+                        @error('image') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                 </form>
             </div>
