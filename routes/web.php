@@ -7,11 +7,6 @@ use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
-
-
-
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -22,7 +17,6 @@ use Illuminate\Support\Facades\URL;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
 Route::get('/', function () {
     return view('auth.login');
 });
