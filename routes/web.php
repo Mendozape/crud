@@ -7,11 +7,6 @@ use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
-
-
-
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -39,7 +34,6 @@ Route::middleware([
     })->name('dashboard');
 });
 //Route::get('/livewire', function () { return view('/livewire/counter'); });
-
 Route::middleware(['auth'])->group(function(){
     Route::get('/home', function () { return view('/index'); });
     Route::get('/livewire',function () { return view('/livewire/home'); });
@@ -54,14 +48,10 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/excel/importFile',[UserController::class,'importView'])->name('import-view');
     Route::post('/import',[UserController::class,'import'])->name('import');
     Route::get('/export-users',[UserController::class,'exportUsers'])->name('export-users');
+    //Route Hooks - Do not delete//
+	Route::view('employees', 'livewire.employees.index')->middleware('auth');
+	Route::view('clients', 'livewire.clients.index')->middleware('auth');
+    Route::get('local/temp/{path}', function (string $path){ return Storage::disk('public')->download($path);})->name('local.temp');
 });
 
-
-
-//Route Hooks - Do not delete//
-	Route::view('employees', 'livewire.employees.index')->middleware('auth');
-	//Route::view('users', 'livewire.users.index')->middleware('auth');
-	Route::view('clients', 'livewire.clients.index')->middleware('auth');
-    
-    Route::get('local/temp/{path}', function (string $path){ return Storage::disk('local')->download($path);})->name('local.temp');
 
