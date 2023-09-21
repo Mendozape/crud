@@ -20,7 +20,7 @@
 					</div>
 				</div>
 				<div class="card-body">
-					
+					@include('livewire.employees.create')
 					@include('livewire.employees.edit')
 					<div class="table-responsive">
 						<table class="table table-bordered table-sm">
@@ -36,12 +36,21 @@
 							</thead>
 							<tbody>
 								@forelse($employees as $row)
+								@php
+								{{
+									if($row->image && Storage::disk('public')->exists($row->image)){
+										$url= Storage::disk('public')->url($row->image);
+									}else{
+										$url = Storage::disk('public')->url('no_image.jpg');
+									}
+								}}
+								@endphp
 								<tr>
 									<td>{{ $loop->iteration }}</td>
 									<td>{{ $row->name }}</td>
 									<td>{{ $row->due }}</td>
 									<td>{{ $row->comments }}</td>
-									<td><img height="50px" src="{{ asset('storage/'.$row->image)}}" /></td>
+									<td><img height="50px" src="{{ $url }}" /></td>
 									<td>
 										<div class="dropdown">
 											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
