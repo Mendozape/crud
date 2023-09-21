@@ -20,7 +20,7 @@
 					</div>
 				</div>
 				<div class="card-body">
-					
+				    @include('livewire.employees.create')
 					@include('livewire.employees.edit')
 					<div class="table-responsive">
 						<table class="table table-bordered table-sm">
@@ -49,6 +49,7 @@
 											</a>
 											<ul class="dropdown-menu">
 												<li><a data-bs-toggle="modal" data-bs-target="#updateDataModal" class="dropdown-item" wire:click="edit({{ $row->id }})"><i class="fa fa-edit"></i> Edit </a></li>
+												
 												<li><a class="dropdown-item" wire:click="predestroy({{ $row->id }})"><i class="fa fa-trash"></i> Delete </a></li>
 											</ul>
 										</div>

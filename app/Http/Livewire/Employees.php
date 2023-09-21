@@ -9,6 +9,10 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\FileController;
+use Carbon\Carbon;
+
+
+
 class Employees extends Component
 {
     use WithPagination;
@@ -48,18 +52,20 @@ class Employees extends Component
             'name' => 'required',
             'due' => 'required|numeric|gte:1',
             'comments' => 'required',
-            'image' => 'image|max:2048',
+            'image' => 'image|max:4096',
         ]);
         if (!empty($this->image)) {
-            $image_name = $this->image->getClientOriginalName();
+            //$imageName = $this->image->getClientOriginalName();
+
+            $imageName= Carbon::now()->timestamp.'.'.$this->image->extension();
             //dd($image_name);
-            $this->image->storeAs('public/images', $image_name);
+            $this->image->storeAs('/public/images', $imageName);
         }
         Employee::create([
             'name' => $this->name,
             'due' => $this->due,
             'comments' => $this->comments,
-            'image' => $image_name
+            'image' => $imageName
         ]);
         $this->emit('saved', $this->name);
         $this->resetInput();
@@ -76,10 +82,10 @@ class Employees extends Component
         $this->name = $record->name;
         $this->due = $record->due;
         $this->comments = $record->comments;
-        $this->image = $record->image;
-        return redirect()->route('local.temp',$this->image);
-        $disk = Storage::disk('local');
-        return $disk->temporaryUrl($this->path, now()->addMinutes(5));
+        //$this->image = $record->image;
+        //return redirect()->route('local.temp',$this->image);
+        //$disk = Storage::disk('local');
+        //return $disk->temporaryUrl($this->path, now()->addMinutes(5));
 
         //$this->tempo=$this->tempourl($record->image);
         //dd( $this->tempo);
@@ -105,9 +111,10 @@ class Employees extends Component
         if ($this->selected_id) {
             $record = Employee::find($this->selected_id);
             if (!empty($this->image)) {
-                $image_name = $this->image->getClientOriginalName();
+                //$image_name = $this->image->getClientOriginalName();
+                $imageName= Carbon::now()->timestamp.'.'.$this->image->extension();
                 //dd($image_name);
-                $this->image->storeAs('public/images', $image_name);
+                $this->image->storeAs('/public/images', $imageName);
             }
             $record->update([
                 'name' => $this->name,

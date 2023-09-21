@@ -21,16 +21,16 @@
                         <input wire:model="due" type="text" class="form-control" id="due" placeholder="Due">@error('due') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
-                        
-                            Photo Preview:<br>
-                            <img class="img img-circle" style="width:50px;" src=""><br>                                                      
-                         
-                    </div>
-                    <div class="form-group">
-                        <label for="ImageControl" />Select photo</label>
-                        <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">
-                        @error('image') <span class="error text-danger">{{ $message }}</span> @enderror
-                    </div>
+                            @if ($image)
+                                Photo Preview:<br>
+                                <img class="img img-circle" style="width:50px;" src="{{ $image->temporaryUrl() }}"><br>                                                      
+                            @endif 
+                        </div>
+                        <div class="form-group">
+                            <label for="ImageControl" />Select photo</label>
+                            <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">
+                            @error('image') <span class="error text-danger">{{ $message }}</span> @enderror                                                      
+                        </div>
                 </form>
             </div>
             <div class="modal-footer">

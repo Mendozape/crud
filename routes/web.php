@@ -51,8 +51,10 @@ Route::middleware(['auth'])->group(function(){
     //Route Hooks - Do not delete//
 	Route::view('employees', 'livewire.employees.index')->middleware('auth');
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
-    Route::get('local/temp/{path}', function (string $path){ return Storage::disk('local')->download($path);})->name('local.temp');
+    //Route::get('local/temp/{path}', function (string $path){ return Storage::disk('local')->download($path);})->name('local.temp');
     //Route::get('local/temp/{path}',[FileController::class,'getUrl'])->name('local.temp');
     //Route::get('download/{path}',[FileController::class,'download'])->name('download');
+    Route::get('url/{path}',[FileController::class,'getUrl']);
+    Route::get('download/{path}',[FileController::class,'download'])->name('download');
 });
 
