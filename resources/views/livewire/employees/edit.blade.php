@@ -21,20 +21,25 @@
                         <input wire:model="due" type="text" class="form-control" id="due" placeholder="Due">@error('due') <span class="error text-danger">{{ $message }}</span> @enderror
                     </div>
                     <div class="form-group">
-                            @if ($image)
-                                Photo Preview:<br>
-                                <img class="img img-circle" style="width:50px;" src="{{ $image->temporaryUrl() }}"><br>                                                      
-                            @endif 
+                        <div wire:loading wire:target="image" wire:key="image"> 
+                            <i class="fa fa-spinner fa-spin mt-2 ml-2"></i><br>
+                            Uploading<br>
                         </div>
-                        <div class="form-group">
-                            <label for="ImageControl" />Select photo</label>
-                            <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">
-                            @error('image') <span class="error text-danger">{{ $message }}</span> @enderror                                                      
-                        </div>
+                        @if ($image)
+                            <br><img class="img img-circle" style="width:50px;" src="{{ $image->temporaryUrl() }}"><br>                                                      
+                        @else
+                        <br><img class="img img-circle" style="width:50px;" src="{{ $tempo }}">
+                        @endif
+                    </div>
+                    <div class="custom-file">
+                        <label for="ImageControl" />Select photo</label>
+                        <input wire:model="image" type="file" class="form-control-file" id="image" placeholder="Image">
+                        @error('image') <span class="error text-danger">{{ $message }}</span> @enderror 
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit">Save changes</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
                 <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal" id="close_edit">Close</button>
                 <!--<button type="button" wire:click.prevent="update()" class="btn btn-primary">Save</button>-->
             </div>

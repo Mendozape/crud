@@ -20,7 +20,7 @@
 					</div>
 				</div>
 				<div class="card-body">
-				    @include('livewire.employees.create')
+					@include('livewire.employees.create')
 					@include('livewire.employees.edit')
 					<div class="table-responsive">
 						<table class="table table-bordered table-sm">
@@ -36,12 +36,15 @@
 							</thead>
 							<tbody>
 								@forelse($employees as $row)
+								@php
+									$url = App\Http\Livewire\employees::getUrl($row->image);
+								@endphp
 								<tr>
 									<td>{{ $loop->iteration }}</td>
 									<td>{{ $row->name }}</td>
 									<td>{{ $row->due }}</td>
 									<td>{{ $row->comments }}</td>
-									<td><img height="50px" src="{{ asset('storage/'.$row->image)}}" /></td>
+									<td><img height="50px" src="{{ $url }}" /></td>
 									<td>
 										<div class="dropdown">
 											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -49,7 +52,6 @@
 											</a>
 											<ul class="dropdown-menu">
 												<li><a data-bs-toggle="modal" data-bs-target="#updateDataModal" class="dropdown-item" wire:click="edit({{ $row->id }})"><i class="fa fa-edit"></i> Edit </a></li>
-												
 												<li><a class="dropdown-item" wire:click="predestroy({{ $row->id }})"><i class="fa fa-trash"></i> Delete </a></li>
 											</ul>
 										</div>
