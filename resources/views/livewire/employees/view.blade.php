@@ -17,13 +17,19 @@
 						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
 							<i class="fa fa-plus"></i> Add Employees
 						</div>
+						<div >
+						<button wire:click="tellme" class="btn btn-primary">
+								Notification
+						</button>
+						</div>
+						
 					</div>
 				</div>
 				<div class="card-body">
 					@include('livewire.employees.create')
 					@include('livewire.employees.edit')
 					<div class="table-responsive">
-						<table class="table table-bordered table-sm">
+						<table class="table  table-sm">
 							<thead class="thead">
 								<tr>
 									<td>#</td>
@@ -37,14 +43,14 @@
 							<tbody>
 								@forelse($employees as $row)
 								@php
-									$url = App\Http\Livewire\employees::getUrl($row->image);
+								$url = App\Http\Livewire\employees::getUrl($row->image);
 								@endphp
 								<tr>
 									<td>{{ $loop->iteration }}</td>
 									<td>{{ $row->name }}</td>
 									<td>{{ $row->due }}</td>
 									<td>{{ $row->comments }}</td>
-									<td><img height="50px" src="{{ $url }}" /></td>
+									<td><img class="img img-circle" style="width:50px;"src="{{ $url }}" /></td>
 									<td>
 										<div class="dropdown">
 											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

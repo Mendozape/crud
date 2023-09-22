@@ -5,6 +5,7 @@
 <h1>Dashboard</h1>
 @stop
 @section('content_top_nav_right')
+
 <li class="nav-item dropdown">
     <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
         <i class="far fa-comments"></i>
