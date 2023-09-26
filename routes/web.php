@@ -6,8 +6,10 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\FileController;
+use App\Notifications\newsCreated;
+use Illuminate\Support\Facades\Notification;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,8 +23,6 @@ use App\Http\Controllers\FileController;
 Route::get('/', function () {
     return view('auth.login');
 });
-
-
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -33,7 +33,6 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
-//Route::get('/livewire', function () { return view('/livewire/counter'); });
 Route::middleware(['auth'])->group(function(){
     Route::get('/home', function () { return view('/index'); });
     Route::get('/livewire',function () { return view('/livewire/home'); });
@@ -51,5 +50,9 @@ Route::middleware(['auth'])->group(function(){
     //Route Hooks - Do not delete//
 	Route::view('employees', 'livewire.employees.index')->middleware('auth');
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
+    Route::get('/notifications',function(){
+        Notification::send(User::find(3), new newsCreated());
+    });
 });
+
 

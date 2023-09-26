@@ -1,9 +1,22 @@
 @extends('adminlte::page')
 
 @section('title', 'MY LARAVEL SYSTEM')
+
 @section('content_header')
 <h1>Dashboard</h1>
+    <script>
+        // Enable pusher logging - don't include this in production
+        Pusher.logToConsole = true;
+        var pusher = new Pusher('66e12194484209bfb23d', {
+            cluster: 'mt1'
+        });
+        var channel = pusher.subscribe('my-channel');
+        channel.bind('my-event', function(data) {
+            alert(JSON.stringify(data));
+        });
+  </script>
 @stop
+
 @section('content_top_nav_right')
 
 <li class="nav-item dropdown">
