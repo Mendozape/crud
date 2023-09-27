@@ -24,9 +24,9 @@ class ClientController extends Controller
        //$client=Client::paginate(5);
        $client=Client::all();
        //$permisos = Permission::pluck('name','id');
-//$client->fragment('Registros')->SetPageName('Pagina')->withQueryString();
-        return view('client.index')->with('clientes',$client);
-        //return view('client.index',compact('client','permisos'));
+       //$client->fragment('Registros')->SetPageName('Pagina')->withQueryString();
+       return view('client.index')->with('clientes',$client);
+       //return view('client.index',compact('client','permisos'));
     }
 
     /**

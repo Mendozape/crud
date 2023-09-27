@@ -6,10 +6,9 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
-use App\Models\User;
+use App\Http\Controllers\NotificationsController;
 use Illuminate\Support\Facades\Storage;
-use App\Notifications\newsCreated;
-use Illuminate\Support\Facades\Notification;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,9 +49,7 @@ Route::middleware(['auth'])->group(function(){
     //Route Hooks - Do not delete//
 	Route::view('employees', 'livewire.employees.index')->middleware('auth');
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
-    Route::get('/notifications',function(){
-        Notification::send(User::find(3), new newsCreated());
-    });
+    Route::get('/notifications',[NotificationsController::class, 'email'])->name('email');
 });
 
 

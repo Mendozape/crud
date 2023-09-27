@@ -371,6 +371,20 @@ return [
                 ],
             ],
         ],
+        [
+            'text'    => 'NOTIFICATIONS',
+            'icon'    => 'fas fa-fw fa-share',
+            'submenu' => [
+                [
+                    'text' => 'email',
+                    'url'  => 'notifications',
+                ],
+                [
+                    'text' => 'database',
+                    'url'  => 'database',
+                ],
+            ],
+        ],
     ],
 
     /*

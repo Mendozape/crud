@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitfeb9d89bf84401448835db904fa82230
+class ComposerStaticInitf6bd8572769f4fe1d89d9087badb0353
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
@@ -411,8 +411,8 @@ class ComposerStaticInitfeb9d89bf84401448835db904fa82230
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
+            1 => __DIR__ . '/..' . '/psr/http-factory/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -3046,6 +3046,7 @@ class ComposerStaticInitfeb9d89bf84401448835db904fa82230
         'Illuminate\\Queue\\Events\\Looping' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Queue/Events/Looping.php',
         'Illuminate\\Queue\\Events\\QueueBusy' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Queue/Events/QueueBusy.php',
         'Illuminate\\Queue\\Events\\WorkerStopping' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Queue/Events/WorkerStopping.php',
+        'Illuminate\\Queue\\Failed\\CountableFailedJobProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Queue/Failed/CountableFailedJobProvider.php',
         'Illuminate\\Queue\\Failed\\DatabaseFailedJobProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php',
         'Illuminate\\Queue\\Failed\\DatabaseUuidFailedJobProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Queue/Failed/DatabaseUuidFailedJobProvider.php',
         'Illuminate\\Queue\\Failed\\DynamoDbFailedJobProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Queue/Failed/DynamoDbFailedJobProvider.php',
@@ -8302,10 +8303,10 @@ class ComposerStaticInitfeb9d89bf84401448835db904fa82230
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitfeb9d89bf84401448835db904fa82230::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitfeb9d89bf84401448835db904fa82230::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInitfeb9d89bf84401448835db904fa82230::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInitfeb9d89bf84401448835db904fa82230::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitf6bd8572769f4fe1d89d9087badb0353::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitf6bd8572769f4fe1d89d9087badb0353::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitf6bd8572769f4fe1d89d9087badb0353::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitf6bd8572769f4fe1d89d9087badb0353::$classMap;
 
         }, null, ClassLoader::class);
     }
