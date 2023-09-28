@@ -7,7 +7,7 @@ use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationsController;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +33,8 @@ Route::middleware([
     })->name('dashboard');
 });
 Route::middleware(['auth'])->group(function(){
-    Route::get('/home', function () { return view('/index'); });
+    //Route::get('/home', function () { return view('/index'); });
+    Route::get('/home',[HomeController::class, 'index'])->name('index');
     Route::get('/livewire',function () { return view('/livewire/home'); });
     //Route::get('/crudlive',function () { return view('/livewire/crud/home'); });
     Route::resource('permisos',PermisosController::class);
@@ -50,6 +51,9 @@ Route::middleware(['auth'])->group(function(){
 	Route::view('employees', 'livewire.employees.index')->middleware('auth');
 	Route::view('clients', 'livewire.clients.index')->middleware('auth');
     Route::get('/notifications',[NotificationsController::class, 'email'])->name('email');
+    Route::get('/NotiUpdate/{id}',[NotificationsController::class, 'NotiUpdate'])->name('NotiUpdate');
+    Route::get('/broadcasting/',[NotificationsController::class, 'broadcasting'])->name('broadcasting');
+    //Route::get('/notificationsDB',[NotificationsController::class, 'db'])->name('db');
 });
 
 

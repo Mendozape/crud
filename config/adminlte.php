@@ -380,8 +380,8 @@ return [
                     'url'  => 'notifications',
                 ],
                 [
-                    'text' => 'database',
-                    'url'  => 'database',
+                    'text' => 'broadcasting notification',
+                    'url'  => 'broadcasting',
                 ],
             ],
         ],

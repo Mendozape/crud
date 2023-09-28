@@ -3,18 +3,20 @@
 @section('title', 'MY LARAVEL SYSTEM')
 
 @section('content_header')
-<h1>Dashboard</h1>
-    <script>
-        // Enable pusher logging - don't include this in production
-        Pusher.logToConsole = true;
-        var pusher = new Pusher('66e12194484209bfb23d', {
-            cluster: 'mt1'
-        });
-        var channel = pusher.subscribe('my-channel');
-        channel.bind('my-event', function(data) {
-            alert(JSON.stringify(data));
-        });
-  </script>
+<script>
+    // Enable pusher logging - don't include this in production
+    /* Pusher.logToConsole = true;
+     var pusher = new Pusher('66e12194484209bfb23d', {
+         cluster: 'mt1'
+     });
+     var channel = pusher.subscribe('my-channel');
+     channel.bind('my-event', function(data) {
+         alert(JSON.stringify(data));
+     });*/
+     Echo.channel('events')
+        .listen('RealTimeMessage', (e) => console.log('RealTimeMessage: ' + e.message));
+</script>
+
 @stop
 
 @section('content_top_nav_right')
@@ -73,7 +75,49 @@
 </li>
 @stop
 @section('content')
+<section class="section">
+    <div class="section-header" align="center">
+        <h1>Notifications</h1>
+    </div>
+    <div class="section-body mt-2">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+
+                        @if(auth()->user()->is_admin)
+                        @forelse($notifications as $notification)
+                        <div class="card bg-light text-white p-2 text-center">
+                            [{{ $notification->created_at }}] User {{ $notification->data['name'] }} has just registered.
+                            <a href="{{ route('NotiUpdate',$notification->id)}}" class="float-right mark-as-read" data-id="{{ $notification->id }}">
+                                Mark as read
+                            </a>
+                        </div>
+                        @if($loop->last)
+                        <div class="card bg-light text-white p-2 text-center">
+                            <a href="{{ route('NotiUpdate','0')}}" data-id="{{ $notification->id }}">
+                                Mark all as read
+                            </a>
+                        </div>
+                        @endif
+                        @empty
+                        <div class="card bg-light text-white p-2 text-center">
+                        There are no new notifications
+                        </div>
+                        @endforelse
+                        @endif
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="section" align="center">
+    <div class="section-header" align="center">
+        <h1>Dashboard</h1>
+    </div>
     <div class="section-body">
         <div class="row">
             <div class="col-lg-12">

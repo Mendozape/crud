@@ -14,8 +14,8 @@
             <table class="table" id="clientes">
               <tbody>
                 <tr>
-                    <td class="text-center">The email was sent successfully</td>
-                </tr>
+                    <td class="text-center">The Data Base notification was sent successfully</td>
+                    </tr>
               </tbody>
             </table>
           </div>

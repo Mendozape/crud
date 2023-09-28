@@ -23,7 +23,10 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
     use HasRoles;
 
-
+    public function getIsAdminAttribute()
+    {
+        return $this->roles()->where('id', 1)->exists();
+    }
     /**
      * The attributes that are mass assignable.
      *
