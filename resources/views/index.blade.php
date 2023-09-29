@@ -5,15 +5,15 @@
 @section('content_header')
 <script>
     // Enable pusher logging - don't include this in production
-    /* Pusher.logToConsole = true;
+    Pusher.logToConsole = true;
      var pusher = new Pusher('66e12194484209bfb23d', {
          cluster: 'mt1'
      });
-     var channel = pusher.subscribe('my-channel');
-     channel.bind('my-event', function(data) {
+     var channel = pusher.subscribe('status-liked');
+     channel.bind('App\\Events\\StatusLiked', function(data) {
          alert(JSON.stringify(data));
-     });*/
-     Echo.channel('events')
+     });
+     Echo.channel('status-liked')
         .listen('RealTimeMessage', (e) => console.log('RealTimeMessage: ' + e.message));
 </script>
 

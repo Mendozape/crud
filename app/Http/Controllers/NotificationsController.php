@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Notifications\newsCreated;
 use App\events\RealTimeMessage;
+use App\Events\StatusLiked;
 //use App\Notifications\DataBase;
 use App\Models\User;
 //use App\Models\Notification;
@@ -26,10 +27,12 @@ class NotificationsController extends Controller
             auth()->user()->unreadNotifications->markAsRead();
         }
         return redirect()->route('index');
+        
     }
     public function broadcasting()
     {
-        event(new RealTimeMessage('Hello World! I am an event 😄'));
+        //event(new RealTimeMessage('Hello World! I am an event 😄'));
+        event(new StatusLiked('Hello World! I am an event 😄'));
     }
     /*public function db()
     {

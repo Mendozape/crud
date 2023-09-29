@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Events;
+
+
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -17,6 +18,7 @@ class RealTimeMessage implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
+    use SerializesModels;
     public string $message;
     public function __construct(string $message)
     {
@@ -33,3 +35,4 @@ class RealTimeMessage implements ShouldBroadcast
         return new Channel('events');
     }
 }
+
