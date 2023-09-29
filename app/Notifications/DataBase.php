@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Events\StatusLiked;
 
 class DataBase extends Notification
 {
@@ -15,9 +16,9 @@ class DataBase extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct($user)
+    public function __construct()
     {
-        $this->user = $user;
+        //$this->user = $user;
     }
 
     /**
@@ -38,13 +39,17 @@ class DataBase extends Notification
     public function toDataBase(object $notifiable): array
     {
         return [
-            'name' => $this->user->name,
-            'message'=>'We just create a new notification for you',
+            //'name' => $this->user->name,
+            'message'=>'This is the data saved in the db',
             'url'=>'/'
         ];
     }
-    public function toBroadcast(object $notifiable): array
+    public function toBroadcast(object $notifiable)
     {
-        return  new BroadcastMessage($this->toDataBase($notifiable));
+        //return  new BroadcastMessage($this->toDataBase($notifiable));
+        return  new StatusLiked($this->toDataBase($notifiable));
+        /*return new BroadcastMessage([
+            'message'=>'This is the data saved in the db'
+        ]);*/
     }
 }

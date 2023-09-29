@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Events;
-
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -23,7 +22,7 @@ class StatusLiked implements ShouldBroadcast
     public function __construct($username)
     {
         $this->username = $username;
-        $this->message  = "{$username} liked your status";
+        //$this->message  = "{$username} liked your status";
     }
 
     /**

@@ -10,11 +10,11 @@
          cluster: 'mt1'
      });
      var channel = pusher.subscribe('status-liked');
-     channel.bind('App\\Events\\StatusLiked', function(data) {
+     channel.bind('App\Events\StatusLiked', function(data) {
          alert(JSON.stringify(data));
      });
      Echo.channel('status-liked')
-        .listen('RealTimeMessage', (e) => console.log('RealTimeMessage: ' + e.message));
+        .listen('status-liked', (e) => console.log('status-liked' + e.message));
 </script>
 
 @stop

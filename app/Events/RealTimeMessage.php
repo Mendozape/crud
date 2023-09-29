@@ -1,8 +1,6 @@
 <?php
 
-
-
-
+namespace App\Events;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -32,7 +30,7 @@ class RealTimeMessage implements ShouldBroadcast
      */
     public function broadcastOn(): Channel
     {
-        return new Channel('events');
+        return new Channel('real-time-message');
     }
 }
 
