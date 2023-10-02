@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use App\Models\User;
 class HomeController extends Controller
 {
     /**
@@ -24,6 +24,7 @@ class HomeController extends Controller
     public function index()
     {
         $notifications = auth()->user()->unreadNotifications;
+        //dd($notifications[0]);
         return view('index', compact('notifications'));
     }
 }

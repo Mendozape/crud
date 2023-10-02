@@ -16,9 +16,9 @@ class DataBase extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct($user)
     {
-        //$this->user = $user;
+        $this->user = $user;
     }
 
     /**
@@ -28,7 +28,7 @@ class DataBase extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database','broadcast'];
+        return ['database'];
     }
 
     /**
@@ -39,17 +39,15 @@ class DataBase extends Notification
     public function toDataBase(object $notifiable): array
     {
         return [
-            //'name' => $this->user->name,
+            'name' => $this->user->name,
             'message'=>'This is the data saved in the db',
             'url'=>'/'
         ];
     }
-    public function toBroadcast(object $notifiable)
+   /* public function toBroadcast(object $notifiable)
     {
         //return  new BroadcastMessage($this->toDataBase($notifiable));
         return  new StatusLiked($this->toDataBase($notifiable));
-        /*return new BroadcastMessage([
-            'message'=>'This is the data saved in the db'
-        ]);*/
-    }
+        
+    }*/
 }

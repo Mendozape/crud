@@ -6,7 +6,7 @@ namespace App\Http\Controllers;
 use App\Notifications\newsCreated;
 use App\Notifications\DataBase;
 use App\Events\RealTimeMessage;
-use App\Events\StatusLiked;
+//use App\Events\StatusLiked;
 //use App\Notifications\DataBase;
 use App\Models\User;
 //use App\Models\Notification;
@@ -19,22 +19,13 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationsController extends Controller
 {
-    
+    //public $user;
     public function email()
     {
         $email= Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new newsCreated);
-        //dd($email);
         return view('notifications.email')->with('email',$email);
     }
-    public function broadcasting()
-    {
-        //$user = Auth::user();
-        // event(new StatusLiked('Hello World! I am an event 😄'));
-       Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new DataBase);
-       //dd($email);
-       return view('notifications.DataBase');
-    }
-    /*public function NotiUpdate($id)
+    public function NotiUpdate($id)
     {
         if($id){
             auth()->user()->unreadNotifications->where('id',$id)->markAsRead();
@@ -42,9 +33,16 @@ class NotificationsController extends Controller
             auth()->user()->unreadNotifications->markAsRead();
         }
         return redirect()->route('index');
-        
-    }*/
-    
+    }
+    public function broadcasting()
+    {
+        //$user = Auth::user();
+        // event(new StatusLiked('Hello World! I am an event 😄'));
+       Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new DataBase(Auth::user()));
+       //dd($email);
+       return view('notifications.DataBase');
+    }
+   
     /*public function db()
     {
         $db= Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new DataBase);

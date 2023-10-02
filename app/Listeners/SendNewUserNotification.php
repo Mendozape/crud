@@ -22,10 +22,11 @@ class SendNewUserNotification
      */
     public function handle(object $event): void
     {
-        /*$admins = User::whereHas('roles', function ($query) {
+        $admins = User::whereHas('roles', function ($query) {
             $query->where('id', 1);
-        })->get();*/
-        $admins = User::where('email','admin@gmail.com')-> first();
+        })->get();
+        //$admins = User::where('email','erasto.mendoza.perez@gmail.com')-> first();
         Notification::send($admins, new DataBase($event->user));
+        //Notification::send($admins, new NewsCreated($event->user));
     }
 }
