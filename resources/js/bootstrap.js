@@ -24,14 +24,16 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
  */
 
 import Echo from 'laravel-echo';
-//import Pusher from 'pusher-js';
- 
-//window.Pusher = Pusher;
- 
+import Pusher from 'pusher-js';
+window.Pusher = Pusher;
 window.Echo = new Echo({
-    cluster:'mt1',
     broadcaster: 'pusher',
-    key: '66e12194484209bfb23d',
-    encrypted: true
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: true
 });
- 
+
+//Echo.channel('status-liked').listen('StatusLiked',(e) => { console.log(e.message); });
+
+
+

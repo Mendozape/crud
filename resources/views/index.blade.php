@@ -11,17 +11,15 @@
      });
      var channel = pusher.subscribe('status-liked');
      channel.bind('App\Events\StatusLiked', function(data) {
-         //alert(JSON.stringify(data));
-        let span = document.getElementById("NumNoti");
-        span.textContent = data.message;
+         alert(JSON.stringify(data));
+        //let span = document.getElementById("NumNoti");
+        //span.textContent = data.message;
      });
-     
-
-        
         /*function SetValueNoti() {
             let span = document.getElementById("NumNoti");
             span.textContent = "18";
         }*/
+         
 </script>
 
 @stop
@@ -80,11 +78,13 @@
 </li>
 @stop
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <script type="module">
-    Echo.channel('status-liked')
-    .listen('StatusLiked',(e) => {
-        console.log( e.message));
-    }
+  Echo.channel('status-liked')
+            .listen('StatusLiked', (e) => {
+                alert('asdad');
+                console.log(e);
+            });
 </script>
 <section class="section">
     <div class="section-header" align="center">

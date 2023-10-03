@@ -36,6 +36,7 @@ class StatusLiked implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return ['status-liked'];
+        //return ['status-liked'];
+        return new Channel('status-liked');
     }
 }
