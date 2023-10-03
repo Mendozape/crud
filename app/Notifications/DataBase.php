@@ -31,6 +31,7 @@ class DataBase extends Notification
         return ['database'];
     }
 
+
     /**
      * Get the array representation of the notification.
      *
@@ -44,7 +45,7 @@ class DataBase extends Notification
             'url'=>'/'
         ];
     }
-   /* public function toBroadcast(object $notifiable)
+    /*public function toBroadcast(object $notifiable)
     {
         //return  new BroadcastMessage($this->toDataBase($notifiable));
         return  new StatusLiked($this->toDataBase($notifiable));

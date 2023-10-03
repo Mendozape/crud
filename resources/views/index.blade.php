@@ -11,10 +11,17 @@
      });
      var channel = pusher.subscribe('status-liked');
      channel.bind('App\Events\StatusLiked', function(data) {
-         alert(JSON.stringify(data));
+         //alert(JSON.stringify(data));
+        let span = document.getElementById("NumNoti");
+        span.textContent = data.message;
      });
-     Echo.channel('status-liked')
-        .listen('status-liked', (e) => console.log('status-liked' + e.message));
+     
+
+        
+        /*function SetValueNoti() {
+            let span = document.getElementById("NumNoti");
+            span.textContent = "18";
+        }*/
 </script>
 
 @stop
@@ -50,22 +57,35 @@
 <li class="nav-item dropdown">
     <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
         <i class="far fa-bell"></i>
-        <span class="badge badge-warning navbar-badge">5</span>
+        <span class="badge badge-warning navbar-badge" id="NumNoti">{{auth()->user()->unreadNotifications->count()}}</span>
     </a>
     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
-        <span class="dropdown-item dropdown-header">15 Notifications</span>
+        <span class="dropdown-item dropdown-header"> Unread Notifications</span>
         <div class="dropdown-divider"></div>
-        
-        <a href="#" class="dropdown-item">
-            <i class="fas fa-envelope mr-2"></i> 4 new messages
-            <span class="float-right text-muted text-sm">3 mins</span>
-        </a>
+        @if(auth()->user()->is_admin)
+            @forelse($notifications as $notification)
+            <a href="#" class="dropdown-item">
+                <i class="fas fa-envelope mr-2"></i> {{ $notification->created_at }}
+            </a>
+        @empty
+        <div class="card bg-light text-white p-2 text-center">
+            There are no new notifications
+        </div>
+        @endforelse
+        @endif
         <div class="dropdown-divider"></div>
         <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+        
     </div>
 </li>
 @stop
 @section('content')
+<script type="module">
+    Echo.channel('status-liked')
+    .listen('StatusLiked',(e) => {
+        console.log( e.message));
+    }
+</script>
 <section class="section">
     <div class="section-header" align="center">
         <h1>Notifications</h1>

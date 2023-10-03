@@ -381,7 +381,7 @@ return [
                 ],
                 [
                     'text' => 'broadcasting notification',
-                    'url'  => 'broadcasting',
+                    'url'  => 'test',
                 ],
             ],
         ],

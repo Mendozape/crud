@@ -8,7 +8,7 @@ use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\HomeController;
-use App\Events\StatusLiked;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -54,8 +54,8 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/NotiUpdate/{id}',[NotificationsController::class, 'NotiUpdate'])->name('NotiUpdate');
     //Route::get('/broadcasting/',[NotificationsController::class, 'broadcasting'])->name('broadcasting');
     //Route::get('/notificationsDB',[NotificationsController::class, 'db'])->name('db');
-    Route::get('/broadcasting', function() {
-        event(new StatusLiked('Broadcasting in Laravel using Pusher!'));
+    Route::get('/test', function() {
+        event(new  App\Events\StatusLiked('Guest'));
         return view('notifications.DataBase');
     });
 });
