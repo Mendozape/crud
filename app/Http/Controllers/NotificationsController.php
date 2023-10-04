@@ -38,9 +38,9 @@ class NotificationsController extends Controller
     {
         //$user = Auth::user();
         // event(new StatusLiked('Hello World! I am an event 😄'));
-       Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new DataBase(Auth::user()));
+       //Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new DataBase(Auth::user()));
        //dd($email);
-       return view('notifications.DataBase');
+       //return view('notifications.DataBase');
     }
    
     /*public function db()

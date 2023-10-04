@@ -62,7 +62,6 @@
     window.addEventListener('notify', event => {
         alert('The message: ' + event.detail);
     })
-
 </script>
 @endsection
 @section('js')

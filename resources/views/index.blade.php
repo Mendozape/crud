@@ -1,31 +1,7 @@
 @extends('adminlte::page')
-
 @section('title', 'MY LARAVEL SYSTEM')
 
-@section('content_header')
-<script>
-    // Enable pusher logging - don't include this in production
-    Pusher.logToConsole = true;
-     var pusher = new Pusher('66e12194484209bfb23d', {
-         cluster: 'mt1'
-     });
-     var channel = pusher.subscribe('status-liked');
-     channel.bind('App\Events\StatusLiked', function(data) {
-         alert(JSON.stringify(data));
-        //let span = document.getElementById("NumNoti");
-        //span.textContent = data.message;
-     });
-        /*function SetValueNoti() {
-            let span = document.getElementById("NumNoti");
-            span.textContent = "18";
-        }*/
-         
-</script>
-
-@stop
-
 @section('content_top_nav_right')
-
 <li class="nav-item dropdown">
     <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
         <i class="far fa-comments"></i>
@@ -78,14 +54,6 @@
 </li>
 @stop
 @section('content')
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<script type="module">
-  Echo.channel('status-liked')
-            .listen('StatusLiked', (e) => {
-                alert('asdad');
-                console.log(e);
-            });
-</script>
 <section class="section">
     <div class="section-header" align="center">
         <h1>Notifications</h1>

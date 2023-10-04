@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Events;
+
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -37,6 +38,10 @@ class StatusLiked implements ShouldBroadcast
     public function broadcastOn()
     {
         //return ['status-liked'];
-        return new Channel('status-liked');
+        return new Channel('my-channel');
+    }
+    public function broadcastAs()
+    {
+        return 'my-event';
     }
 }
