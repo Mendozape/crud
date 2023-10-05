@@ -7,17 +7,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class DataBase extends Notification
+class EmployeesUpdatedNotification extends Notification
 {
-    public $user;
     use Queueable;
-
+    public $employee;
     /**
      * Create a new notification instance.
      */
-    public function __construct($user)
+    public function __construct($employee)
     {
-        $this->user = $user;
+        $this->employee = $employee;
     }
 
     /**
@@ -30,24 +29,27 @@ class DataBase extends Notification
         return ['database'];
     }
 
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toDataBase(object $notifiable): array
+    {
+        return [
+            'name' => $this->employee->name,
+            'message'=>'Has just been modified',
+            'url'=>'/'
+        ];
+    }
 
     /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
      */
-    public function toDataBase(object $notifiable): array
+    public function toArray(object $notifiable): array
     {
         return [
-            'name' => $this->user->name,
-            'message'=>'Has just registered',
-            'url'=>'/'
+            //
         ];
     }
-    /*public function toBroadcast(object $notifiable)
-    {
-        //return  new BroadcastMessage($this->toDataBase($notifiable));
-        return  new StatusLiked($this->toDataBase($notifiable));
-        
-    }*/
 }

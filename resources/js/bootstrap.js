@@ -33,7 +33,5 @@ window.Echo = new Echo({
     cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
     forceTLS: true
 });
-window.Echo.channel('my-channel').listen('my-event',(e) => { console.log(e.message); });*/
-
-
-  //window.Echo.channel('my-channel').listen('my-event',(e) => { console.log(e.message); });      
+*/
+     
