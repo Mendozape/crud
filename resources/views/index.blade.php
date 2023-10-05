@@ -1,6 +1,23 @@
 @extends('adminlte::page')
 @section('title', 'MY LARAVEL SYSTEM')
-
+@section('content_header')
+<!-- CSRF Token -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.15.3/echo.js"></script>
+  <script>
+    // Enable pusher logging - don't include this in production
+    //Pusher.logToConsole = true;
+    var pusher = new Pusher('66e12194484209bfb23d', {
+      cluster: 'mt1'
+    });
+    var channel = pusher.subscribe('my-channel');
+    channel.bind('my-event', function(data) {
+      //alert(JSON.stringify(data.username));
+      document.getElementById("NumNoti").textContent=data.username;
+    });
+  </script>
+@stop
 @section('content_top_nav_right')
 <li class="nav-item dropdown">
     <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">

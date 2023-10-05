@@ -41,7 +41,7 @@ class DataBase extends Notification
     {
         return [
             'name' => $this->user->name,
-            'message'=>'This is the data saved in the db',
+            'message'=>'Has just registered',
             'url'=>'/'
         ];
     }

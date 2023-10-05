@@ -55,8 +55,9 @@ Route::middleware(['auth'])->group(function(){
     //Route::get('/broadcasting/',[NotificationsController::class, 'broadcasting'])->name('broadcasting');
     //Route::get('/notificationsDB',[NotificationsController::class, 'db'])->name('db');
     Route::get('/test', function() {
-        event(new  App\Events\StatusLiked('Lato'));
-        return view('notifications.DataBase');
+        event(new  App\Events\StatusLiked('18'));
+        $notifications = auth()->user()->unreadNotifications;
+        return view('notifications.DataBase', compact('notifications'));
     });
 });
 
