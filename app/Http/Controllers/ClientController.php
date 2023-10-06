@@ -3,7 +3,8 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
-
+use Carbon\Carbon;
+use App\Events\EmployeesUpdated;
 
 class ClientController extends Controller
 {
@@ -54,14 +55,17 @@ class ClientController extends Controller
         ]);
         $input=$request->all();
         if($request->hasFile('image')){
-            $image= $request->file('image');
-            $image_name = $image->getClientOriginalName();
-            $request->image->store('images');
+            //$image= $request->file('image');
+            //$image_name = $image->getClientOriginalName()
+            $imageName= Carbon::now()->timestamp.'.'.$request->image->extension();
+            $request->image->storeAs('/public/images', $imageName);
             //$request->image->move(public_path('storage/images'), $image_name);
-            $input['image']=$image_name;
+            $input['image']=$imageName;
         }
         $clien= Client::create($input);
         //session::flash('user_added','El registro ha sido creado con éxito');
+        //event(new EmployeesUpdated($clien));
+        EmployeesUpdated::dispatch($clien);
         return redirect()->route('client.index')->with('user_added','El registro ha sido creado con éxito');
     }
 
@@ -112,6 +116,7 @@ class ClientController extends Controller
         $client->save();
         Session::flash('user_edited','El registro ha sido editado con éxito');
         //return redirect()->route('client.index')->with('user_edited','El registro ha sido editado con éxito');
+        
         return redirect()->route('client.index');
     }
 

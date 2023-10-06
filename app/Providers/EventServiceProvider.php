@@ -3,13 +3,13 @@
 namespace App\Providers;
 
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Events\employees;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
-use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
+//use App\Events\EmployeesUpdated;
+//use App\Listeners\SendEmployeesNotification;
 use App\Listeners\SendNewUserNotification;
+use Illuminate\Support\Facades\Event;
 use App\Events;
-use App\Events\StatusLiked;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -25,6 +25,9 @@ class EventServiceProvider extends ServiceProvider
             //RealTimeMessage::class,
             //StatusLiked::class,
         ],
+        /*EmployeesUpdated::class => [
+            SendEmployeesNotification::class,
+        ],*/
     ];
 
     /**

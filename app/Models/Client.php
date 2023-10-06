@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Listeners\SendEmployeesNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,4 +16,7 @@ class Client extends Model
 
     protected $fillable = ['name','due','comments','image'];
 	
+    protected $dispatchesEvents= [
+        'created'=>SendEmployeesNotification::class,
+    ];
 }

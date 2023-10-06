@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\FileController;
 use Carbon\Carbon;
+
 class Employees extends Component
 {
     use WithPagination;
@@ -60,13 +61,14 @@ class Employees extends Component
             //dd($image_name);
             $this->image->storeAs('/public/images', $imageName);
         }
-        Employee::create([
+        $employee=Employee::create([
             'name' => $this->name,
             'due' => $this->due,
             'comments' => $this->comments,
             'image' => $imageName
         ]);
         $this->resetInput();
+        
         $this->emit('saved', $this->name);
         //session()->flash('message', 'Employee Successfully created.');
     }
@@ -119,6 +121,7 @@ class Employees extends Component
             }
             $this->emit('edited', $this->name);
             $this->resetInput();
+           
         }
     }
     public function predestroy($id)

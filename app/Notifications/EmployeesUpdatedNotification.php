@@ -36,7 +36,7 @@ class EmployeesUpdatedNotification extends Notification
     {
         return [
             'name' => $this->employee->name,
-            'message'=>'Has just been modified',
+            'message'=>'Has just been created',
             'url'=>'/'
         ];
     }
