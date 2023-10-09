@@ -15,6 +15,7 @@
     channel.bind('my-event', function(data) {
       //alert(JSON.stringify(data.username));
       document.getElementById("NumNoti").textContent=data.username;
+      //document.getElementById("demo").innerHTML ='sdfsf';
     });
   </script>
 @stop
@@ -72,6 +73,7 @@
 @stop
 @section('content')
 <section class="section">
+<div id="demo"></div>
   <div class="section-header" align="center" >
     <h1>Email</h1>
   </div>

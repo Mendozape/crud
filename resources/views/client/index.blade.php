@@ -1,10 +1,32 @@
 @extends('adminlte::page')
 @section('plugins.Sweetalert2', true)
 @section('title', 'MY LARAVEL SYSTEM')
+@section('content_header')
+<!-- CSRF Token -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+ 
+  
+  <script>
+    
+    // Enable pusher logging - don't include this in production
+    Pusher.logToConsole = true;
+    var pusher = new Pusher('66e12194484209bfb23d', {
+      cluster: 'mt1'
+    });
+    var channel = pusher.subscribe('EmployeesChannel');
+    channel.bind('EmployeesEvent', function(data) {
+      //alert(JSON.stringify(data.username));
+      //document.getElementById("eventx").textContent=data.employee;
+      document.getElementById("demo").innerHTML ='xxxx';
+    });
+  </script>
+@stop
 
 @section('content')
 <section class="section">
-  <div class="section-header" align="center" >
+<div name="demo" id="demo"></div>  
+<div class="section-header" align="center" >
     <h1>Listado</h1>
     @can('crear-cliente')
     <a href="{{ route('client.create') }}" class="btn btn-primary">Altas</a>
