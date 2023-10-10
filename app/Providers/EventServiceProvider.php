@@ -7,8 +7,7 @@ use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use App\Events\EmployeesUpdated;
 use App\Listeners\SendEmployeesNotification;
 use App\Listeners\SendNewUserNotification;
-use Illuminate\Support\Facades\Event;
-use App\Events;
+
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
