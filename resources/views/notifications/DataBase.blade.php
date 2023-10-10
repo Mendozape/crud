@@ -7,7 +7,7 @@
   <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
   <script>
     // Enable pusher logging - don't include this in production
-    //Pusher.logToConsole = true;
+    Pusher.logToConsole = true;
     var pusher = new Pusher('66e12194484209bfb23d', {
       cluster: 'mt1'
     });
@@ -46,9 +46,9 @@
     </div>
 </li>
 <li class="nav-item dropdown">
-    <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
-        <i class="far fa-bell"></i>
-        <span class="badge badge-warning navbar-badge" id="NumNoti">{{auth()->user()->unreadNotifications->count()}}</span>
+     <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
+      <i class="far fa-bell"></i>
+      <span class="badge badge-warning navbar-badge" id="NumNoti">{{auth()->user()->unreadNotifications->count()}}</span>
     </a>
     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
         <span class="dropdown-item dropdown-header text-center">News Unread registers</span>
@@ -95,5 +95,5 @@
 </section>
 @endsection
 @section('js')
-  @vite(['resources/js/app.js'])
+
 @endsection

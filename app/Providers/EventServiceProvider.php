@@ -4,8 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
-//use App\Events\EmployeesUpdated;
-//use App\Listeners\SendEmployeesNotification;
+use App\Events\EmployeesUpdated;
+use App\Listeners\SendEmployeesNotification;
 use App\Listeners\SendNewUserNotification;
 use Illuminate\Support\Facades\Event;
 use App\Events;
@@ -25,9 +25,9 @@ class EventServiceProvider extends ServiceProvider
             //RealTimeMessage::class,
             //StatusLiked::class,
         ],
-        /*EmployeesUpdated::class => [
+        EmployeesUpdated::class => [
             SendEmployeesNotification::class,
-        ],*/
+        ],
     ];
 
     /**

@@ -25,7 +25,7 @@ class SendEmployeesNotification
      */
     public function handle(EmployeesUpdated $event): void
     {
-        $admins = User::where('email','erasto.mendoza.perez@gmail.com')-> first();
+        $admins = User::where('email','admin@gmail.com')-> first();
         Notification::send($admins, new EmployeesUpdatedNotification($event->employee));
     }
 }

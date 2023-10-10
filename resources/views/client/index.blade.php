@@ -1,13 +1,48 @@
 @extends('adminlte::page')
 @section('plugins.Sweetalert2', true)
 @section('title', 'MY LARAVEL SYSTEM')
-
+@section('content_header')
+<!-- CSRF Token -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.15.3/echo.js"></script>
+  
+  <script>
+    // Enable pusher logging - don't include this in production
+    Pusher.logToConsole = true;
+    var pusher = new Pusher('66e12194484209bfb23d', {
+      cluster: 'mt1'
+    });
+    var channel = pusher.subscribe('EmployeesChannel');
+    channel.bind('EmployeesEvent', function(data) {
+      alert(JSON.stringify('sdfsf'));
+      document.getElementById("NumNoti").textContent=7;
+    });
+  </script>
+@stop
+@section('content_top_nav_right')
+<li class="nav-item dropdown">
+    <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
+        <i class="far fa-bell"></i>
+        <span class="badge badge-warning navbar-badge" id="NumNoti"></span>
+    </a>
+    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
+        <span class="dropdown-item dropdown-header"> Unread Notifications</span>
+        <div class="dropdown-divider"></div>
+      
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+        
+    </div>
+</li>
+@stop
 @section('content')
 <section class="section">
+  <div id="demo"></div>
   <div class="section-header" align="center" >
     <h1>Listado</h1>
     @can('crear-cliente')
-    <a href="{{ route('client.create') }}" class="btn btn-primary">Altas</a>
+    <a href="{{ route('client.create') }}" class="btn btn-primary">Altasxx</a>
     @endcan
   </div>
   <div class="section-body mt-2">
@@ -68,7 +103,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
 @stop
 @section('js')
-@vite(['resources/js/app.js'])
+
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
@@ -98,7 +133,7 @@
   Swal.fire(
     'Borrado!',
     'El registro ha sido eliminado.',
-    'Exito'
+    'success'
   )
 </script>
 @endif
@@ -107,7 +142,7 @@
   Swal.fire(
     'Editado!',
     'El registro ha sido editado.',
-    'Exito'
+    'success'
   )
 </script>
 @endif
@@ -116,7 +151,7 @@
   Swal.fire(
     'Agregado!',
     'El registro ha sido agregado.',
-    'Exito'
+    'success'
   )
 </script>
 @endif

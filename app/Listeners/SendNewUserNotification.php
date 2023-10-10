@@ -25,7 +25,7 @@ class SendNewUserNotification
         /*$admins = User::whereHas('roles', function ($query) {
             $query->where('id', 1);
         })->get();*/
-        $admins = User::where('email','erasto.mendoza.perez@gmail.com')-> first();
+        $admins = User::where('email','admin@gmail.com')-> first();
         Notification::send($admins, new DataBase($event->user));
     }
 }

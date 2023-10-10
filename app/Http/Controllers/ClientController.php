@@ -65,7 +65,8 @@ class ClientController extends Controller
         $clien= Client::create($input);
         //session::flash('user_added','El registro ha sido creado con éxito');
         //event(new EmployeesUpdated($clien));
-        EmployeesUpdated::dispatch($clien);
+        //event(new  App\Events\EmployeesUpdated($clien));
+        //EmployeesUpdated::dispatch($clien);
         return redirect()->route('client.index')->with('user_added','El registro ha sido creado con éxito');
     }
 
