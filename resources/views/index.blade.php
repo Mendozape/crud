@@ -21,7 +21,7 @@
   channel.bind('EmployeesEvent', function(data) {
     //alert(JSON.stringify(data.username));
     document.getElementById("NumMess").textContent = data.NumNoti;
-    document.getElementById("demo").innerHTML =data.NumNoti;
+    document.getElementById("notis").innerHTML ='';
   });
 
 </script>
@@ -55,10 +55,12 @@
 </li>
 
 <li class="nav-item dropdown">
+    @if(auth()->user()->is_admin)
     <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
         <i class="far fa-bell"></i>
         <span class="badge badge-warning navbar-badge" id="NumMess">{{auth()->user()->unreadNotifications->count()}}</span>
     </a>
+     @endif
     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
         <span class="dropdown-item dropdown-header"> Unread Notifications</span>
         <div class="dropdown-divider"></div>
@@ -80,14 +82,14 @@
 @stop
 @section('content')
 <section class="section">
-    <div class="section-header" align="center" id="demo">
+    <div class="section-header" align="center">
         <h1>Notifications</h1>
     </div>
-    <div class="section-body mt-2">
+    <div class="section-body mt-2" >
         <div class="row">
             <div class="col-lg-12"> 
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body" id="notis">
 
                         @if(auth()->user()->is_admin)
                         @forelse($notifications as $notification)

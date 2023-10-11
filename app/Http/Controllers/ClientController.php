@@ -56,17 +56,18 @@ class ClientController extends Controller
         ]);
         $input=$request->all();
         if($request->hasFile('image')){
-            //$image= $request->file('image');
-            //$image_name = $image->getClientOriginalName()
             $imageName= Carbon::now()->timestamp.'.'.$request->image->extension();
             $request->image->storeAs('/public/images', $imageName);
-            //$request->image->move(public_path('storage/images'), $image_name);
             $input['image']=$imageName;
         }
         $clien= Client::create($input);
+        $NumNoti=auth()->user()->unreadNotifications->count();
+        $unread=auth()->user()->unreadNotifications;
+        //$imageName=$request->name;
+        //dd($NumNoti);
         //session::flash('user_added','El registro ha sido creado con éxito');
         //event(new EmployeesUpdated($clien));
-        event(new EmployeesUpdated($clien,auth()->user()->unreadNotifications->count()));
+        event(new EmployeesUpdated($clien,$NumNoti,$unread));
         return redirect()->route('client.index')->with('user_added','El registro ha sido creado con éxito');
     }
 

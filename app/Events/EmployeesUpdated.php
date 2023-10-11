@@ -10,16 +10,17 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 class EmployeesUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    public $EmployeeName,$NumNoti;
+    public $EmployeeName,$NumNoti,$unread;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($employee,$NumNoti)
+    public function __construct($clien,$NumNoti,$unread)
     {
         //$this->EmployeeName = $employee->name;
-        $this->EmployeeName = $employee->name;
+        $this->EmployeeName = $clien->name;
         $this->NumNoti = $NumNoti;
+        $this->unread = $unread;
 
 
     }

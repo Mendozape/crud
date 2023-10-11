@@ -10,14 +10,15 @@ use Illuminate\Notifications\Notification;
 class EmployeesUpdatedNotification extends Notification
 {
     use Queueable;
-    public $username,$NumNoti;
+    public $username,$NumNoti,$unread;
     /**
      * Create a new notification instance.
      */
-    public function __construct($employee, $NumNoti)
+    public function __construct($event)
     {
-        $this->username = $employee->name;
-        $this->NumNoti = $NumNoti;
+        $this->username = $event->EmployeeName;
+        $this->NumNoti = $event->NumNoti;
+        $this->unread = $event->unread;
     }
 
     /**
@@ -37,7 +38,7 @@ class EmployeesUpdatedNotification extends Notification
     {
         return [
             'name' => $this->username,
-            'message'=>'Has just been created',
+            'message'=>'Has just been created:'.$this->NumNoti,
             'url'=>'/'
         ];
     }
