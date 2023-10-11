@@ -21,6 +21,7 @@ class EmployeesUpdated implements ShouldBroadcast
         $this->EmployeeName = $employee->name;
         $this->NumNoti = $NumNoti;
 
+
     }
 
     /**
