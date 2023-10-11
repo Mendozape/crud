@@ -18,10 +18,16 @@
     //document.getElementById("demo").innerHTML ='sdfsf';
   });
   var channel = pusher.subscribe('EmployeesChannel');
-  channel.bind('EmployeesEvent', function(data) {
+  channel.bind('EmployeesEvent', function(event) {
     //alert(JSON.stringify(data.username));
-    document.getElementById("NumMess").textContent = data.NumNoti;
+    document.getElementById("NumMess").textContent = event.NumNoti;
+    //event.unread.foreach(function(row){
     document.getElementById("notis").innerHTML ='';
+    document.getElementById("notis").innerHTML =event.unread;
+    //alert(JSON.stringify('asdsad:'+event.unread[0].data['name']));
+    //alert(JSON.stringify(html));
+    //})
+    
   });
 
 </script>

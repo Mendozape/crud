@@ -62,7 +62,17 @@ class ClientController extends Controller
         }
         $clien= Client::create($input);
         $NumNoti=auth()->user()->unreadNotifications->count();
-        $unread=auth()->user()->unreadNotifications;
+        $notifications=auth()->user()->unreadNotifications;
+
+        $unread='';
+        $unread2='';
+        foreach($notifications as $notification){
+            $unread.='<div class="card bg-light text-white p-2 text-center">'.$notification->created_at.' User '.$notification->data['name'].' has just registered.</div>';
+            
+            /*$unread2.='<a href=\"route(\"NotiUpdate\",$notification->id)\" class=\"float-right mark-as-read\" data-id=\"'.$notification->id.'\">Mark as read</a><br>';
+            $refer=intval($unread2);
+            $unread.=$unread2;*/
+        }
         //$imageName=$request->name;
         //dd($NumNoti);
         //session::flash('user_added','El registro ha sido creado con éxito');
