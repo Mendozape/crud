@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.15.3/echo.js"></script>
 <script>
   // Enable pusher logging - don't include this in production
-  Pusher.logToConsole = true;
+  //Pusher.logToConsole = true;
   var pusher = new Pusher('66e12194484209bfb23d', {
     cluster: 'mt1'
   });
@@ -52,9 +52,9 @@
 <section class="section">
   <div id="demo"></div>
   <div class="section-header" align="center">
-    <h1>Listado</h1>
+    <h1>List</h1>
     @can('crear-cliente')
-    <a href="{{ route('client.create') }}" class="btn btn-primary">Altasxx</a>
+    <a href="{{ route('client.create') }}" class="btn btn-primary">Create</a>
     @endcan
   </div>
   <div class="section-body mt-2">
@@ -82,13 +82,13 @@
                   <td><img height="50px" src="{{ asset('storage/'.$details->image)}}" /></td>
                   <td>
                     @can('editar-cliente')
-                    <a href="{{ route('client.edit',$details) }}" class="btn btn-warning">Editar</a>
+                    <a href="{{ route('client.edit',$details) }}" class="btn btn-warning">Edit</a>
                     @endcan
                     @can('borrar-cliente')
                     <form action="{{ route('client.destroy',$details) }}" method="post" class="d-inline form-delete">
                       @method('DELETE')
                       @csrf
-                      <BUTTON type="submit" class="btn btn-danger">Eliminarxx</BUTTON>
+                      <BUTTON type="submit" class="btn btn-danger">Delete</BUTTON>
                     </form>
                     @endcan
                   </td>

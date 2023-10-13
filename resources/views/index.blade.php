@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.15.3/echo.js"></script>
 <script>
   // Enable pusher logging - don't include this in production
-  Pusher.logToConsole = true;
+  //Pusher.logToConsole = true;
   var pusher = new Pusher('66e12194484209bfb23d', {
     cluster: 'mt1'
   });

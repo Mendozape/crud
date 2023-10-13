@@ -323,7 +323,7 @@ return [
             'icon' => 'fas fa-fw fa-user',
         ],
         [
-            'text'    => 'CONFIGURACIÓN',
+            'text'    => 'CONFIGURATION',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
                 [
@@ -372,7 +372,7 @@ return [
             ],
         ],
         [
-            'text'    => 'NOTIFICATIONS',
+            'text'    => 'WEBSOCKETS',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
                 [
