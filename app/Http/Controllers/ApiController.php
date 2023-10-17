@@ -12,6 +12,7 @@ class ApiController extends Controller
         $users= user::all();
         return response()->json($users);
     }
+    
     public function login(Request $request){
         $response = ["status"=>0, "msg"=>""];
         $data=json_decode($request->getContent());
