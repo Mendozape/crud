@@ -18,8 +18,6 @@ use Illuminate\Support\Facades\Route;
 /*Route::prefix('V1')->group(function(){
     Route::apiResource('/articles',ArticleController::class);
 });*/
-
-
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
