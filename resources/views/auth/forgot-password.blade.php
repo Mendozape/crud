@@ -1,3 +1,8 @@
+
+@section('adminlte_css_pre')
+    <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
+@stop
+
 <x-guest-layout>
     <x-jet-authentication-card>
         <x-slot name="logo">
@@ -32,3 +37,5 @@
         </form>
     </x-jet-authentication-card>
 </x-guest-layout>
+
+

@@ -1,23 +1,177 @@
-@extends('layouts.app')
+@extends('adminlte::page')
+@section('title', 'MY LARAVEL SYSTEM')
+@section('content_header')
+<!-- CSRF Token -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.3.0/pusher.min.js" integrity="sha512-tXL5mrkSoP49uQf2jO0LbvzMyFgki//znmq0wYXGq94gVF6TU0QlrSbwGuPpKTeN1mIjReeqKZ4/NJPjHN1d2Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.15.3/echo.js"></script>
+<script>
+  // Enable pusher logging - don't include this in production
+  //Pusher.logToConsole = true;
+  var pusher = new Pusher('66e12194484209bfb23d', {
+    cluster: 'mt1'
+  });
+  var channel = pusher.subscribe('my-channel');
+  channel.bind('my-event', function(data) {
+    //alert(JSON.stringify(data.username));
+    document.getElementById("NumNoti").textContent = 9;
+    //document.getElementById("demo").innerHTML ='sdfsf';
+  });
+  var channel = pusher.subscribe('EmployeesChannel');
+  channel.bind('EmployeesEvent', function(event) {
+    //alert(JSON.stringify(data.username));
+    document.getElementById("NumMess").textContent = event.NumNoti;
+    //event.unread.foreach(function(row){
+    document.getElementById("notis").innerHTML ='';
+    document.getElementById("notis").innerHTML =event.unread;
+    //alert(JSON.stringify('asdsad:'+event.unread[0].data['name']));
+    //alert(JSON.stringify(html));
+    //})
+    
+  });
 
+</script>
+@stop
+@section('content_top_nav_right')
+<li class="nav-item dropdown">
+  <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
+    <i class="far fa-comments"></i>
+    <span class="badge badge-warning navbar-badge" id="NumNoti">6</span>
+  </a>
+  <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
+    <span class="dropdown-item dropdown-header">15 Notifications</span>
+    <div class="dropdown-divider"></div>
+    <a href="#" class="dropdown-item">
+      <i class="fas fa-envelope mr-2"></i> 4 new messages
+      <span class="float-right text-muted text-sm">3 mins</span>
+    </a>
+    <div class="dropdown-divider"></div>
+    <a href="#" class="dropdown-item">
+      <i class="fas fa-users mr-2"></i> 8 friend requests
+      <span class="float-right text-muted text-sm">12 hours</span>
+    </a>
+    <div class="dropdown-divider"></div>
+    <a href="#" class="dropdown-item">
+      <i class="fas fa-file mr-2"></i> 3 new reports
+      <span class="float-right text-muted text-sm">2 days</span>
+    </a>
+    <div class="dropdown-divider"></div>
+    <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+  </div>
+</li>
+
+<li class="nav-item dropdown">
+    @if(auth()->user()->is_admin)
+    <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
+        <i class="far fa-bell"></i>
+        <span class="badge badge-warning navbar-badge" id="NumMess">{{auth()->user()->unreadNotifications->count()}}</span>
+    </a>
+     @endif
+    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
+        <span class="dropdown-item dropdown-header"> Unread Notifications</span>
+        <div class="dropdown-divider"></div>
+        @if(auth()->user()->is_admin)
+            @forelse($notifications as $notification)
+            <a href="#" class="dropdown-item">
+                <i class="fas fa-envelope mr-2"></i> {{ $notification->created_at }}
+            </a>
+        @empty
+        <div class="card bg-light text-white p-2 text-center">
+            There are no new notifications
+        </div>
+        @endforelse
+        @endif
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+    </div>
+</li>
+@stop
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Dashboard') }}</div>
+<section class="section">
+    <div class="section-header" align="center">
+        <h1>Notifications</h1>
+    </div>
+    <div class="section-body mt-2" >
+        <div class="row">
+            <div class="col-lg-12"> 
+                <div class="card">
+                    <div class="card-body" id="notis">
 
-                <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
+                        @if(auth()->user()->is_admin)
+                        @forelse($notifications as $notification)
+                        <div class="card bg-light text-white p-2 text-center">
+                            [{{ $notification->created_at }}] User {{ $notification->data['name'] }} has just registered.
+                            <a href="{{ route('NotiUpdate',$notification->id)}}" class="float-right mark-as-read" data-id="{{ $notification->id }}">
+                                Mark as read
+                            </a>
                         </div>
-                    @endif
+                        @if($loop->last)
+                        <div class="card bg-light text-white p-2 text-center">
+                            <a href="{{ route('NotiUpdate','0')}}" data-id="{{ $notification->id }}">
+                                Mark all as read
+                            </a>
+                        </div>
+                        @endif
+                        @empty
+                        <div class="card bg-light text-white p-2 text-center">
+                        There are no new notifications
+                        </div>
+                        @endforelse
+                        @endif
 
-                    {{ __('You are logged in!') }}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-@endsection
+</section>
+
+<section class="section" align="center">
+    <div class="section-header" align="center">
+        <h1>Dashboard</h1>
+    </div>
+    <div class="section-body">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 col-xl-4">
+                                <div class="card bg-success text-white p-2">
+                                    <div class="card-subtitle">
+                                        <h5>Usuariox</h5>
+                                        <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">{{ App\Models\User::count(); }}</span></h2>
+                                        <p class="m-b-0 text-right"> <a href="/client" class="text-white">Ver más</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-xl-4">
+                                <div class="card bg-secondary text-white p-2">
+                                    <div class="card-subtitle ">
+                                        <h5>Personal</h5>
+                                        <h2 class="text-left"><i class="fa fa-user "></i><span style="float:right">{{ App\Models\Client::count(); }}</span></h2>
+                                        <p class="m-b-0 text-right"> <a href="/client" class="text-white">Ver más</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-xl-4">
+                                <div class="card bg-info text-white p-2">
+                                    <div class="card-subtitle">
+                                        <h5>Roles</h5>
+                                        <h2 class="text-left"><i class="fa fa-user-lock "></i><span style="float:right">{{ Spatie\Permission\Models\Role::count(); }}</span></h2>
+                                        <p class="m-b-0 text-right"> <a href="/roles" class="text-white">Ver más</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@stop
+@section('js')
+@vite(['resources/js/app.js'])
+@stop
+
