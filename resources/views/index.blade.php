@@ -174,6 +174,4 @@
 @section('js')
 @vite(['resources/js/app.js'])
 @stop
-@section('footer')
-<p>Copyright © 2023 mendodevelopments All rights reserved. Version 1.0</p>
-@stop
+
