@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\HomeController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -19,6 +20,7 @@ use App\Http\Controllers\HomeController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 Route::get('/', function () {
     return view('auth.login');
 });
@@ -32,7 +34,6 @@ Route::middleware([
     })->name('dashboard');
 });
 Route::middleware(['auth'])->group(function(){
-    //Route::get('/home', function () { return view('/index'); });
     Route::get('/home',[HomeController::class, 'index'])->name('index');
     Route::get('/livewire',function () { return view('/livewire/home'); });
     //Route::get('/crudlive',function () { return view('/livewire/crud/home'); });

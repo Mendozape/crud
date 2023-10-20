@@ -256,9 +256,9 @@ return [
     'dashboard_url' => '/home',
     'logout_url' => 'logout',
     'login_url' => 'login',
-    'register_url' => 'register',
+    'register_url' => false,
     'password_reset_url' => 'forgot-password',
-    'password_email_url' => 'password/email',
+    'password_email_url' => 'forgot-password',
     'profile_url' => false,
 
     /*
