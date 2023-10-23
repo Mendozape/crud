@@ -46,6 +46,7 @@ class Employees extends Component
         }else{
             $url = Storage::disk('public')->url('no_image.jpg');
         }
+        //dd($url);
         return $url;
     }
     public function store()
