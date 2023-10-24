@@ -362,10 +362,6 @@ return [
                     'url'  => 'livewire',
                 ],
                 [
-                    'text' => 'CRUD Clients',
-                    'url'  => 'clients',
-                ],
-                [
                     'text' => 'CRUD employee',
                     'url'  => 'employees',
                 ],

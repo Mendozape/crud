@@ -50,7 +50,7 @@
 									<td>{{ $row->name }}</td>
 									<td>{{ $row->due }}</td>
 									<td>{{ $row->comments }}</td>
-									<td><img class="img img-circle" style="width:50px;"src="{{ $url }}" />{{$url}}</td>
+									<td><img class="img img-circle" style="width:50px;"src="{{ $url }}" /></td>
 									<td>
 										<div class="dropdown">
 											<a class="btn btn-sm btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
