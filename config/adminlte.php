@@ -354,7 +354,7 @@ return [
             ],
         ],
         [
-            'text'    => 'LIVEWIRE',
+            'text'    => 'LIVEWIREx',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
                 [
