@@ -171,7 +171,5 @@
     </div>
 </section>
 @stop
-@section('js')
-@vite(['resources/js/app.js'])
-@stop
+
 
