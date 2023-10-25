@@ -65,11 +65,11 @@
             <table class="table" id="clientes">
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Salario</th>
-                  <th>Comentarios</th>
-                  <th>Imagen</th>
-                  <th>Acciones</th>
+                  <th>Name</th>
+                  <th>Salary</th>
+                  <th>Comments</th>
+                  <th>Image</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>

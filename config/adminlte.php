@@ -318,11 +318,6 @@ return [
             'icon' => 'fas fa-fw fa-home',
         ],
         [
-            'text' => 'CRUD BLADE & PHP',
-            'url'  => 'client/',
-            'icon' => 'fas fa-fw fa-user',
-        ],
-        [
             'text'    => 'CONFIGURATION',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
@@ -332,7 +327,7 @@ return [
                     'icon' => 'fas fa-fw fa-user',
                 ],
                 [
-                    'text' => 'Permisos',
+                    'text' => 'Permissions',
                     'url'  => 'permisos/',
                 ],
                 [
@@ -340,7 +335,7 @@ return [
                     'url'  => 'roles/',
                 ],
                 [
-                    'text' => 'Usuarios',
+                    'text' => 'Users',
                     'url'  => 'usuarios/',
                 ],
                 [
@@ -354,15 +349,16 @@ return [
             ],
         ],
         [
-            'text'    => 'LIVEWIREx',
+            'text' => 'CRUD CLIENTS',
+            'url'  => 'client/',
+            'icon' => 'fas fa-fw fa-user',
+        ],
+        [
+            'text'    => 'CRUD (Livewire)',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
                 [
-                    'text' => 'Counter',
-                    'url'  => 'livewire',
-                ],
-                [
-                    'text' => 'CRUD employee',
+                    'text' => 'Employees',
                     'url'  => 'employees',
                 ],
             ],
