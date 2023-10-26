@@ -1,53 +1,7 @@
 @extends('adminlte::page')
 @section('plugins.Sweetalert2', true)
 @section('title', 'MY LARAVEL SYSTEM')
-@section('content_header')
-<!-- CSRF Token -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.3.0/pusher.min.js" integrity="sha512-tXL5mrkSoP49uQf2jO0LbvzMyFgki//znmq0wYXGq94gVF6TU0QlrSbwGuPpKTeN1mIjReeqKZ4/NJPjHN1d2Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.15.3/echo.js"></script>
-<script>
-  // Enable pusher logging - don't include this in production
-  //Pusher.logToConsole = true;
-  var pusher = new Pusher('66e12194484209bfb23d', {
-    cluster: 'mt1'
-  });
-  var channel = pusher.subscribe('my-channel');
-  channel.bind('my-event', function(data) {
-    alert(JSON.stringify(data.username));
-    document.getElementById("NumNoti").textContent = data.username;
-    //document.getElementById("demo").innerHTML ='sdfsf';
-  });
-</script>
-@stop
-@section('content_top_nav_right')
-<li class="nav-item dropdown">
-    <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
-        <i class="far fa-comments"></i>
-        <span class="badge badge-warning navbar-badge" id="NumNoti">6</span>
-    </a>
-    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
-        <span class="dropdown-item dropdown-header">15 Notifications</span>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-            <i class="fas fa-envelope mr-2"></i> 4 new messages
-            <span class="float-right text-muted text-sm">3 mins</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-            <i class="fas fa-users mr-2"></i> 8 friend requests
-            <span class="float-right text-muted text-sm">12 hours</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-            <i class="fas fa-file mr-2"></i> 3 new reports
-            <span class="float-right text-muted text-sm">2 days</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-    </div>
-</li>
-@stop
+@include('top')
 @section('content')
 <section class="section">
   <div id="demo"></div>
@@ -73,7 +27,7 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse ($clientes as $details)
+                @forelse ($data['client'] as $details)
                 <tr>
                   <td>{{ $details->name }}</td>
                   <td>{{ $details->due }}</td>

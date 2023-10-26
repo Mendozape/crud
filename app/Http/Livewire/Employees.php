@@ -18,6 +18,7 @@ class Employees extends Component
     use WithFileUploads;
     public function render()
     {
+        $notifications = auth()->user()->unreadNotifications;
         $keyWord = '%' . $this->keyWord . '%';
         $employees = Employee::latest()
             ->orWhere('name', 'LIKE', $keyWord)
@@ -25,7 +26,12 @@ class Employees extends Component
             ->orWhere('comments', 'LIKE', $keyWord)
             ->orWhere('image', 'LIKE', $keyWord)
             ->paginate(10);
-        return view('livewire.employees.view', compact('employees'));
+        $data = [
+            'notifications'  => $notifications,
+            'employees'  => $employees
+        ];
+        return view('livewire.employees.view')->with('data',$data);
+
     }
     public function cancel()
     {

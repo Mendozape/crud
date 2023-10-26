@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Events\EmployeesUpdated;
 use App\Events\StatusLiked;
 
+
 class ClientController extends Controller
 {
     function __construct()
@@ -23,12 +24,13 @@ class ClientController extends Controller
      */
     public function index()
     {
-       //$client=Client::paginate(5);
+       $notifications = auth()->user()->unreadNotifications;
        $client=Client::all();
-       //$permisos = Permission::pluck('name','id');
-       //$client->fragment('Registros')->SetPageName('Pagina')->withQueryString();
-       return view('client.index')->with('clientes',$client);
-       //return view('client.index',compact('client','permisos'));
+       $data = [
+        'notifications'  => $notifications,
+        'client'   => $client
+       ];
+       return view('client.index')->with('data',$data);
     }
 
     /**

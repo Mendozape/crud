@@ -22,7 +22,6 @@
 								Notification
 						</button>
 						</div>
-						
 					</div>
 				</div>
 				<div class="card-body">
@@ -41,7 +40,7 @@
 								</tr>
 							</thead>
 							<tbody>
-								@forelse($employees as $row)
+								@forelse($data['employees'] as $row)
 								@php
 								$url = App\Http\Livewire\employees::getUrl($row->image);
 								@endphp
@@ -70,7 +69,7 @@
 								@endforelse
 							</tbody>
 						</table>
-						<div class="float-end">{{ $employees->links() }}</div>
+						<div class="float-end">{{ $data['employees']->links() }}</div>
 					</div>
 				</div>
 			</div>
