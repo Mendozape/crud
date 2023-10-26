@@ -24,12 +24,19 @@ class ClientController extends Controller
      */
     public function index()
     {
-       $notifications = auth()->user()->unreadNotifications;
+        $notifications = auth()->user()->unreadNotifications;
+        $client=Client::all();
+        $data = [
+        'notifications'  => $notifications,
+        'client'   => $client
+        ];
+        //$this->create($data);
+        /*$notifications = auth()->user()->unreadNotifications;
        $client=Client::all();
        $data = [
         'notifications'  => $notifications,
         'client'   => $client
-       ];
+       ];*/
        return view('client.index')->with('data',$data);
     }
 
@@ -40,8 +47,11 @@ class ClientController extends Controller
      */
     public function create()
     {
+        //dd($x);
+        //return view('client.form')->with('data',$data);
         return view('client.form');
-    } 
+    }
+    
 
     /**
      * Store a newly created resource in storage.
@@ -125,6 +135,7 @@ class ClientController extends Controller
             $image= $request->file('image');
             $image_name = $image->getClientOriginalName();
             $request->image->move(public_path('images'), $image_name);
+
             $client->image=$image_name;
         }
         $client->save();

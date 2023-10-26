@@ -1,5 +1,6 @@
 @extends('adminlte::page')
 @section('title', 'MY LARAVEL SYSTEM')
+@include('top')
 @section('content')
 <div class="container py-5" align="left">
     @if($errors->any())
