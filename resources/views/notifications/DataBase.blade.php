@@ -15,7 +15,7 @@
   var channel = pusher.subscribe('my-channel');
   channel.bind('my-event', function(data) {
     //alert(JSON.stringify(data.username));
-    document.getElementById("NumNoti").textContent = data.username;
+    document.getElementById("NumNoti").textContent = 8;
     //document.getElementById("demo").innerHTML ='sdfsf';
   });
 </script>
@@ -76,7 +76,7 @@
 <section class="section">
   <div id="demo"></div>
   <div class="section-header" align="center">
-    <h1>Email</h1>
+    <h1>Notifications</h1>
   </div>
   <div class="section-body mt-2">
     <div class="row">

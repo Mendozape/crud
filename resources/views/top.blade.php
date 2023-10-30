@@ -18,10 +18,10 @@
     var channel = pusher.subscribe('EmployeesChannel');
     channel.bind('EmployeesEvent', function(event) {
         //alert(JSON.stringify(data.username));
-        document.getElementById("NumMess").textContent = event.NumNoti;
         //event.unread.foreach(function(row){
-        document.getElementById("notis").innerHTML ='';
+        document.getElementById("NumMess").textContent = event.NumNoti;
         document.getElementById("notis").innerHTML =event.unread;
+
         //alert(JSON.stringify('asdsad:'+event.unread[0].data['name']));
         //alert(JSON.stringify(html));
         //})
@@ -55,7 +55,7 @@
             <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
         </div>
     </li>
-    @if(isset($data['notifications']))
+    @if(isset(auth()->user()->unreadNotifications))
         <li class="nav-item dropdown">
             @if(auth()->user()->is_admin)
             <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="false">
@@ -67,7 +67,7 @@
                 <span class="dropdown-item dropdown-header"> Unread Notifications</span>
                 <div class="dropdown-divider"></div>
                 @if(auth()->user()->is_admin)
-                    @forelse($data['notifications'] as $notification)
+                    @forelse(auth()->user()->unreadNotifications as $notification)
                     <a href="#" class="dropdown-item">
                         <i class="fas fa-envelope mr-2"></i> {{ $notification->created_at }}
                     </a>

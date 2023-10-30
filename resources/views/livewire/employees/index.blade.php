@@ -5,15 +5,8 @@
 @stop
 @include('top')
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            @livewire('employees')
-        </div>
-    </div>
-</div>
+            @livewire('employees')   
 @livewireScripts
-
 <script>
     livewire.on('saved', name => {
         document.getElementById("close_add").click();

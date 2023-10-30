@@ -22,7 +22,7 @@ class NotificationsController extends Controller
     //public $user;
     public function email()
     {
-        $email= Notification::send(User::where('email','admin@gmail.com')-> first(), new newsCreated);
+        $email= Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new newsCreated);
         return view('notifications.email')->with('email',$email);
     }
     public function NotiUpdate($id)

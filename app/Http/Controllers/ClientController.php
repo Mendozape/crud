@@ -5,7 +5,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 use App\Events\EmployeesUpdated;
-use App\Events\StatusLiked;
 
 
 class ClientController extends Controller
@@ -24,10 +23,8 @@ class ClientController extends Controller
      */
     public function index()
     {
-        $notifications = auth()->user()->unreadNotifications;
         $client=Client::all();
         $data = [
-        'notifications'  => $notifications,
         'client'   => $client
         ];
         //$this->create($data);
@@ -73,11 +70,11 @@ class ClientController extends Controller
             $input['image']=$imageName;
         }
         $clien= Client::create($input);
-        $NumNoti=auth()->user()->unreadNotifications->count();
+        $NumNoti=auth()->user()->unreadNotifications->count()+1;
         $notifications=auth()->user()->unreadNotifications;
 
         $unread='';
-        $unread2='';
+        
         foreach($notifications as $notification){
             $unread.='<div class="card bg-light text-white p-2 text-center">'.$notification->created_at.' User '.$notification->data['name'].' has just registered.</div>';
             

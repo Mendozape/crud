@@ -60,6 +60,14 @@ Route::middleware(['auth'])->group(function(){
         $notifications = auth()->user()->unreadNotifications;
         return view('notifications.DataBase', compact('notifications'));
     });
+    /*Route::get('/employees', function() {
+        //event(new  App\Events\StatusLiked('18'));
+        $notifications = auth()->user()->unreadNotifications;
+        $data = [
+        'notifications'  => $notifications
+        ];
+        return view('livewire.employees.index', compact('data'));
+    });*/
 });
 
 

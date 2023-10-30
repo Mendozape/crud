@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\FileController;
 use Carbon\Carbon;
+use App\Events\EmployeesUpdated;
 
 class Employees extends Component
 {
@@ -30,6 +31,7 @@ class Employees extends Component
             'notifications'  => $notifications,
             'employees'  => $employees
         ];
+        //event(new EmployeesUpdated($clien,$NumNoti,$unread));
         return view('livewire.employees.view')->with('data',$data);
 
     }
