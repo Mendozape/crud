@@ -1,7 +1,6 @@
 <div class="container-fluid">
 	<div class="row justify-content-center">
 		<div class="col-md-12">
-
 			<div class="container-fluid">
 				<div class="row justify-content-center">
 					<div class="col-md-12">
@@ -20,11 +19,6 @@
 									</div>
 									<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
 										<i class="fa fa-plus"></i> Add Employees
-									</div>
-									<div>
-										<button wire:click="tellme" class="btn btn-primary">
-											Notification
-										</button>
 									</div>
 								</div>
 							</div>

@@ -2,12 +2,40 @@
 @section('content_header')
 <livewire:styles />
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.3.0/pusher.min.js" integrity="sha512-tXL5mrkSoP49uQf2jO0LbvzMyFgki//znmq0wYXGq94gVF6TU0QlrSbwGuPpKTeN1mIjReeqKZ4/NJPjHN1d2Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/laravel-echo/1.15.3/echo.js"></script>
 @stop
-@include('top')
+@include('toplw')
 @section('content')
             @livewire('employees')   
 @livewireScripts
 <script>
+/////////START THE PUSHER
+    // Enable pusher logging - don't include this in production
+    //Pusher.logToConsole = true;
+    var pusher = new Pusher('66e12194484209bfb23d', {
+        cluster: 'mt1'
+    });
+    var channel = pusher.subscribe('my-channel');
+    channel.bind('my-event', function(data) {
+        //alert(JSON.stringify(data.username));
+        document.getElementById("NumNoti").textContent = 9;
+        //document.getElementById("demo").innerHTML ='sdfsf';
+    });
+    var channel = pusher.subscribe('EmployeesChannel');
+    channel.bind('EmployeesEvent', function(event) {
+        //alert(JSON.stringify(data.username));
+        //event.unread.foreach(function(row){
+        document.getElementById("NumMess").textContent = event.NumNoti;
+        document.getElementById("notis").innerHTML =event.unread;
+        //livewire.emit('UpdateCompo');
+        //alert('asdad');
+        //alert(JSON.stringify('asdsad:'+event.unread[0].data['name']));
+        //alert(JSON.stringify(html));
+        //})
+    });
+///////////END THE PUSHER
     livewire.on('saved', name => {
         document.getElementById("close_add").click();
         Swal.fire({
@@ -53,9 +81,9 @@
             timer: 1500
         });
     });
-    window.addEventListener('notify', event => {
-        alert('The message: ' + event.detail);
-    })
+    /*Livewire.on('xxx', postId => {
+            alert('A post was added with the id of: ' );
+    })*/
 </script>
 @endsection
 @section('js')
