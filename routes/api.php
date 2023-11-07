@@ -26,3 +26,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/users',[ApiController::class,'users']);
 Route::post('/login',[ApiController::class,'login']);
 Route::apiResource('/tasks',ApiController::class);
+
+Route::get('articles', 'ArticleController@index');
+Route::get('articles/{article}', 'ArticleController@show');
+Route::post('articles', 'ArticleController@store');
+Route::put('articles/{article}', 'ArticleController@update');
+Route::delete('articles/{article}', 'ArticleController@delete');
