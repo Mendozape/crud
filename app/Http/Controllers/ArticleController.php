@@ -26,7 +26,6 @@ class ArticleController extends Controller
         $article->update($request->all());
         return response()->json($article, 200);
     }
-
     public function delete(Article $article)
     {
         $article->delete();
