@@ -1,8 +1,7 @@
 <?php
-
+namespace App\Http\Controllers;
 use App\Models\Article;
 use Illuminate\Http\Request;
-use app\Http\Controllers\Controller;
 use illuminate\Http\Client\Response;
 class ArticleController extends Controller
 {
