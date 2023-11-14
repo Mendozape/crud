@@ -9,7 +9,6 @@ class ApiController extends Controller
     public function users(Request $request){
         $users= User::all();
         return response()->json($users);
-        //testing
     }
     
     public function login(Request $request){
