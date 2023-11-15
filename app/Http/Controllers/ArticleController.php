@@ -1,13 +1,13 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\Article;
+use App\Models\article;
 use Illuminate\Http\Request;
 use illuminate\Http\Client\Response;
 class ArticleController extends Controller
 {
     public function index()
     {
-        return Article::all();
+        return article::all();
     }
 
     public function show(Article $article)

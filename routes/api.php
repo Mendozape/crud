@@ -21,10 +21,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::middleware(['auth'])->group(function(){
-    Route::get('/users',[ApiController::class,'users']);
-});
+/*Route::middleware(['auth'])->group(function(){
+    Route::get('/users',[ApiController::class, 'users'])->name('users');
+});*/
 //public API
-
+//Route::get('/users',[ApiController::class,'users']);//public
+Route::middleware('auth:api')->get('/users','ApiController@users'); //private
 Route::post('/login',[ApiController::class,'login']);
 Route::apiResource('/articles',ArticleController::class);
