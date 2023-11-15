@@ -26,6 +26,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });*/
 //public API
 //Route::get('/users',[ApiController::class,'users']);//public
-Route::middleware('auth:api')->get('/users','ApiController@users'); //private
+//Route::middleware('auth:api')->get('/users','ApiController@users'); //private
 Route::post('/login',[ApiController::class,'login']);
 Route::apiResource('/articles',ArticleController::class);
+
+Route::middleware('auth.basic')->group(function (): void {
+    Route::get('/users',[ApiController::class,'users']);
+});
