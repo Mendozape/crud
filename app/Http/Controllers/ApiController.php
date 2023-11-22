@@ -8,9 +8,14 @@ class ApiController extends Controller
 {
     public function users(Request $request){
         $users= User::all();
-        return response()->json($users);
+        return response($users)
+        //return response()->json($users)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Credentials', 'false')
+        ->header('Access-Control-Allow-Methods', '*')
+        ->header('Content-Type', 'application/json')
+        ->header('Access-Control-Allow-Headers', '*');
     }
-    
     public function login(Request $request){
         $response = ["status"=>0, "msg"=>""];
         $data=json_decode($request->getContent());
