@@ -28,10 +28,8 @@ class ApiController extends Controller
             }else{
                 $response = ["msg"=>"Incorrect Credentials "];
             }
-
         }else{
             $response = ["msg"=>"User didn find"]; 
-
         }
         return response()->json($response);
     }

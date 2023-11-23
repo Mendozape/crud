@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\Route;
 /*Route::prefix('V1')->group(function(){
     Route::apiResource('/articles',ArticleController::class);
 });*/
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+/*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
-});
+});*/
 /*Route::middleware(['auth'])->group(function(){
     Route::get('/users',[ApiController::class, 'users'])->name('users');
 });*/
@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/login',[ApiController::class,'login']);
 Route::apiResource('/articles',ArticleController::class);
 
-Route::middleware('auth.basic')->group(function (): void {
+/*Route::middleware('auth.basic')->group(function (): void {
     Route::get('/users',[ApiController::class,'users']);
-});
+});*/
+Route::middleware('auth:sanctum')->get('/users', [ApiController::class,'users']);
