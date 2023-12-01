@@ -55,11 +55,15 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/NotiUpdate/{id}',[NotificationsController::class, 'NotiUpdate'])->name('NotiUpdate');
     //Route::get('/broadcasting/',[NotificationsController::class, 'broadcasting'])->name('broadcasting');
     //Route::get('/notificationsDB',[NotificationsController::class, 'db'])->name('db');
+    Route::get('/api',[NotificationsController::class, 'api'])->name('api');
     Route::get('/test', function() {
         event(new  App\Events\StatusLiked('18'));
         $notifications = auth()->user()->unreadNotifications;
         return view('notifications.DataBase', compact('notifications'));
     });
+    Route::get('/apiFetch', function () {
+        return view('apiFetch.index');
+    })->name('apiFetch');
     /*Route::get('/employees', function() {
         //event(new  App\Events\StatusLiked('18'));
         $notifications = auth()->user()->unreadNotifications;

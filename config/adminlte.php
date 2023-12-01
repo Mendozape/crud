@@ -377,6 +377,16 @@ return [
                 ],
             ],
         ],
+        [
+            'text'    => 'API REST',
+            'icon'    => 'fas fa-fw fa-share',
+            'submenu' => [
+                [
+                    'text' => 'Fetch',
+                    'url'  => 'apiFetch',
+                ],
+            ],
+        ],
     ],
 
     /*

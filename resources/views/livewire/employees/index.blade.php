@@ -8,7 +8,7 @@
 @stop
 @include('toplw')
 @section('content')
-            @livewire('employees')   
+            @livewire('employees')
 @livewireScripts
 <script>
 /////////START THE PUSHER
