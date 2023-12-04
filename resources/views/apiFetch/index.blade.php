@@ -2,7 +2,7 @@
 @section('Api Rest', 'MY LARAVEL SYSTEM')
 @include('top')
 @section('content_header')
-
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
 @stop
 
 @section('content')
@@ -19,7 +19,7 @@
                         <form class="d-inline form-search" id="busca">
                             <div class="mb-1" id="search-bar1">
                                 <label for="name" class="form-label mb-1">Type the article</label>
-                                <input type="text" name="searchx" class="form-control" placeholder="Article">
+                                <input type="text" name="searchx" id="searchx" class="form-control" placeholder="Article">
                                 <button data-submit-form="busca" class="btn btn-info mt-2" id="btn-searchApi">Buscar</button>
                             </div>
                         </form>
@@ -38,6 +38,7 @@
     });
 
     let searchArticle = function(e) {
+        //alert($('#searchx').val());
         let $form = $('#busca');
         let validator = $form.validate({
             errorElement: 'em',
@@ -94,11 +95,11 @@
                 let id=$('#searchx').val();
                 let status;
                 //let mat =  e.parent().parent().attr('id');
-                let mat =  e.parent().parent().val();
+                //let mat =  e.parent().parent().val();
                 //fetch(`http://crud.mendodevelopments.com/api/articles`,{
                 fetch(`http://crud.mendodevelopments.com/api/articles/${id}`,{
                     method: 'GET',
-                    mode:'cors',
+                    mode:'no-cors',
                     headers: new Headers({
                         'Access-Control-Allow-Origin': '*',
                         'Access-Control-Allow-Headers': '*',
@@ -175,3 +176,6 @@
     }
 </script>
 @stop
+@section('js')
+
+@endsection
