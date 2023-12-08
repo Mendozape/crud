@@ -11,7 +11,6 @@
             <div class="col-lg-12"> 
                 <div class="card">
                     <div class="card-body" id="notis">
-
                         @if(auth()->user()->is_admin)
                         @forelse($data['notifications'] as $notification)
                         <div class="card bg-light text-white p-2 text-center">
