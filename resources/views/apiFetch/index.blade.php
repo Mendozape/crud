@@ -18,20 +18,24 @@
                 <div class="card">
                     <div class="card-body">
                         <form id="busca">
-                            <div class="row" id="search-bar1">
-                                <div class="col-sm-7 col-md-6" id="search-bar2">
-                                    <div class="col-sm-7 col-md-6 input-group well" id="search-bar3">
-                                        <input type="text" class="form-control" id="field" name="field">
-                                        <span class="input-group-btn px-2" id="search-bar5">
+                            
+                                <div class="row" id="search-bar1">
+                                    <div class="col-sm-7 col-md-6 well" id="search-bar3">
+                                        <div class="col-sm-7 col-md-6">
+                                            Type item number
+                                        </div>
+                                        <div class="col-sm-7 col-md-6 input-group well">
+                                            <input type="text" class="form-control" id="field" name="field">
+                                            <span class="px-1"></span>
                                             <button data-submit-form="busca" class="btn btn-info" id="btn-searchApi">Buscar</button>
-                                        </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                           
                         </form>
                     </div>
-                    <div class="row" style="align-content:center;">
-                        <div class="col-xs-12 col-sm-12 col-md-12" style="width:90%; height: 950px;  margin-left:5%;" id="resultSearch"></div>
+                    <div class="text-center">
+                        <div id="resultSearch"></div>
                     </div>
                 </div>
             </div>
@@ -42,11 +46,15 @@
 @section('js')
 <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
 <script>
+    //$(document).ready(function() {
+    //toastr.info('Are you the 6 fingered man?');
     $('#search-bar1').on('click', '#btn-searchApi', function() {
-
-        //$(document).ready(function() {
+        //toastr.success('Click Button');
+        //let element = document.getElementById("resultSearch");
+        //element.removeAttribute("hidden");
 
         //$('#resultSearch').html('sdfsfdsf');
         /*$("#busca").validate({
@@ -60,6 +68,7 @@
                 }
             }
         });*/
+
         $("#busca").validate({
             errorElement: 'em',
             errorClass: 'help-block help-block-error',
@@ -75,16 +84,20 @@
             },
             messages: {
                 field: {
-                    required: 'Este campo es obligatorio'
+                    required: 'This field is required.'
                 }
             },
+            invalidHandler: function(event, validator) {
+                toastr.error('This field is required');
+            },
             success: function(label) {
+                document.getElementById("resultSearch").className = "spinner-border";
                 $('#resultSearch').show();
                 $('#search-bar1').hide();
+                toastr.info('Searching...');
             },
             submitHandler: function() {
                 var html = '';
-                //const data={name:'lato'};
                 let id = $('#field').val();
                 let status;
                 //fetch(`http://crud.mendodevelopments.com/api/articles`,{
@@ -111,14 +124,10 @@
                     })
                     .then(
                         function(data) {
+                            let element = document.getElementById("resultSearch");
+                            element.classList.remove('spinner-border');
                             html += `
-                    <section class="section" align="center">
-                    <div class="section-body">
-                    <div class="row">
-                    <div class="col-lg-9">
-                    <div class="card">
-                    <div class="card-body">
-                    <div class="row">`;
+                                <div class="p-3 row">`;
                             const iterable = ((x) => ( //to know if object is iterable
                                 (Reflect.has(x, Symbol.iterator)) &&
                                 (typeof(x[Symbol.iterator]) === "function")
@@ -126,59 +135,45 @@
                             if (iterable(data) && status === 200) {
                                 data.forEach(element => {
                                     html += `
-                            <div class="col-md-4 col-xl-4">
-                                <div class="card bg-secondary text-white p-2">
-                                    <div class="card-subtitle">
-                                        <h5>` + element.article + `</h5>
-                                        <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + element.description + `</span></h2>
-                                        <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
-                                    </div>
-                                </div>
-                            </div>`;
+                                    <div class="col-md-4 col-xl-4">
+                                        <div class="card bg-secondary text-white p-2">
+                                            <div class="card-subtitle">
+                                                <h5>` + element.article + `</h5>
+                                                <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + element.description + `</span></h2>
+                                                <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
+                                            </div>
+                                        </div>
+                                    </div>`;
                                 });
                             } else if (status === 200) {
                                 html += `
-                        <div class="col-md-4 col-xl-4">
-                            <div class="card bg-secondary text-white p-2">
-                                <div class="card-subtitle">
-                                    <h5>` + data.article + `</h5>
-                                    <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + data.description + `</span></h2>
-                                    <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
-                                </div>
-                            </div>
-                        </div>`;
+                                    <div class="col-md-4 col-xl-4">
+                                        <div class="card bg-secondary text-white p-2">
+                                            <div class="card-subtitle">
+                                                <h5>` + data.article + `</h5>
+                                                <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + data.description + `</span></h2>
+                                                <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
+                                            </div>
+                                        </div>
+                                    </div>`;
                             } else {
                                 html = '<div>Item not found</div>';
                             }
                             html += `
-                    </div>
-                    </div>
-                    </div>
-                    </div>
-                    </div>
-                    </div>
-                    </section>`;
+                                </div>`;
                             $('#resultSearch').html(html);
                         })
                     .catch(error => {
+                        let element = document.getElementById("resultSearch");
+                        element.classList.remove('spinner-border');
                         html = '<div>Something went wrongxx</div>';
-                        html += `
-                    </div>
-                    </div>
-                    </div>
-                     </div>
-                    </div>
-                    </div>
-                    </section>`;
+                        html += `</div>`;
                         $('#resultSearch').html(html);
                     });
                 return false;
             }
         });
-        
-        //});
-
-
     });
+    //});
 </script>
 @stop
