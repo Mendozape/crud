@@ -3,7 +3,6 @@
 @include('top')
 @section('content_header')
 
-
 @stop
 
 @section('content')
@@ -17,25 +16,29 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <form id="busca">
-                            
-                                <div class="row" id="search-bar1">
-                                    <div class="col-sm-7 col-md-6 well" id="search-bar3">
-                                        <div class="col-sm-7 col-md-6">
-                                            Type item number
-                                        </div>
-                                        <div class="col-sm-7 col-md-6 input-group well">
-                                            <input type="text" class="form-control" id="field" name="field">
-                                            <span class="px-1"></span>
-                                            <button data-submit-form="busca" class="btn btn-info" id="btn-searchApi">Buscar</button>
-                                        </div>
+                        <div class="row">
+                            <div class="col-md-12 col-xl-12">
+                                
+                                    <div class="card-subtitle" id="search-bar1">
+                                        <form id="busca">
+                                            <p>
+                                                <label for="field">xx <span>(minimum 2)</span></label>
+                                                <input type="text" id="field" name="field">
+                                            </p>
+                                            <p>
+                                                <input class="submit" type="submit" value="SUBMIT">
+                                            </p>
+                                        </form>
                                     </div>
-                                </div>
-                           
-                        </form>
+                               
+                            </div>
+                        </div>
                     </div>
                     <div class="text-center">
                         <div id="resultSearch"></div>
+                    </div>
+                    <div class="text-center">
+                        <div id="error-note"></div>
                     </div>
                 </div>
             </div>
@@ -44,14 +47,16 @@
 </section>
 @stop
 @section('js')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
 <script>
-    //$(document).ready(function() {
-    //toastr.info('Are you the 6 fingered man?');
-    $('#search-bar1').on('click', '#btn-searchApi', function() {
+    $(document).ready(function() {
+        //toastr.info('Are you the 6 fingered man?');
+        //$('#search-bar1').on('click', '#btn-searchApi', function() {
         //toastr.success('Click Button');
         //let element = document.getElementById("resultSearch");
         //element.removeAttribute("hidden");
@@ -70,11 +75,8 @@
         });*/
 
         $("#busca").validate({
-            errorElement: 'em',
-            errorClass: 'help-block help-block-error',
-            focusInvalid: true,
-            ignore: ':hidden',
-            success: "valid",
+            errorClass: "error fail-alert",
+            validClass: "valid success-alert",
             rules: {
                 field: {
                     required: true,
@@ -87,13 +89,29 @@
                     required: 'This field is required.'
                 }
             },
-            invalidHandler: function(event, validator) {
-                toastr.error('This field is required');
-            },
+            /* error: function(label) {
+                $(this).addClass("error");
+            },*/
+            /*errorPlacement: function(error, element) {
+                    // attrib nameof the field
+                    var n = element.attr("name");
+                    if (n === "field") {
+
+                        element.attr("placeholder", "Please type the item number");
+                        //element.style.backgroundColor = "red";
+                        //$(element).addClass('error')
+                        //element.css('border', '2px solid #FDADAF');
+                        element.css('background', 'red');
+                    }
+
+                },*/
+
+
             success: function(label) {
+                label.addClass("valid").text("Ok!");
                 document.getElementById("resultSearch").className = "spinner-border";
                 $('#resultSearch').show();
-                $('#search-bar1').hide();
+                //$('#search-bar1').hide();
                 toastr.info('Searching...');
             },
             submitHandler: function() {
@@ -127,7 +145,7 @@
                             let element = document.getElementById("resultSearch");
                             element.classList.remove('spinner-border');
                             html += `
-                                <div class="p-3 row">`;
+                                    <div class="p-3 row">`;
                             const iterable = ((x) => ( //to know if object is iterable
                                 (Reflect.has(x, Symbol.iterator)) &&
                                 (typeof(x[Symbol.iterator]) === "function")
@@ -135,32 +153,32 @@
                             if (iterable(data) && status === 200) {
                                 data.forEach(element => {
                                     html += `
-                                    <div class="col-md-4 col-xl-4">
-                                        <div class="card bg-secondary text-white p-2">
-                                            <div class="card-subtitle">
-                                                <h5>` + element.article + `</h5>
-                                                <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + element.description + `</span></h2>
-                                                <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
+                                        <div class="col-md-4 col-xl-4">
+                                            <div class="card bg-secondary text-white p-2">
+                                                <div class="card-subtitle">
+                                                    <h5>` + element.article + `</h5>
+                                                    <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + element.description + `</span></h2>
+                                                    <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>`;
+                                        </div>`;
                                 });
                             } else if (status === 200) {
                                 html += `
-                                    <div class="col-md-4 col-xl-4">
-                                        <div class="card bg-secondary text-white p-2">
-                                            <div class="card-subtitle">
-                                                <h5>` + data.article + `</h5>
-                                                <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + data.description + `</span></h2>
-                                                <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
+                                        <div class="col-md-4 col-xl-4">
+                                            <div class="card bg-secondary text-white p-2">
+                                                <div class="card-subtitle">
+                                                    <h5>` + data.article + `</h5>
+                                                    <h2 class="text-left"><i class="fa fa-users fa-1x "></i><span style="float:right">` + data.description + `</span></h2>
+                                                    <p class="m-b-0 text-right"> <a href="" class="text-white">Ver más</a></p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>`;
+                                        </div>`;
                             } else {
                                 html = '<div>Item not found</div>';
                             }
                             html += `
-                                </div>`;
+                                    </div>`;
                             $('#resultSearch').html(html);
                         })
                     .catch(error => {
@@ -173,7 +191,8 @@
                 return false;
             }
         });
+        //});
     });
-    //});
 </script>
+
 @stop
