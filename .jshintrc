@@ -12,6 +12,7 @@
   "camelcase"    : true, //true: Identifiers must be in camelCase
   "eqnull"       : true, //true: Tolerate use of `== null`
   "esversion"    : 6,
+  "jshint esversion": 6
   "scripturl"    : true, //true: Tolerate script-targeted URLs
   "browser"      : true, //Web Browser (window, document, etc)
   "trailing"     : true,

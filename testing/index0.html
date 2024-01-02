@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Makes "field" required and step of 10.</title>
+    <link rel="stylesheet" href="https://jqueryvalidation.org/files/demo/site-demos.css">
+
+</head>
+
+<body>
+    <form id="myform">
+        <input type="text" class="left" id="field" name="field">
+        <input type="submit" value="Validate">
+    </form>
+    <form id="myform2">
+        <input type="text" class="left" id="field2" name="field2">
+        <input type="submit" value="Validate2">
+    </form>
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+
+    <script>
+        // just for the demos, avoids form submit
+        $("#myform").validate({
+            rules: {
+                field: {
+                    required: true,
+                    minlength:5
+                }
+            },
+            messages: {
+                field: 'debe escribir algo'
+            },
+            submitHandler: function (){
+                console.log("uno")
+            }
+        });
+        
+        $("#myform2").validate({
+            rules: {
+                field2: {
+                    required: true,
+                    minlength:5
+                }
+            },
+            messages: {
+                field2: 'debe escribir algo'
+            },
+            submitHandler: function (){
+                console.log("dos")
+            }
+        });
+       /*$("#myform").validate({
+            submitHandler: function (form) {
+                form.submit();
+            }
+        });*/
+    </script>
+</body>
+
+</html>

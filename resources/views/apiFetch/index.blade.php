@@ -18,19 +18,19 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12 col-xl-12">
-                                
                                     <div class="card-subtitle" id="search-bar1">
-                                        <form id="busca">
+                                        <form id="busca" onsubmit="return validatex()">
                                             <p>
-                                                <label for="field">xx <span>(minimum 2)</span></label>
-                                                <input type="text" id="field" name="field">
+                                                <label for="field">Type the item #</label>
+                                                <input type="text" size="25"  id="field" name="field">
                                             </p>
                                             <p>
-                                                <input class="submit" type="submit" value="SUBMIT">
+                                                <!--<input class="btn btn-secondary" type="submit" value="SUBMIT">-->
+                                                <input class="btn btn-secondary" type="submit" value="Search">
+                                                
                                             </p>
                                         </form>
                                     </div>
-                               
                             </div>
                         </div>
                     </div>
@@ -47,16 +47,17 @@
 </section>
 @stop
 @section('js')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
 <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.0.1/js/toastr.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
 <script>
-    $(document).ready(function() {
+    //$(document).ready(function() {
         //toastr.info('Are you the 6 fingered man?');
-        //$('#search-bar1').on('click', '#btn-searchApi', function() {
+    //$('#search-bar1').on('click', '#btn-searchApi', function() {
+        
         //toastr.success('Click Button');
         //let element = document.getElementById("resultSearch");
         //element.removeAttribute("hidden");
@@ -86,35 +87,30 @@
             },
             messages: {
                 field: {
-                    required: 'This field is required.'
+                    required: 'This field is requiredx'
                 }
             },
             /* error: function(label) {
                 $(this).addClass("error");
             },*/
-            /*errorPlacement: function(error, element) {
+            errorPlacement: function(error, element) {
                     // attrib nameof the field
-                    var n = element.attr("name");
+                    let n = element.attr("name");
                     if (n === "field") {
-
+                        document.getElementById(n).style.color = "black";
                         element.attr("placeholder", "Please type the item number");
-                        //element.style.backgroundColor = "red";
-                        //$(element).addClass('error')
-                        //element.css('border', '2px solid #FDADAF');
                         element.css('background', 'red');
                     }
 
-                },*/
+                },
 
 
             success: function(label) {
-                label.addClass("valid").text("Ok!");
-                document.getElementById("resultSearch").className = "spinner-border";
                 $('#resultSearch').show();
-                //$('#search-bar1').hide();
-                toastr.info('Searching...');
+                //toastr.info('Searching...');
             },
             submitHandler: function() {
+                document.getElementById("resultSearch").className = "spinner-border";
                 var html = '';
                 let id = $('#field').val();
                 let status;
@@ -180,6 +176,7 @@
                             html += `
                                     </div>`;
                             $('#resultSearch').html(html);
+                            $('#search-bar1').hide();
                         })
                     .catch(error => {
                         let element = document.getElementById("resultSearch");
@@ -187,12 +184,14 @@
                         html = '<div>Something went wrongxx</div>';
                         html += `</div>`;
                         $('#resultSearch').html(html);
+                        $('#search-bar1').hide();
                     });
                 return false;
+             
             }
         });
-        //});
-    });
+    //});
+    //});
 </script>
 
 @stop
