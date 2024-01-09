@@ -8,7 +8,7 @@
   <div class="section-header" align="center">
     <h1>List</h1>
     @can('crear-cliente')
-    <a href="{{ route('client.create') }}" class="btn btn-primary">Create</a>
+    <a href="{{ route('client.create') }}" class="btn btn-primary">Create lato</a>
     @endcan
   </div>
   <div class="section-body mt-2">
@@ -27,7 +27,7 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse ($data['client'] as $details)
+                @forelse ($data as $details)
                 <tr>
                   <td>{{ $details->name }}</td>
                   <td>{{ $details->due }}</td>
@@ -49,7 +49,7 @@
                 </tr>
                 @empty
                 <tr>
-                  <td colspan="3">No hay registros</td>
+                  <td colspan="3">{{ __('No items found') }}</td>
                 </tr>
                 @endforelse
               </tbody>

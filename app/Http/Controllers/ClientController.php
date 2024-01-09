@@ -24,9 +24,9 @@ class ClientController extends Controller
     public function index()
     {
         $client=Client::all();
-        $data = [
+        /*$data = [
         'client'   => $client
-        ];
+        ];*/
         //$this->create($data);
         /*$notifications = auth()->user()->unreadNotifications;
        $client=Client::all();
@@ -34,7 +34,7 @@ class ClientController extends Controller
         'notifications'  => $notifications,
         'client'   => $client
        ];*/
-       return view('client.index')->with('data',$data);
+       return view('client.index')->with('data',$client);
     }
 
     /**
