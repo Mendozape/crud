@@ -6,7 +6,7 @@
     <script>
     // Enable pusher logging - don't include this in production
     //Pusher.logToConsole = true;
-    var pusher = new Pusher('66e12194484209bfb23d', {
+    /*var pusher = new Pusher('66e12194484209bfb23d', {
         cluster: 'mt1'
     });
     var channel = pusher.subscribe('my-channel');
@@ -26,7 +26,7 @@
         //alert(JSON.stringify('asdsad:'+event.unread[0].data['name']));
         //alert(JSON.stringify(html));
         //})
-    });
+    });*/
     </script>
 @stop
 @section('content_top_nav_right')
