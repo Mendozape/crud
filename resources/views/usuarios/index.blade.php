@@ -72,50 +72,50 @@
 </section>
 @stop
 @section('js')
-@vite(['resources/js/app.js'])
-@if (Session::has('user_deleted'))
-<script>
-  Swal.fire(
-    'Borrado!',
-    'El usuario ha sido eliminadoxx.',
-    'Exito'
-  )
-</script>
-@endif
-@if (Session::has('user_edited'))
-<script>
-  Swal.fire(
-    'Editado!',
-    'El usuario ha sido editado.',
-    'Exito'
-  )
-</script>
-@endif
-@if (Session::has('user_added'))
-<script>
-  Swal.fire(
-    'Agregado!',
-    'El usuario ha sido agregado.',
-    'Exito'
-  )
-</script>
-@endif
-<script>
-  $('.form-delete').submit(function(e) {
-    e.preventDefault();
-    Swal.fire({
-      title: 'Está seguro?',
-      text: "No se podrá revertir!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, Eliminarlo!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.submit();
-      }
-    })
-  });
-</script>
+  @vite(['resources/js/app.js'])
+  @if (Session::has('user_deleted'))
+    <script>
+      Swal.fire(
+        'Borrado!',
+        'El usuario ha sido eliminadoxx.',
+        'Exito'
+      )
+    </script>
+  @endif
+  @if (Session::has('user_edited'))
+  <script>
+    Swal.fire(
+      'Editado!',
+      'El usuario ha sido editado.',
+      'Exito'
+    )
+  </script>
+  @endif
+  @if (Session::has('user_added'))
+  <script>
+    Swal.fire(
+      'Agregado!',
+      'El usuario ha sido agregado.',
+      'Exito'
+    )
+  </script>
+  @endif
+  <script>
+    $('.form-delete').submit(function(e) {
+      e.preventDefault();
+      Swal.fire({
+        title: 'Está seguro?',
+        text: "No se podrá revertir!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, Eliminarlo!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      })
+    });
+  </script>
 @stop
