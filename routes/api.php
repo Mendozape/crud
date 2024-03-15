@@ -2,6 +2,7 @@
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function(){
 Route::get('/users/count', [UserController::class,'count']);
 Route::get('/clients/count', [ClientController::class,'count']);
 Route::get('/roles/count', [RolesController::class,'count']);
+Route::get('/admin/isAdmin',  [UserController::class,'isAdmin']);
 
 //Route::middleware('auth:sanctum')->get('/users', [ApiController::class,'users']);
 

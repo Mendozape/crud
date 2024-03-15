@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client'
 import axios from 'axios';
-//export default function Codea() {
 const UserCount = () => {
     const [userCount, setUserCount] = useState(0);
     const [clientCount, setClientCount] = useState(0);
