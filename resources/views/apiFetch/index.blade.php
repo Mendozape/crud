@@ -19,7 +19,7 @@
                         <div class="row">
                             <div class="col-md-12 col-xl-12">
                                     <div class="card-subtitle" id="search-bar1">
-                                        <form id="busca" onsubmit="return validatex()">
+                                        <form id="busca" >
                                             <p>
                                                 <label for="field">Type the item #</label>
                                                 <input type="text" size="25"  id="field" name="field">
@@ -103,6 +103,9 @@
                     }
 
                 },
+
+
+                
 
 
             success: function(label) {

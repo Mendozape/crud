@@ -14,9 +14,7 @@ const Notifications = () => {
                         <div className="col-lg-12">
                             <div className="card">
                                 <div className="card-body" id="notis">
-                                    { auth()->user()->is_admin}
-                                      Entró al if
-                                    endif
+                                    
                                 </div>
                             </div>
                         </div>
