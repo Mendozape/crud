@@ -17,12 +17,8 @@ const Notifications = () => {
     let x,loop;
     if (isAdmin) {
         notis.forEach((user, index) => {
-            loop += `
-            <div class="card bg-light text-white p-2 text-center">
-             <li key={index}>{user}</li>
-            </div>
-            `
-        }
+            loop += `s`
+        });
       } else {
         x = 'No es admin';
       }
