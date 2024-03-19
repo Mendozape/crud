@@ -115,10 +115,4 @@ class RolesController extends Controller
         return redirect()->route('roles.index')->with('role_deleted','El role ha sido eliminado con éxito');
 
     }
-
-    public function count()
-    {
-        $rolesCount = Role::count();
-        return response()->json(['count' => $rolesCount]);
-    }
 }

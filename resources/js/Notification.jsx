@@ -13,6 +13,19 @@ const Notifications = () => {
 				console.error('Error fetching admin: ', error);
 			});
 	}, []);
+    
+    let x,loop;
+    if (isAdmin) {
+        notis.forEach((user, index) => {
+            loop += `
+            <div class="card bg-light text-white p-2 text-center">
+             <li key={index}>{user}</li>
+            </div>
+            `
+        }
+      } else {
+        x = 'No es admin';
+      }
     return (
         <>
             <section className="section">
@@ -24,7 +37,7 @@ const Notifications = () => {
                         <div className="col-lg-12">
                             <div className="card">
                                 <div className="card-body" id="notis">
-                                    {isAdmin}
+                                    {loop}
                                 </div>
                             </div>
                         </div>

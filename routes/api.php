@@ -8,6 +8,7 @@ use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -31,10 +32,10 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('/articles',ArticleController::class);
     Route::get('/users', [ApiController::class,'users']);
 });
-Route::get('/users/count', [UserController::class,'count']);
-Route::get('/clients/count', [ClientController::class,'count']);
-Route::get('/roles/count', [RolesController::class,'count']);
 Route::get('/admin/isAdmin',  [UserController::class,'isAdmin']);
+Route::get('/users/count', [UserController::class,'count']);
+
+
 
 //Route::middleware('auth:sanctum')->get('/users', [ApiController::class,'users']);
 
