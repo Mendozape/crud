@@ -4,24 +4,24 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
     const [isAdmin, setIsAdmin] = useState(0);
-	useEffect(() => {
-		axios.get('/api/admin/isAdmin')
-			.then(response => {
-				setIsAdmin(response.data.admin);
-			})
-			.catch(error => {
-				console.error('Error fetching admin: ', error);
-			});
-	}, []);
+    const [object1, setObject1] = useState(0);
     
-    let x,loop;
-    if (isAdmin) {
-        notis.forEach((user, index) => {
-            loop += `s`
-        });
-      } else {
-        x = 'No es admin';
-      }
+    useEffect(() => {
+        axios.get('/api/admin/isAdmin')
+            .then(response => {
+                setIsAdmin(response.data.admin);
+                setObject1(response.data.notis);
+            })
+            .catch(error => {
+                console.error('Error fetching admin: ', error);
+            });
+    }, []);
+    
+    
+    
+
+
+    console.log('asdad');
     return (
         <>
             <section className="section">
@@ -32,8 +32,8 @@ const Notifications = () => {
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="card">
-                                <div className="card-body" id="notis">
-                                    {loop}
+                                <div className="card-body" >
+                                    zxcz
                                 </div>
                             </div>
                         </div>
