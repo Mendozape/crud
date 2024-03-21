@@ -41,7 +41,7 @@ class UserController extends Controller
     }*/
     public function isAdmin (Request $request) {
 
-        $admin = Auth::user();
+        $admin = User::all();
 
         return response()->json($admin, 200);
     }

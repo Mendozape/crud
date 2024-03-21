@@ -4,24 +4,39 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
     const [isAdmin, setIsAdmin] = useState(0);
-    const [object1, setObject1] = useState(0);
+    const [tifs, setTifs] = useState(0);
+    const seasons = ["Spring", "Summer", "Autumn", "Winter"];
     
+    //const tifs = {1: 'Joe', 2: 'Jane'};
+    //const tifs = {};
+    //const tifs2 = {1: 'Joe', 2: 'Jane'};
+    //const tifs3 = {1: 'Joe2', 2: 'Jane2'};
+    //tifs = tifs2;
+    //tifs = tifs3;
+    let seasonsList = [];
+    let tifOptions = [];
+
     useEffect(() => {
         axios.get('/api/admin/isAdmin')
             .then(response => {
                 setIsAdmin(response.data.admin);
-                setObject1(response.data.notis);
+                //setTifs(response.data.notis);
             })
             .catch(error => {
                 console.error('Error fetching admin: ', error);
             });
     }, []);
-    
-    
-    
+
+    seasons.forEach((season, index) => {
+        seasonsList.push(<li key={index}>{season}</li>);
+      });
+
+      Object.keys(tifs).forEach(function(key) {
+        //tifOptions.push(<li key={key}>{tifs[key]}</li>);
+        tifOptions.push(<li key={tifs.id}>{tifs.name}</li>);
+    });
 
 
-    console.log('asdad');
     return (
         <>
             <section className="section">
@@ -33,7 +48,7 @@ const Notifications = () => {
                         <div className="col-lg-12">
                             <div className="card">
                                 <div className="card-body" >
-                                    zxcz
+                                {tifOptions}
                                 </div>
                             </div>
                         </div>
