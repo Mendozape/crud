@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Session;
 use spatie\Permission\Models\Permission;
 use Barryvdh\DomPDF\Facade\PDF;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 
 class UsuariosController extends Controller

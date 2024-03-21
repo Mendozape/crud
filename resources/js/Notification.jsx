@@ -1,8 +1,18 @@
 //import React from 'react';
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client'
-
+import axios from 'axios';
 const Notifications = () => {
+    const [isAdmin, setIsAdmin] = useState(0);
+	useEffect(() => {
+		axios.get('/api/admin/isAdmin')
+			.then(response => {
+				setIsAdmin(response.data.admin);
+			})
+			.catch(error => {
+				console.error('Error fetching admin: ', error);
+			});
+	}, []);
     return (
         <>
             <section className="section">
@@ -14,7 +24,7 @@ const Notifications = () => {
                         <div className="col-lg-12">
                             <div className="card">
                                 <div className="card-body" id="notis">
-                                    
+                                    { isAdmin}
                                 </div>
                             </div>
                         </div>
