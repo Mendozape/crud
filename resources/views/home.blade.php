@@ -10,25 +10,10 @@
 	<div id="TopNavDiv"></div>
 @stop
 @section('content')
-    
-    <div id="notifications">
-    @php
-    $a=1;
-    if(auth()->user()->is_admin){echo "es admin";}else{echo "no es admin";}
-    
-    
-    @endphp
-
-    </div>
+    <div id="notifications"></div>
 	<div id="content"></div>
 @stop
-@section('css')
-    <link rel="stylesheet" href="/css/admin_custom.css">
-@stop
-@section('js')
-	@viteReactRefresh
-	@vite('resources/js/app.js')
-@stop
+
 
 <!--
 @extends('adminlte::page')
@@ -72,4 +57,9 @@
         </div>
     </div>
 </section>
+@stop
+@section('js')
+	@viteReactRefresh
+	@vite('resources/js/app.js')
+@stop
 -->

@@ -9,30 +9,12 @@ const UserCount = () => {
     useEffect(() => {
         axios.get('/api/users/count')
             .then(response => {
-                setUserCount(response.data.count);
+                setUserCount(response.data.userCount);
+                setClientCount(response.data.clientCount);
+                setRoleCount(response.data.roleCount);
             })
             .catch(error => {
-                console.error('Error fetching user count: ', error);
-            });
-    }, []);
-
-    useEffect(() => {
-        axios.get('/api/clients/count')
-            .then(response => {
-                setClientCount(response.data.count);
-            })
-            .catch(error => {
-                console.error('Error fetching client count: ', error);
-            });
-    }, []);
-
-    useEffect(() => {
-        axios.get('/api/roles/count')
-            .then(response => {
-                setRoleCount(response.data.count);
-            })
-            .catch(error => {
-                console.error('Error fetching role count: ', error);
+                console.error('Error fetching data: ', error);
             });
     }, []);
     return (

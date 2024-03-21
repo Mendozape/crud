@@ -158,9 +158,4 @@ class ClientController extends Controller
     {
         return view('client.welcome');
     }
-    public function count()
-    {
-        $clientCount = Client::count();
-        return response()->json(['count' => $clientCount]);
-    }
 }

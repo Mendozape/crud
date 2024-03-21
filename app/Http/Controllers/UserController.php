@@ -7,8 +7,14 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ImportUser;
 use App\Exports\ExportUser;
 use App\Models\User;
+use App\Models\Client;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+
+
 
 
 class UserController extends Controller
@@ -21,7 +27,12 @@ class UserController extends Controller
     public function count()
     {
         $userCount = User::count();
-        return response()->json(['count' => $userCount]);
+        $clientCount = Client::count();
+        $roleCount = Role::count();
+        return response()->json(['userCount' => $userCount,
+                                 'clientCount' => $clientCount,
+                                 'roleCount' => $roleCount,
+                                ]);
     }
     /*public function isAdmin()
     {
@@ -34,7 +45,6 @@ class UserController extends Controller
 
         return response()->json($admin, 200);
     }
-    
 
     public function importView(Request $request){
         return view('excel.importFile');

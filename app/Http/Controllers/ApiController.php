@@ -18,6 +18,7 @@ class ApiController extends Controller
         //return response()->json()->header('Content-Type', 'fdsfsf');
         //$headers= $request->header();
         //return response()->json($headers);
+        
     }
     public function login(Request $request){
         $response = ["status"=>0, "msgx"=>""];
