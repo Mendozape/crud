@@ -55,7 +55,7 @@ class UserController extends Controller
             'file' => 'required|file |mimes:xlsx,csv|max:2048'
         ]);
         Excel::import(new ImportUser, $request->file('file')->store('files'));
-        return redirect()->back()->with('users_added','The users have been added');;
+        return redirect()->back()->with('users_added','The users have been added');
     }
 
     public function exportUsers(Request $request){

@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
     const [isAdmin, setIsAdmin] = useState(0);
-    const [tifs, setTifs] = useState(0);
+    const [notis, setNotis] = useState(0);
     const seasons = ["Spring", "Summer", "Autumn", "Winter"];
     
     //const tifs = {1: 'Joe', 2: 'Jane'};
@@ -15,26 +15,45 @@ const Notifications = () => {
     //tifs = tifs3;
     let seasonsList = [];
     let tifOptions = [];
-
+   
+    let y=0;
+    let x=0;
     useEffect(() => {
         axios.get('/api/admin/isAdmin')
             .then(response => {
-                setIsAdmin(response.data.admin);
-                //setTifs(response.data.notis);
+                //setIsAdmin(response.data.admin);
+                setNotis(response.data);
             })
             .catch(error => {
                 console.error('Error fetching admin: ', error);
             });
     }, []);
-
-    seasons.forEach((season, index) => {
-        seasonsList.push(<li key={index}>{season}</li>);
+    
+     
+     
+    Object.entries(notis).forEach(([key, value]) => {
+        console.log(`${key}: ${value}`);
+        seasonsList.push(<li key={key}>{value}</li>);
       });
-
-      Object.keys(tifs).forEach(function(key) {
+    /*seasons.forEach((season, index) => {
+        seasonsList.push(<li key={index}>{season}</li>);
+      });*/
+    
+     
+     
+    /*Object.keys(tifs).forEach(function(key) {
         //tifOptions.push(<li key={key}>{tifs[key]}</li>);
         tifOptions.push(<li key={tifs.id}>{tifs.name}</li>);
-    });
+    });*/
+    //const object = { a: 1, b: 2, c: 3 };
+    
+    /*for (const property in notis) {
+        seasonsList.push(<li key={property}>{object[property]}</li>);
+    }*/
+    /*for (const [key, value] of Object.entries(notis)) {
+        //console.log(`${key}: ${value}`);
+        seasonsList.push(<li key={key}>{value}</li>);
+    } */
 
 
     return (
@@ -48,7 +67,7 @@ const Notifications = () => {
                         <div className="col-lg-12">
                             <div className="card">
                                 <div className="card-body" >
-                                {tifOptions}
+                                {seasonsList}
                                 </div>
                             </div>
                         </div>
@@ -60,7 +79,6 @@ const Notifications = () => {
     );
 };
 export default Notifications;
-
 //}
 if (document.getElementById('notifications')) {
     createRoot(document.getElementById('notifications')).render(<Notifications />)

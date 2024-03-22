@@ -11,7 +11,7 @@
 @stop
 @section('content')
     <div id="notifications"></div>
-	<div id="content"></div>
+	<!--<div id="content"></div>-->
 @stop
 
 
