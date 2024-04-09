@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Notification;
 
 
 
+
 class UserController extends Controller
 {
     function __construct()
@@ -34,17 +35,18 @@ class UserController extends Controller
                                  'roleCount' => $roleCount,
                                 ]);
     }
-    /*public function isAdmin()
+    public function isAdmin()
     {
-        $admin = Auth()->user();
+        //$admin = Auth()->user()->isAdmin;
+        //Auth::user()->isAdmin()
+        //$admin = (Auth()->user()->isAdmin) ? 'Yes' : 'No';
+        $admin = Auth()->user()->unreadNotifications;
+        return response()->json(['admin' => $admin]);
+    }
+    /*public function isAdmin (Request $request) {
+        $admin = User::all();
         return response()->json(['admin' => $admin]);
     }*/
-    public function isAdmin (Request $request) {
-
-        $admin = User::all();
-
-        return response()->json($admin, 200);
-    }
 
     public function importView(Request $request){
         return view('excel.importFile');
