@@ -1,3 +1,4 @@
+<!--
 @extends('adminlte::page')
 @section('title', 'Dashboard')
 @section('content_header')
@@ -14,15 +15,15 @@
 	<div id="content"></div>
 @stop
 
+-->
 
-<!--
 @extends('adminlte::page')
 @section('title', 'MY LARAVEL SYSTEM')
 @include('top')
 @section('content')
 <section class="section">
     <div class="section-header" align="center">
-        <h1>Notifications</h1>
+        <h1>Notifications no jsx</h1>
     </div>
     <div class="section-body mt-2" >
         <div class="row">
@@ -62,4 +63,4 @@
 	@viteReactRefresh
 	@vite('resources/js/app.js')
 @stop
--->
+

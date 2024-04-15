@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
-    const [isAdmin, setIsAdmin] = useState(0);
+    const [isAdmin, setIsAdmin] = useState('');
     const [notis, setNotis] = useState(0);
     //const [seasons, setSeasons] = useState(0);
     const seasons = ["Spring", "Summer", "Autumn", "Winter"];
@@ -45,7 +45,7 @@ const Notifications = () => {
         <>
             <section className="section">
                 <div className="section-header" align="center">
-                    <h1>Notifications</h1>
+                    <h1>Notifications jsx</h1>
                 </div>
                 <div className="section-body mt-2">
                     <div className="row">

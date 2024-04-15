@@ -12,18 +12,21 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Notification;
-
-
-
+//use Illuminate\Support\Facades\Notification;
+use Illuminate\Notifications\Notification;
 
 
 class UserController extends Controller
 {
-    function __construct()
+    /*function __construct()
     {
         $this->middleware('permission:ver-usuario|crear-usuario|editar-usuario|borrar-usuario',['only'=>['importView','import','exportUsers']]);
+    }*/
+    public function __construct()
+    {
+        $this->middleware('auth');
     }
+
 
     public function count()
     {
@@ -40,7 +43,13 @@ class UserController extends Controller
         //$admin = Auth()->user()->isAdmin;
         //Auth::user()->isAdmin()
         //$admin = (Auth()->user()->isAdmin) ? 'Yes' : 'No';
-        $admin = Auth()->user()->unreadNotifications;
+        $admin = auth()->user()->unreadNotifications;
+        
+        /*$data = [
+            'notifications'  => $notifications
+        ];*/
+
+        //$admin = Auth()->user()->unreadNotifications;
         return response()->json(['admin' => $admin]);
     }
     /*public function isAdmin (Request $request) {
