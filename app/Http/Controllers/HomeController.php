@@ -23,8 +23,10 @@ class HomeController extends Controller
     public function index()
     {
         $notifications = auth()->user()->unreadNotifications;
+        $admin = (Auth()->user()->isAdmin) ? 'Yes' : 'No';
         $data = [
-            'notifications'  => $notifications
+            'notifications'  => $notifications,
+            'admin'  => $admin
         ];
         return view('home')->with('data',$data);
     }
