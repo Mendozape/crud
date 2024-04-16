@@ -14,5 +14,9 @@
     <div id="notifications"></div>
 	<div id="content"></div>
 @stop
+@section('js')
+	@viteReactRefresh
+	@vite('resources/js/app.js')
+@stop
 
 

@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
     const [isAdmin, setIsAdmin] = useState('');
-    const [notis, setNotis] = useState(0);
+    //const [notis, setNotis] = useState(0);
     //const [seasons, setSeasons] = useState(0);
     const seasons = ["Spring", "Summer", "Autumn", "Winter"];
     
@@ -14,7 +14,7 @@ const Notifications = () => {
     //const tifs3 = {1: 'Joe2', 2: 'Jane2'};
     //tifs = tifs2;
     //tifs = tifs3;
-    let movieItems = [ ];
+    let notis = [ ];
    
     
     useEffect(() => {
@@ -28,24 +28,22 @@ const Notifications = () => {
             });
     }, []);
 
-    /*if(isAdmin.length>1){
+    if(isAdmin.length>=1){
         for (let movieKey in isAdmin) {
-            movieItems.push(isAdmin[movieKey]);
+            notis.push(isAdmin[movieKey]);
         }
-        movieItems = movieItems.map(row => (
-            <li key={row.id}>{ row.name }</li>
+        notis = notis.map(row => (
+            <li key={row.id}>{ row.data.name }</li>
         ));
     }else{
-        movieItems=isAdmin;
-    }*/
-    //result = (Object.keys(movies2).length==1) ? 'uno' : 'dos'; 
-    
+        notis=isAdmin;
+    }
 
     return (
         <>
             <section className="section">
                 <div className="section-header" align="center">
-                    <h1>Notifications jsx</h1>
+                    <h1>Notifications</h1>
                 </div>
                 <div className="section-body mt-2">
                     <div className="row">
@@ -53,7 +51,7 @@ const Notifications = () => {
                             <div className="card">
                                 <div className="card-body" >
                                 {
-                                 isAdmin
+                                 notis
                                 }
                                 </div>
                             </div>
