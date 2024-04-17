@@ -4,19 +4,9 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
     const [isAdmin, setIsAdmin] = useState('');
-    //const [notis, setNotis] = useState(0);
-    //const [seasons, setSeasons] = useState(0);
-    const seasons = ["Spring", "Summer", "Autumn", "Winter"];
-    
-    //const tifs = {1: 'Joe', 2: 'Jane'};
-    //const tifs = {};
-    //const tifs2 = {1: 'Joe', 2: 'Jane'};
-    //const tifs3 = {1: 'Joe2', 2: 'Jane2'};
-    //tifs = tifs2;
-    //tifs = tifs3;
+    let x='sasdfsf';
+    let xx=1;
     let notis = [ ];
-   
-    
     useEffect(() => {
         axios.get('/api/admin/isAdmin')
             .then(response => {
@@ -32,11 +22,16 @@ const Notifications = () => {
         for (let movieKey in isAdmin) {
             notis.push(isAdmin[movieKey]);
         }
+        
         notis = notis.map(row => (
-            <li key={row.id}>{ row.data.name }</li>
+            <>
+                <li key={row.id}>[ { row.updated_at } ] User { row.data.name } has just registered.<a href='' class='float-right mark-as-read' data-id='{{ row.id }}'> Mark as read</a></li>
+                
+            </>
+            
         ));
     }else{
-        notis=isAdmin;
+        notis='no records found';
     }
 
     return (
@@ -51,7 +46,7 @@ const Notifications = () => {
                             <div className="card">
                                 <div className="card-body" >
                                 {
-                                 notis
+                                xx
                                 }
                                 </div>
                             </div>
