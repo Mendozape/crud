@@ -4,9 +4,11 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
     const [isAdmin, setIsAdmin] = useState('');
-    let x='sasdfsf';
-    let xx=1;
+    
+    
     let notis = [ ];
+    let notis2 = '';
+    let notis3 = '';
     useEffect(() => {
         axios.get('/api/admin/isAdmin')
             .then(response => {
@@ -19,16 +21,21 @@ const Notifications = () => {
     }, []);
 
     if(isAdmin.length>=1){
-        for (let movieKey in isAdmin) {
-            notis.push(isAdmin[movieKey]);
+        for (let Key in isAdmin) {
+            notis.push(isAdmin[Key]);
         }
         
+       
+        
+       
+
+
         notis = notis.map(row => (
             <>
-                <li key={row.id}>[ { row.updated_at } ] User { row.data.name } has just registered.<a href='' class='float-right mark-as-read' data-id='{{ row.id }}'> Mark as read</a></li>
-                
+                <li key={row.id}>[ { row.updated_at } ] User { row.data.name } has just registered.
+                    <a href='{ route('clients') }' class='float-right mark-as-read' data-id='{{ row.id }}'> Mark as read</a>
+                </li>
             </>
-            
         ));
     }else{
         notis='no records found';
@@ -46,7 +53,7 @@ const Notifications = () => {
                             <div className="card">
                                 <div className="card-body" >
                                 {
-                                xx
+                                notis
                                 }
                                 </div>
                             </div>
