@@ -33,7 +33,7 @@ const Notifications = () => {
         notis = notis.map(row => (
             <>
                 <li key={row.id}>[ { row.updated_at } ] User { row.data.name } has just registered.
-                    <a href='{ route('clients') }' class='float-right mark-as-read' data-id='{{ row.id }}'> Mark as read</a>
+                    <a href='' class='float-right mark-as-read' data-id='{{ row.id }}'> Mark as read</a>
                 </li>
             </>
         ));
