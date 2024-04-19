@@ -24,16 +24,11 @@ const Notifications = () => {
         for (let Key in isAdmin) {
             notis.push(isAdmin[Key]);
         }
-        
-       
-        
-       
-
 
         notis = notis.map(row => (
             <>
                 <li key={row.id}>[ { row.updated_at } ] User { row.data.name } has just registered.
-                    <a href='' class='float-right mark-as-read' data-id='{{ row.id }}'> Mark as read</a>
+                    <a href="route('route('NotiUpdate',4b4aaf53-2b65-48ac-84ac-9be8c181f25f)') " class='float-right mark-as-read' data-id='{{ row.id }}'> Mark as read</a>
                 </li>
             </>
         ));
