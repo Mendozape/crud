@@ -20,7 +20,6 @@ export default function BasicExample() {
     <Router>
       <div>
         <ul>
-          
           <li>
             <Link to="/about">About</Link>
           </li>
@@ -28,24 +27,10 @@ export default function BasicExample() {
             <Link to="/dashboard">Dashboard</Link>
           </li>
         </ul>
-
         <hr />
-
-        {/*
-          A <Switch> looks through all its children <Route>
-          elements and renders the first one whose path
-          matches the current URL. Use a <Switch> any time
-          you have multiple routes, but you want only one
-          of them to render at a time
-        */}
         <Routes>
-          
-          <Route path="/about">
-            <About />
-          </Route>
-          <Route path="/dashboard">
-            <Dashboard />
-          </Route>
+          <Route path="/about" element={About}/>
+          <Route path="/about" component={Dashboard}/>
         </Routes>
       </div>
     </Router>
