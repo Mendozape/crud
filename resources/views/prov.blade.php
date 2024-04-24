@@ -52,8 +52,6 @@ import { createRoot } from 'react-dom/client'
 import axios from 'axios';
 const Notifications = () => {
     const [isAdmin, setIsAdmin] = useState('');
-    
-    
     let notis = [ ];
     let notis2 = '';
     let notis3 = '';
