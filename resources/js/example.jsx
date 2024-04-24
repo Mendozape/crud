@@ -1,19 +1,11 @@
-import React from "react";
+import React from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Link
-} from "react-router-dom";
-
-// This site has 3 pages, all of which are rendered
-// dynamically in the browser (not server rendered).
-//
-// Although the page does not ever refresh, notice how
-// React Router keeps the URL up to date as you navigate
-// through the site. This preserves the browser history,
-// making sure things like the back button and bookmarks
-// work properly.
+} from 'react-router-dom';
+import About from './About';
 
 export default function BasicExample() {
   return (
@@ -30,25 +22,14 @@ export default function BasicExample() {
         <hr />
         <Routes>
           <Route path="/about" element={About}/>
-          <Route path="/about" component={Dashboard}/>
+          <Route path="/dashboard" component={Dashboard}/>
         </Routes>
       </div>
     </Router>
   );
 }
 
-// You can think of these components as "pages"
-// in your app.
 
-
-
-function About() {
-  return (
-    <div>
-      <h2>About</h2>
-    </div>
-  );
-}
 
 function Dashboard() {
   return (

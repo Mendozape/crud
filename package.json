@@ -60,7 +60,7 @@
         "proxy-from-env": "^1.1.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-router-dom": "^6.22.3",
+        "react-router-dom": "^6.23.0",
         "readdirp": "^3.6.0",
         "rollup": "^3.26.2",
         "source-map-js": "^1.0.2",
