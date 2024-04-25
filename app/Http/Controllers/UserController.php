@@ -44,7 +44,7 @@ class UserController extends Controller
         //Auth::user()->isAdmin()
         //$admin = (Auth()->user()->isAdmin) ? 'Yes' : 'No';
         $admin = auth()->user()->unreadNotifications;
-        
+        //$notis = auth()->user()->unreadNotifications->where('id',$id);
         /*$data = [
             'notifications'  => $notifications
         ];*/
@@ -52,10 +52,10 @@ class UserController extends Controller
         //$admin = Auth()->user()->unreadNotifications;
         return response()->json(['admin' => $admin]);
     }
-    /*public function isAdmin (Request $request) {
+    public function notis (Request $request) {
         $admin = User::all();
         return response()->json(['admin' => $admin]);
-    }*/
+    }
 
     public function importView(Request $request){
         return view('excel.importFile');

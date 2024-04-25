@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client'
 import axios from 'axios';
-import {Link} from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 
 export default function Notifications() {
-    /*const [isAdmin, setIsAdmin] = useState('');
-    let notis = [ ];
-    let notis2 = '';
-    let notis3 = '';
+    const [isAdmin, setIsAdmin] = useState('');
+    let notis = [];
     useEffect(() => {
         axios.get('/api/admin/isAdmin')
             .then(response => {
@@ -19,18 +17,33 @@ export default function Notifications() {
             });
     }, []);
 
-    if(isAdmin.length>=1){
+    if (isAdmin.length >= 1) {
         for (let Key in isAdmin) {
             notis.push(isAdmin[Key]);
         }
-        
-    }*/
-    const notis=[1,2,3,4,5];
+
+    }
     return (
-        <div className="flex flex-col gap-2">
-            {notis.map((row) => (
-                    <Link key={row} to={`/profiles/${row}`}>Noti {row} </Link>
-            ))}
+        <div className='flex gap-2'>
+            <div className='flex flex-col gap-2'>
+                <h1>Users</h1>
+                <ul>
+                    {notis.map((row) => (
+                        <li key={row.id}>
+                            <NavLink key={row} to={`/home/${row.id}`}
+                                className={
+                                    ({isActive})=>{
+                                        return isActive? 'text-primary-700': '';
+                                    }
+                                }
+                            >
+                            {row.data.name}</NavLink>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            <Outlet />
         </div>
     );
 };
