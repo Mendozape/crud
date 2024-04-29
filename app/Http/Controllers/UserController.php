@@ -44,17 +44,20 @@ class UserController extends Controller
         //Auth::user()->isAdmin()
         //$admin = (Auth()->user()->isAdmin) ? 'Yes' : 'No';
         $admin = auth()->user()->unreadNotifications;
-        //$notis = auth()->user()->unreadNotifications->where('id',$id);
+        //$noti = auth()->user()->unreadNotifications->where('id',$id);
         /*$data = [
             'notifications'  => $notifications
         ];*/
 
         //$admin = Auth()->user()->unreadNotifications;
-        return response()->json(['admin' => $admin]);
+        return response()->json([
+            'admin' => $admin
+        ]);
     }
-    public function notis (Request $request) {
-        $admin = User::all();
-        return response()->json(['admin' => $admin]);
+    public function notis ($id) {
+        $noti = auth()->user()->unreadNotifications->where('id',$id);
+        //dd($noti);
+        return response()->json(['noti' => $noti]);
     }
 
     public function importView(Request $request){

@@ -18,11 +18,11 @@ import {
 
 const router = createBrowserRouter([
   {
-    path: "/home",
+    path: '/home',
     element: <NotiPage />,
     children:[
         {
-            path: "/home/:notiId",
+            path: '/home/:notiId',
             element: <NotiProfile />,
         },
     ],

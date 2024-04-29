@@ -10,7 +10,6 @@ export default function Notifications() {
         axios.get('/api/admin/isAdmin')
             .then(response => {
                 setIsAdmin(response.data.admin);
-                //setNotis(response.data);
             })
             .catch(error => {
                 console.error('Error fetching admin: ', error);
@@ -29,13 +28,8 @@ export default function Notifications() {
                 <h1>Users</h1>
                 <ul>
                     {notis.map((row) => (
-                        <li key={row.id}>
-                            <NavLink key={row} to={`/home/${row.id}`}
-                                className={
-                                    ({isActive})=>{
-                                        return isActive? 'text-primary-700': '';
-                                    }
-                                }
+                        <li>
+                            <NavLink  to={`/home/${row.id}`}
                             >
                             {row.data.name}</NavLink>
                         </li>
