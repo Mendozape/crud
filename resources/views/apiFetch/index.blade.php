@@ -117,8 +117,8 @@
                 var html = '';
                 let id = $('#field').val();
                 let status;
-                //fetch(`http://crud.mendodevelopments.com/api/articles`,{
-                fetch(`http://crud.mendodevelopments.com/api/articles/${id}`, {
+                fetch(`http://crud.mendodevelopments.com/api/articles`,{
+                //fetch(`http://crud.mendodevelopments.com/api/articles/${id}`, {
                         method: 'GET',
                         mode: 'cors',
                         headers: new Headers({

@@ -5,15 +5,11 @@ import { useParams } from 'react-router-dom';
 import { Link } from "react-router-dom";
 export default function NotiProfile() {
     const params = useParams();
-    //const x = 'sdsdf';
+    let notiId =params.notiId;
     const [notis, setNotis] = useState('');
     let notis2 = [];
     useEffect(() => {
-        axios.get('/api/admin/notis', {
-            headers: {
-                'id': '63a7cdfd-5b4a-4ad2-97cb-c21936bd8c7d',
-            },
-        })
+        axios.get(`/api/admin/notis/${notiId}`)
             .then(response => {
                 setNotis(response.data.noti);
             })
@@ -32,7 +28,10 @@ export default function NotiProfile() {
     return (
         <div>
            <ul>
-                    {notis2.map((row) => (
+                    
+                    {
+                    //params.notiId
+                    notis2.map((row) => (
                         <li>
                             {row.id}
                         </li>
