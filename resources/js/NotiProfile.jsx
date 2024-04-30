@@ -7,6 +7,7 @@ export default function NotiProfile() {
     const params = useParams();
     let notiId =params.notiId;
     const [notis, setNotis] = useState('');
+    //let [notis2, setNotis2] = useState([]);
     let notis2 = [];
     useEffect(() => {
         axios.get(`/api/admin/notis/${notiId}`)
@@ -21,6 +22,7 @@ export default function NotiProfile() {
         for (let Key in notis) {
             notis2.push(notis[Key]);
         }
+        console.log(notis2);
 
     //}
    
@@ -28,14 +30,15 @@ export default function NotiProfile() {
     return (
         <div>
            <ul>
-                    
-                    {
-                    //params.notiId
-                    notis2.map((row) => (
+                {
+                     //params.notiId
+                     notis2.map((row) => (
                         <li>
-                            {row.id}
+                            {row.data.message}
                         </li>
-                    ))}
+                    ))
+
+                }
             </ul>
         </div>
     );

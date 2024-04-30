@@ -22,6 +22,7 @@ export default function Notifications() {
         }
 
     }
+    //let notis = [1,2,3,4,5,6];
     return (
         <div className='flex gap-2'>
             <div className='flex flex-col gap-2'>
@@ -29,7 +30,10 @@ export default function Notifications() {
                 <ul>
                     {notis.map((row) => (
                         <li>
-                            <NavLink  to={`/home/${row.id}`}
+                            <NavLink key={row.id} to={`/home/${row.id}`} 
+                            className={({ isActive })=>{
+                                    return isActive ? 'text-primary-700' : '';
+                            }}
                             >
                             {row.data.name}</NavLink>
                         </li>
