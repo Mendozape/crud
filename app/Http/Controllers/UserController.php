@@ -56,7 +56,7 @@ class UserController extends Controller
         ]);
     }
     public function notis ($id) {
-        dd($id);
+        //dd($id);
         $noti = auth()->user()->unreadNotifications->where('id',$id);
         
         return response()->json(['noti' => $noti]);
