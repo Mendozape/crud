@@ -6,12 +6,12 @@ import { Link } from "react-router-dom";
 export default function NotiProfile() {
     const params = useParams();
     let notiId = params.notiId;
-    const [notis, setNotis] = useState({ id: '', type: '' });
+    const [notis, setNotis] = useState({});
     //var [notis2, setNotis2] = useState([]);
     let notis2 = [];
     
     useEffect(() => {
-        if (notis.value === 'secret') {
+        //if (notis.value === 'secret') {
             axios.get(`/api/admin/notis/${notiId}`)
                 .then(response => {
                     setNotis(response.data.noti);
@@ -21,8 +21,8 @@ export default function NotiProfile() {
                 .catch(error => {
                     console.error('Error fetching notis: ', error);
                 });
-        }
-    }, [notis]);
+       // }
+    }, [notiId]);
     for (let Key in notis) {
         notis2.push(notis[Key]);
     }
