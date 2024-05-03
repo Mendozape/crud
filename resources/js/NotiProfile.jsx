@@ -9,20 +9,15 @@ export default function NotiProfile() {
     const [notis, setNotis] = useState({});
     //var [notis2, setNotis2] = useState([]);
     let notis2 = [];
-    
     useEffect(() => {
-        //if (notis.value === 'secret') {
             axios.get(`/api/admin/notis/${notiId}`)
                 .then(response => {
                     setNotis(response.data.noti);
-                    
-                    
                 })
                 .catch(error => {
                     console.error('Error fetching notis: ', error);
                 });
-       // }
-    }, [notiId]);
+    }, [notiId]);// execute 
     for (let Key in notis) {
         notis2.push(notis[Key]);
     }
@@ -33,7 +28,7 @@ export default function NotiProfile() {
             {
                 //params.notiId
                 notis2.map((row) => (
-                    row.data.name
+                    row.id
                 ))
             }
 

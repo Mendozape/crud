@@ -14,10 +14,10 @@ export default defineConfig({
         }),
         
     ],
-    /*resolve: {
+    resolve: {
         alias: {
             '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
             '$': 'jQuery'
         }
-    },*/
+    },
 });
