@@ -128,12 +128,10 @@ class ClientController extends Controller
         $client->name    = $request['name'];
         $client->due     = $request['due'];
         $client->comments= $request['comments'];
-        if($request->hasFile('image')){
-            $image= $request->file('image');
-            $image_name = $image->getClientOriginalName();
-            $request->image->move(public_path('images'), $image_name);
-
-            $client->image=$image_name;
+        if($request->image){
+            $imageName= Carbon::now()->timestamp.'.'.$request->image->extension();
+            $request->image->storeAs('/public/images', $imageName);
+            $client->image=$imageName;
         }
         $client->save();
         Session::flash('user_edited','El registro ha sido editado con éxito');

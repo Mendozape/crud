@@ -25,26 +25,41 @@ export default function Notifications() {
     }
     //let notis = [1,2,3,4,5,6];
     return (
-        <div className='d-flex p-2'>
-            <h1>Notifications</h1>
-            <div className='d-inline-flex p-2 bd-highlight'>
-                
-                <ul>
-                    {
-                        notis.map((row) => (
-                            <li>
-                                <NavLink key={row.id} to={`/home/${row.id}`}
-                                    className={({ isActive }) => {
-                                        return isActive ? 'text-primary-700' : '';
-                                    }}
-                                >
-                                    {row.data.name}</NavLink>
-                            </li>
-                        ))
-                    }
-                </ul>
+        <>
+
+            <div className=''>
+                <div className=''>
+                    <div className=''>
+                        <h1>Notifications</h1>
+                    </div>
+                </div>
+                <div className='d-flex'>
+                    <div className=''>
+                        <ul>
+                            {
+                                notis.map((row) => (
+                                    <li>
+                                        <NavLink 
+                                            key={row.id} 
+                                            to={`/home/${row.id}`}
+                                            className={({ isActive }) => {
+                                                return isActive ? 'text-danger' : '';
+                                            }}
+                                        >
+                                            {row.data.name}
+                                        </NavLink>
+                                    </li>
+                                ))
+                            }
+                        </ul>
+                    </div>
+                    <div className='ml-4
+                    '>
+                        <Outlet />
+                    </div>
+                </div>
+
             </div>
-            <Outlet />
-        </div>
+        </>
     );
 };
