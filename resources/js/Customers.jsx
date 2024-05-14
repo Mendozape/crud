@@ -7,6 +7,6 @@ export default function Xxx() {
         </div>
     );
 }
-if (document.getElementById('TopNavDiv')) {
-    createRoot(document.getElementById('TopNavDiv')).render(<Xxx />)
+if (document.getElementById('yyy')) {
+    createRoot(document.getElementById('yyy')).render(<Xxx />)
 }

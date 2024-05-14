@@ -6,10 +6,10 @@
 	<title>Laravel 10 - REACT 18 INCREMENT</title>
 @stop
 @section('content_top_nav_right')
-<div id="cliente"></div>
+	<div id="TopNavDiv"></div>
 @stop
 @section('content')
-	
+	<div id="yyy"></div>
 @stop
 @section('js')
 	@viteReactRefresh

@@ -350,7 +350,7 @@ return [
         ],
         [
             'text' => 'CRUD CLIENTS',
-            'url'  => 'client/',
+            'url'  => 'clientx/',
             'icon' => 'fas fa-fw fa-user',
         ],
         [
