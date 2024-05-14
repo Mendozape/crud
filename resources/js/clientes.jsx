@@ -32,6 +32,6 @@ export default function TopNav() {
         </>
     );
 }
-if (document.getElementById('TopNavDiv')) {
-    createRoot(document.getElementById('TopNavDiv')).render(<TopNav />)
+if (document.getElementById('cliente')) {
+    createRoot(document.getElementById('cliente')).render(<TopNav />)
 }
