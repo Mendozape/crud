@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 export default function Xxx() {
     return (
         <div>
-            fsfd
+            content
         </div>
     );
 }
