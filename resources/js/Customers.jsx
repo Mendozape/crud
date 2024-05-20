@@ -1,12 +1,12 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client'
-export default function Xxx() {
+export default function Show() {
     return (
         <div>
-            content
+            contents asdadas
         </div>
     );
 }
-if (document.getElementById('yyy')) {
-    createRoot(document.getElementById('yyy')).render(<Xxx />)
+if (document.getElementById('Content')) {
+    createRoot(document.getElementById('Content')).render(<Show />)
 }

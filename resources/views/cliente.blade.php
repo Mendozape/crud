@@ -9,7 +9,7 @@
 	<div id="TopNavDiv"></div>
 @stop
 @section('content')
-	<div id="yyy"></div>
+	<div id="Content"></div>
 @stop
 @section('js')
 	@viteReactRefresh
