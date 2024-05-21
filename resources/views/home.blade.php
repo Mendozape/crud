@@ -11,7 +11,7 @@
 	<div id="TopNavDiv"></div>
 @stop
 @section('content')
-    <div id="notifications"></div>
+    
 	<div id="content"></div>
 @stop
 @section('js')
