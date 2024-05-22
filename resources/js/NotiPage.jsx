@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import axios from 'axios';
 import { NavLink, Outlet } from "react-router-dom";
-//import './bootstrap.js';
 
 export default function Notifications() {
     const [isAdmin, setIsAdmin] = useState('');

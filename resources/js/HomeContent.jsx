@@ -1,7 +1,23 @@
+/*import React from 'react';
+import { createRoot } from 'react-dom/client'
+export default function TopNav() {
+    return (
+        <>
+            testing
+        </>
+    );
+}
+if (document.getElementById('content')) {
+    createRoot(document.getElementById('content')).render(<TopNav />)
+}*/
+
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import NotiPage from './NotiPage';
+import x from './testing';
+import NotiPagex from './NotiPage';
 import NotiProfile from './NotiProfile';
+//import example from './example';
+
 import {
   createBrowserRouter,
   RouterProvider,
@@ -10,12 +26,12 @@ import {
 const router = createBrowserRouter([
  
   {
-    path: '/home',
-    element: <example />,
+    path: '/sdfs',
+    element: <sdfsf />,
     children:[
         {
-            path: '/home/:notiId',
-            element: <NotiProfile />,
+            path: '/sdfsfsfsfxxx:notiId',
+            element: <NotiProfilexxxxx />,
         },
     ],
   },

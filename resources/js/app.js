@@ -5,6 +5,7 @@ import './HomeContent.jsx';
 import './TopNav.jsx';
 import './Customers.jsx';
 import './example.jsx';
+import './testing.jsx';
 import './Notification.jsx';
 
 
