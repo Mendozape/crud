@@ -12,7 +12,7 @@
 @stop
 @section('content')
     
-	<div id="content"></div>
+	<div id="Principal"></div>
 @stop
 @section('js')
 	@viteReactRefresh

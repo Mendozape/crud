@@ -1,12 +1,13 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client'
-export default function TopNav() {
+import { createRoot } from 'react-dom/client';
+//import Testx from './testing2';
+export default function Xyz() {
     return (
         <>
-            testing 2
+             dfgddgdfgdfg
         </>
     );
 }
-if (document.getElementById('content')) {
-    createRoot(document.getElementById('content')).render(<TopNav />)
+if (document.getElementById('Principalx')) {
+    createRoot(document.getElementById('Principalx')).render(<Xyz />)
 }
