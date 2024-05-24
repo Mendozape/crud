@@ -1,10 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-//import Testx from './testing2';
+import Notis from './testing2';
+//import Notis from './testing2';
 export default function Xyz() {
     return (
         <>
-             dfgddgdfgdfg
+            <Notis />
         </>
     );
 }

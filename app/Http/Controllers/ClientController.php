@@ -34,8 +34,8 @@ class ClientController extends Controller
         'notifications'  => $notifications,
         'client'   => $client
        ];*/
-       //return view('client.index')->with('data',$client);
-       return view('cliente')->with('data',$client);
+       return view('client.index')->with('data',$client);
+       //return view('cliente')->with('data',$client);
     }
 
     /**

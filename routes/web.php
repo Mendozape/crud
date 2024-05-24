@@ -40,8 +40,8 @@ Route::middleware(['auth'])->group(function(){
     //Route::get('/crudlive',function () { return view('/livewire/crud/home'); });
     Route::resource('permisos',PermisosController::class);
     Route::resource('roles',RolesController::class);
-    //Route::resource('client',ClientController::class);
-    Route::get('/clientx',[ClientController::class, 'index']);
+    Route::resource('client',ClientController::class);
+    //Route::get('/client',[ClientController::class, 'index']);
     Route::resource('usuarios',UsuariosController::class);
     Route::resource('select',SelectController::class);
     Route::get('/pdfUserList',[UsuariosController::class, 'pdfUserListado'])->name('pdfList');

@@ -31,7 +31,6 @@ export default function TopNav() {
             </li>
 
         </>
-        
     );
 }
 if (document.getElementById('TopNavDiv')) {
