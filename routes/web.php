@@ -8,6 +8,7 @@ use App\Http\Controllers\SelectController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Api\ResidentController;
 
 
 /*
@@ -35,6 +36,7 @@ Route::middleware([
 });
 
 Route::middleware(['auth'])->group(function(){
+    Route::resource('residents',ResidentController::class);
     Route::get('/home',[HomeController::class, 'index'])->name('index');
     Route::get('/livewire',function () { return view('/livewire/home'); });
     //Route::get('/crudlive',function () { return view('/livewire/crud/home'); });
