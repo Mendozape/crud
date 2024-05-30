@@ -7,6 +7,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ResidentController;
 
 
 /*
@@ -30,6 +31,7 @@ Route::post('/login',[ApiController::class,'login']);
 Route::middleware('auth:sanctum')->group(function(){
     //Route::get('/users',[ApiController::class, 'users'])->name('users');
     Route::apiResource('/articles',ArticleController::class);
+    Route::apiResource('/residents',ResidentController::class);
     Route::get('/users', [ApiController::class,'users']);
     
     Route::get('/admin/isAdmin',  [UserController::class,'isAdmin']);

@@ -70,4 +70,8 @@ class ResidentController extends Controller
         $resident = Resident::destroy($id);
         return $resident;
     }
+    /*public function redirectToJs()
+    {
+        return redirect()->route('js.file');
+    }*/
 }

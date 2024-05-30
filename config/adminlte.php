@@ -354,6 +354,11 @@ return [
             'icon' => 'fas fa-fw fa-user',
         ],
         [
+            'text' => 'REACT RESIDENTS',
+            'url'  => 'resident/',
+            'icon' => 'fas fa-fw fa-user',
+        ],
+        [
             'text'    => 'CRUD (Livewire)',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
