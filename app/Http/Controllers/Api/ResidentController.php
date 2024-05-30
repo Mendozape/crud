@@ -66,6 +66,7 @@ class ResidentController extends Controller
      */
     public function destroy(string $id)
     {
+        //testing
         $resident = Resident::destroy($id);
         return $resident;
     }
