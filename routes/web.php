@@ -68,6 +68,7 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/apiFetch', function () {
         return view('apiFetch.index');
     })->name('apiFetch');
+    Route::get('/resident',[ResidentController::class, 'redire'])->name('redire');
     /*Route::get('/employees', function() {
         //event(new  App\Events\StatusLiked('18'));
         $notifications = auth()->user()->unreadNotifications;
