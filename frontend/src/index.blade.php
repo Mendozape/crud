@@ -3,7 +3,7 @@
 @section('title', 'MY LARAVEL SYSTEM')
 @include('top')
 @section('content')
-<div id="Residents"></div>
+from frontend
 @stop
 @section('css')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">

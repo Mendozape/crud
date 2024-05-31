@@ -7,6 +7,7 @@ import './Customers.jsx';
 import './testing.jsx';
 import './testing2.jsx';
 import './Stats.jsx';
+//import '../frontend/src/components/ShowResidents.js';
 
 
 

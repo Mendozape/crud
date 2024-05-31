@@ -72,6 +72,6 @@ class ResidentController extends Controller
     }
     public function redire()
     {
-        return view('residents.index');
+        return view('../../../frontend/src/index');
     }
 }
