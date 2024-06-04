@@ -72,6 +72,10 @@ class ResidentController extends Controller
     }
     public function redire()
     {
-        return view('../../../frontend/src/index');
+        //return redirect('http://localhost:8000/frontend/src/components/index.blade.php');
+        //return view('../../../frontend/src/index');
+        return view('residents.index');
+        //return redirect()->away(env('/frontend/src/components/index.blade.php'));
+        //return redirect('http://localhost:8000/frontend/src/components/index');
     }
 }

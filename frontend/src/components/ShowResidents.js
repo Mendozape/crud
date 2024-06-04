@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import axios from 'axios'
 import {Link} from 'react-router-dom'
 import { createRoot } from 'react-dom/client';
-import Notis from './testing2';
+//import Notis from './testing2';
 //import Notis from './testing2';
 const endpoint = 'http://localhost:8000/api'
 //const ShowEmployees = () => {

@@ -69,14 +69,10 @@ Route::middleware(['auth'])->group(function(){
         return view('apiFetch.index');
     })->name('apiFetch');
     Route::get('/resident',[ResidentController::class, 'redire'])->name('redire');
-    /*Route::get('/employees', function() {
-        //event(new  App\Events\StatusLiked('18'));
-        $notifications = auth()->user()->unreadNotifications;
-        $data = [
-        'notifications'  => $notifications
-        ];
-        return view('livewire.employees.index', compact('data'));
+    /*Route::get('/resident', function() {
+        return redirect()->away(env('http://localhost:8000/frontend/src/components/index.blade.php'));
     });*/
+    
 });
 
 
