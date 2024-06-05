@@ -3,15 +3,11 @@
 @section('title', 'MY LARAVEL SYSTEM')
 @include('top')
 @section('content')
-<div id="Residents"></div>
+<div id="Residentes"></div>
 @stop
 @section('css')
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 @stop
 @section('js')
 @vite(['resources/js/app.js'])
-
-<script>
-  
-</script>
 @stop
