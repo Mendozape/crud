@@ -7,6 +7,9 @@ import './Customers.jsx';
 import './testing.jsx';
 import './testing2.jsx';
 import './Stats.jsx';
+import './NotiPage.jsx';
+import './NotiProfile.jsx';
+
 //import './Components/ShowResidents.jsx';
 //import './Components/index.jsx';
 

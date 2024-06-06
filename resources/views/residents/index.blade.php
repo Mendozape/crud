@@ -1,13 +1,17 @@
+
 @extends('adminlte::page')
-@section('plugins.Sweetalert2', true)
-@section('title', 'MY LARAVEL SYSTEM')
-@include('top')
-@section('content')
-<div id="Residentes"></div>
+@section('title', 'Dashboard')
+@section('content_header')
+	<div id="header"></div>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Laravel 10 - REACT 18</title>
 @stop
-@section('css')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+@section('content')
+    
+	<div id="Residentes"></div>
 @stop
 @section('js')
-@vite(['resources/js/app.js'])
+	@viteReactRefresh
+	@vite('resources/js/app.js')
 @stop

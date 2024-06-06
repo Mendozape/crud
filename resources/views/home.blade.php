@@ -13,6 +13,7 @@
 @section('content')
     
 	<div id="Principal"></div>
+	
 @stop
 @section('js')
 	@viteReactRefresh
