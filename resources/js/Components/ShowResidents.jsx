@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import axios from 'axios'
 import {Link} from 'react-router-dom'
 import { createRoot } from 'react-dom/client';
-//import Notis from './testing2';
+//import './app';
 //import Notis from './testing2';
 const endpoint = 'http://localhost:8000/api'
 //const ShowEmployees = () => {
@@ -19,10 +19,10 @@ export default function ShowEmployees() {
        await axios.delete(`${endpoint}/residents/${id}`)
        getAllEmployees()
     }
-  return (
+    return (
     <div>
         <div className='d-grid gap-2'>
-            <Link to="/create" className='btn btn-success btn-lg mt-2 mb-2 text-white'>Create</Link>
+            
         </div>
         <table className='table table-striped'>
             <thead className='bg-primary text-white'>
@@ -48,7 +48,7 @@ export default function ShowEmployees() {
                         <td>{employee.community}</td>
                         <td>{employee.comments}</td>
                         <td>
-                            <Link to={`/edit/${employee.id}`} className='btn btn-info'>Edit</Link>
+                            
                             <button onClick={ ()=>deleteEmployee(employee.id)} className='btn btn-danger'>Delete</button>
                         </td>
                     </tr>
@@ -61,4 +61,5 @@ export default function ShowEmployees() {
 if (document.getElementById('Residents')) {
     createRoot(document.getElementById('Residents')).render(<ShowEmployees />)
 }
+
 //export default ShowEmployees

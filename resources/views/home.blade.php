@@ -17,7 +17,7 @@
 @stop
 @section('js')
 	@viteReactRefresh
-	@vite('resources/js/app.js')
+	@vite('resources/js/HomeContent.jsx')
 @stop
 
 

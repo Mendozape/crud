@@ -9,9 +9,11 @@
 @stop
 @section('content')
     
-	<div id="Residentes"></div>
+	<div id="Residents"></div>
 @stop
 @section('js')
 	@viteReactRefresh
-	@vite('resources/js/app.js')
+	
+	@vite('resources/js/Components/ShowResidents.jsx')
+	
 @stop
