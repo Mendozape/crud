@@ -11,9 +11,7 @@
 	<div id="TopNavDiv"></div>
 @stop
 @section('content')
-    
 	<div id="Principal"></div>
-	
 @stop
 @section('js')
 	@viteReactRefresh
