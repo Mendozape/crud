@@ -29,11 +29,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/login',[ApiController::class,'login']);
 
 Route::middleware('auth:sanctum')->group(function(){
-    //Route::get('/users',[ApiController::class, 'users'])->name('users');
     Route::apiResource('/articles',ArticleController::class);
     Route::apiResource('/residents',ResidentController::class);
     Route::get('/users', [ApiController::class,'users']);
-    
     Route::get('/admin/isAdmin',  [UserController::class,'isAdmin']);
     Route::get('/admin/notis/{id}',  [UserController::class,'notis']);
     Route::get('/users/count', [UserController::class,'count']);
