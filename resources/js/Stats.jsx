@@ -1,21 +1,49 @@
 
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+
 import axios from 'axios';
-const UserCount = () => {
+axios.defaults.withCredentials = true;
+const getCsrfToken = async () => {
+    try {
+        await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRF token fetched successfully');
+    } catch (error) {
+        console.error('Error fetching CSRF token: ', error);
+    }
+};
+export default function UserCount() {
     const [userCount, setUserCount] = useState(0);
     const [clientCount, setClientCount] = useState(0);
     const [roleCount, setRoleCount] = useState(0);
     useEffect(() => {
-        axios.get('/api/users/count')
-            .then(response => {
-                setUserCount(response.data.userCount);
-                setClientCount(response.data.clientCount);
-                setRoleCount(response.data.roleCount);
-            })
-            .catch(error => {
-                console.error('Error fetching data: ', error);
-            });
+        const xxx = async () => {
+            try {
+                await getCsrfToken(); // Fetch CSRF token
+                const response = await axios.get('/api/users/count', {
+                    method: 'GET', 
+                    headers: {
+                        'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+                        'Accept': 'application/json',
+                    },
+                });
+                if (response.data && response.data.userCount && response.data.clientCount && response.data.roleCount) {
+                    setUserCount(response.data.userCount);
+                    setClientCount(response.data.clientCount);
+                    setRoleCount(response.data.roleCount);
+                } else {
+                    setUserCount([]); // Handle the case when admin data is not present
+                    setClientCount([]); // Handle the case when admin data is not present
+                    setRoleCount([]); // Handle the case when admin data is not present
+                }
+            } catch (error) {
+                console.error('Error fetching admin: ', error);
+                setUserCount([]); // Handle the case when there is an error
+                setClientCount([]); // Handle the case when there is an error
+                setRoleCount([]); // Handle the case when there is an error
+            }
+        };
+        xxx();
     }, []);
     return (
         <>
@@ -68,7 +96,7 @@ const UserCount = () => {
 
     );
 };
-export default UserCount;
+//export default UserCount;
 
 /*
 if (document.getElementById('content')) {

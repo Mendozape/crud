@@ -1,57 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
+//import { createRoot } from 'react-dom/client';
 import axios from 'axios';
 import { NavLink, Outlet } from "react-router-dom";
 
 // Set Axios to include credentials (cookies)
 axios.defaults.withCredentials = true;
 const getCsrfToken = async () => {
-    //await axios.get('/sanctum/csrf-cookie');
     try {
         await axios.get('/sanctum/csrf-cookie');
+        console.log('CSRF token fetched successfully');
     } catch (error) {
         console.error('Error fetching CSRF token: ', error);
     }
 };
 
 export default function Notifications() {
-    const [isAdmin, setIsAdmin] = useState('');
+    const [isAdmin, setIsAdmin] = useState([]);
     let notis = [];
     useEffect(() => {
-        /*axios.get('/api/admin/isAdmin')
-            .then(response => {
-                setIsAdmin(response.data.admin);
-            })
-            .catch(error => {
-                console.error('Error fetching admin: ', error);
-            });*/
             const fetchAdminStatus = async () => {
                 try {
                     await getCsrfToken(); // Fetch CSRF token
-                    const token = localStorage.getItem('authToken');
-                    const response = await axios.get('/api/admin/isAdmin', { 
-                        method: 'GET',
-                        mode: 'cors',
-                        headers: new Headers({
-                            'Access-Control-Allow-Origin': '*',
-                            'Access-Control-Allow-Headers': '*',
-                            'Access-Control-Allow-Credentials': false,
-                            //'Host': 'http://crud.mendodevelopments.com',
+                    const response = await axios.get('/api/admin/isAdmin', {
+                        method: 'GET', 
+                        headers: {
+                            'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
                             'Accept': 'application/json',
-                            'Access-Control-Allow-Methods': '*',
-                            'Content-Type': '*',
-                            //'Content-Type': 'application/x-www-form-urlencoded',
-                            //'Authorization': 'Basic '+btoa('admin@gmail.com:12345678'),
-                            'Authorization': 'Bearer 13|FwQXNINKB43gniatBPZQ8fHKTZUjrWzUX8aJOZ4Da0192861',
-                            //'Authorization': 'Basic '+ base64.encode('admin@gmail.com:12345678')
-                        }),
+                        },
                     });
-                    setIsAdmin(response.data.admin);
+                    if (response.data && response.data.admin) {
+                        setIsAdmin(response.data.admin);
+                    } else {
+                        setIsAdmin([]); // Handle the case when admin data is not present
+                    }
                 } catch (error) {
                     console.error('Error fetching admin: ', error);
+                    setIsAdmin([]); // Handle the case when there is an error
                 }
             };
-    
             fetchAdminStatus();
     }, []);
 
@@ -75,9 +61,9 @@ export default function Notifications() {
                     <div className=''>
                         <ul>
                             {
-                                notis.map((row) => (
-                                    <li>
-                                        <NavLink 
+                                notis.map((row, index) => (
+                                    <li key={index}>
+                                        <NavLink
                                             key={row.id} 
                                             to={`/home/${row.id}`}
                                             className={({ isActive }) => {
