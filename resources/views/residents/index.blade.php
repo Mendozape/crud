@@ -14,6 +14,6 @@
 @section('js')
 	@viteReactRefresh
 	
-	@vite('resources/js/Components/ShowResidents.jsx')
+	@vite('resources/js/Components/index.jsx')
 	
 @stop

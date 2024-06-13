@@ -2,23 +2,53 @@ import axios from 'axios'
 import React, {useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 const endpoint = 'http://localhost:8000/api/residents'
-const CreateEmployee = () => {
+//const CreateEmployee = () => {
+export default function CreateEmployee() {
+    const [photo, setPhoto] = useState('')
     const [name, setName] = useState('')
     const [last_name, setLastName] = useState('')
-    const [job, setJob] = useState('')
-    const [phone, setPhone] = useState('')
-    const [address, setAddress] = useState('')
-    const [age, setAge] = useState('')
+    const [email, setEmail] = useState('')
+    const [street, setStreet] = useState('')
+    const [street_number, setStreetNumber] = useState('')
+    const [community, setCommunity] = useState('')
+    const [comments, setComments] = useState('')
     const navigate = useNavigate()
     const store = async (e) => {
         e.preventDefault();
-        await axios.post(endpoint, {name: name, last_name: last_name, job: job, phone: phone, address: address, age: age})
-        navigate('/')
+        await axios.post(
+            endpoint, 
+            {
+                photo: photo,
+                name: name,
+                last_name: last_name,
+                email: email,
+                street: street,
+                street_number: street_number,
+                community: community,
+                comments: comments
+            },
+            {
+                headers: {
+                    'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+                    'Accept': 'application/json',
+                },
+            }
+        )
+        navigate('/resident')
     }
   return (
     <div>
-        <h2>Creat a new employee</h2>
+        <h2>Creat a new resident</h2>
         <form onSubmit={store}>
+            <div className='mb-3'>
+                <label className='form-label'>Photo</label>
+                <input 
+                    value={photo} 
+                    onChange={ (e)=> setPhoto(e.target.value)}
+                    type='text'
+                    className='form-control'
+                />
+            </div>
             <div className='mb-3'>
                 <label className='form-label'>Name</label>
                 <input 
@@ -38,37 +68,46 @@ const CreateEmployee = () => {
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Job</label>
+                <label className='form-label'>Email</label>
                 <input 
-                    value={job} 
-                    onChange={ (e)=> setJob(e.target.value)}
+                    value={email} 
+                    onChange={ (e)=> setEmail(e.target.value)}
                     type='text'
                     className='form-control'
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Phone</label>
+                <label className='form-label'>Street</label>
                 <input 
-                    value={phone} 
-                    onChange={ (e)=> setPhone(e.target.value)}
+                    value={street} 
+                    onChange={ (e)=> setStreet(e.target.value)}
                     type='text'
                     className='form-control'
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Address</label>
+                <label className='form-label'>Street Number</label>
                 <input 
-                    value={address} 
-                    onChange={ (e)=> setAddress(e.target.value)}
+                    value={street_number} 
+                    onChange={ (e)=> setStreetNumber(e.target.value)}
                     type='text'
                     className='form-control'
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Age</label>
+                <label className='form-label'>Community</label>
                 <input 
-                    value={age} 
-                    onChange={ (e)=> setAge(e.target.value)}
+                    value={community} 
+                    onChange={ (e)=> setCommunity(e.target.value)}
+                    type='text'
+                    className='form-control'
+                />
+            </div>
+            <div className='mb-3'>
+                <label className='form-label'>Comments</label>
+                <input 
+                    value={comments} 
+                    onChange={ (e)=> setComments(e.target.value)}
                     type='text'
                     className='form-control'
                 />
@@ -78,4 +117,4 @@ const CreateEmployee = () => {
     </div>
   )
 }
-export default CreateEmployee
+//export default CreateEmployee

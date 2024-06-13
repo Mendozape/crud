@@ -74,7 +74,7 @@ class ResidentController extends Controller
     {
         //return redirect('http://localhost:8000/frontend/src/components/index.blade.php');
         //return view('../../../frontend/src/index');
-        return view('residents.index');
+        return view('residents.index ');
         //$Residents = Resident::all();
         //return view('residents.index')->with('data',$Residents);
         //return redirect()->away(env('/frontend/src/components/index.blade.php'));

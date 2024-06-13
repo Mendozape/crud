@@ -2,44 +2,76 @@ import axios from 'axios'
 import React,{useState, useEffect} from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 const endpoint = 'http://localhost:8000/api/residents/'
-const EditEmployee = () => {
+//const EditEmployee = () => {
+export default function EditEmployee() {
+    const [photo, setPhoto] = useState('')
     const [name, setName] = useState('')
     const [last_name, setLastName] = useState('')
-    const [job, setJob] = useState('')
-    const [phone, setPhone] = useState('')
-    const [address, setAddress] = useState('')
-    const [age, setAge] = useState('')
+    const [email, setEmail] = useState('')
+    const [street, setStreet] = useState('')
+    const [street_number, setStreetNumber] = useState('')
+    const [community, setCommunity] = useState('')
+    const [comments, setComments] = useState('')
     const navigate = useNavigate()
     const {id} = useParams()
     const update = async (e) => {
         e.preventDefault();
-        await axios.put(`${endpoint}${id}`, {
-            name: name,
-            last_name: last_name,
-            job: job,
-            phone: phone,
-            address: address,
-            age: age
-        })
-        navigate('/')
+        await axios.put(
+            `${endpoint}${id}`, 
+            {
+                photo: photo,
+                name: name,
+                last_name: last_name,
+                email: email,
+                street: street,
+                street_number: street_number,
+                community: community,
+                comments: comments
+            },
+            {
+                headers: {
+                    'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+                    'Accept': 'application/json',
+                },
+            },
+        )
+        navigate('/resident')
     }
     useEffect( () =>{
         const getEmployeeById = async () => {
-            const response = await axios.get(`${endpoint}${id}`)
+            const response = await axios.get(
+            `${endpoint}${id}`,
+            {
+                headers: {
+                    'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+                    'Accept': 'application/json',
+                },
+            }
+        );
+            setPhoto(response.data.photo)
             setName(response.data.name)
             setLastName(response.data.last_name)
-            setJob(response.data.job)
-            setPhone(response.data.phone)
-            setAddress(response.data.address)
-            setAge(response.data.age)
+            setEmail(response.data.email)
+            setStreet(response.data.street)
+            setStreetNumber(response.data.street_number)
+            setCommunity(response.data.community)
+            setComments(response.data.comments)
         }
         getEmployeeById()
-        
     }, [])
   return (
     <div>
-        <h2>Edit employee</h2>
+        <h2>Edit resident</h2>
         <form onSubmit={update}>
+        <div className='mb-3'>
+                <label className='form-label'>Photo</label>
+                <input 
+                    value={photo} 
+                    onChange={ (e)=> setPhoto(e.target.value)}
+                    type='text'
+                    className='form-control'
+                />
+            </div>
             <div className='mb-3'>
                 <label className='form-label'>Name</label>
                 <input 
@@ -59,37 +91,46 @@ const EditEmployee = () => {
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Job</label>
+                <label className='form-label'>Email</label>
                 <input 
-                    value={job} 
-                    onChange={ (e)=> setJob(e.target.value)}
+                    value={email} 
+                    onChange={ (e)=> setEmail(e.target.value)}
                     type='text'
                     className='form-control'
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Phone</label>
+                <label className='form-label'>Street</label>
                 <input 
-                    value={phone} 
-                    onChange={ (e)=> setPhone(e.target.value)}
+                    value={street} 
+                    onChange={ (e)=> setStreet(e.target.value)}
                     type='text'
                     className='form-control'
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Address</label>
+                <label className='form-label'>Street Number</label>
                 <input 
-                    value={address} 
-                    onChange={ (e)=> setAddress(e.target.value)}
+                    value={street_number} 
+                    onChange={ (e)=> setStreetNumber(e.target.value)}
                     type='text'
                     className='form-control'
                 />
             </div>
             <div className='mb-3'>
-                <label className='form-label'>Age</label>
+                <label className='form-label'>Community</label>
                 <input 
-                    value={age} 
-                    onChange={ (e)=> setAge(e.target.value)}
+                    value={community} 
+                    onChange={ (e)=> setCommunity(e.target.value)}
+                    type='text'
+                    className='form-control'
+                />
+            </div>
+            <div className='mb-3'>
+                <label className='form-label'>Comments</label>
+                <input 
+                    value={comments} 
+                    onChange={ (e)=> setComments(e.target.value)}
                     type='text'
                     className='form-control'
                 />
@@ -99,4 +140,4 @@ const EditEmployee = () => {
     </div>
   )
 }
-export default EditEmployee
+//export default EditEmployee

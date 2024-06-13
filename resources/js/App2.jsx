@@ -11,7 +11,7 @@ const router = createBrowserRouter([
     element: <NotiPage />,
     children:[
         {
-            path: '/home:notiId',
+            path: ':notiId',
             element: <NotiProfile />,
         },
     ],

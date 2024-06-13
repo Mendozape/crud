@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-//import { createRoot } from 'react-dom/client';
 import axios from 'axios';
 import { NavLink, Outlet } from "react-router-dom";
 
@@ -47,7 +46,6 @@ export default function Notifications() {
         }
 
     }
-    //let notis = [1,2,3,4,5,6];
     return (
         <>
 
@@ -77,8 +75,7 @@ export default function Notifications() {
                             }
                         </ul>
                     </div>
-                    <div className='ml-4
-                    '>
+                    <div className='ml-4'>
                         <Outlet />
                     </div>
                 </div>
