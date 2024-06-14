@@ -49,7 +49,8 @@ class ResidentController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $resident = Resident::findOrFail($request->id);
+        $resident = Resident::findOrFail($id);
+        $resident->photo = $request->photo;
         $resident->name = $request->name;
         $resident->last_name = $request->last_name;
         $resident->email = $request->email;

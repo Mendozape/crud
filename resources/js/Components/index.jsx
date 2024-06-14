@@ -3,8 +3,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ShowResidents from './ShowResidents';
 import CreateResidents from './CreateResidents';
 import EditResidents from './EditResidents';
-
-
 import { createRoot } from 'react-dom/client';
 
 export default function ShowEmployees() {
@@ -23,4 +21,3 @@ export default function ShowEmployees() {
 if (document.getElementById('Residents')) {
   createRoot(document.getElementById('Residents')).render(<ShowEmployees />)
 }
-//export default App;

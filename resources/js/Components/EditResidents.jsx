@@ -15,6 +15,7 @@ export default function EditEmployee() {
     const navigate = useNavigate()
     const {id} = useParams()
     const update = async (e) => {
+        console.log(id);
         e.preventDefault();
         await axios.put(
             `${endpoint}${id}`, 
@@ -35,19 +36,20 @@ export default function EditEmployee() {
                 },
             },
         )
+        
         navigate('/resident')
     }
     useEffect( () =>{
         const getEmployeeById = async () => {
             const response = await axios.get(
-            `${endpoint}${id}`,
-            {
-                headers: {
-                    'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
-                    'Accept': 'application/json',
-                },
-            }
-        );
+                `${endpoint}${id}`,
+                {
+                    headers: {
+                        'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+                        'Accept': 'application/json',
+                    },
+                }
+            );
             setPhoto(response.data.photo)
             setName(response.data.name)
             setLastName(response.data.last_name)

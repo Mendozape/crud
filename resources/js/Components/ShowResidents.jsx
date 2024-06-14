@@ -66,6 +66,3 @@ export default function ShowEmployees() {
     </div>
   )
 }
-
-
-//export default ShowEmployees
