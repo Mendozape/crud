@@ -1,9 +1,9 @@
-// src/components/ResidentsTable.jsx
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState , useContext} from 'react';
 import DataTable from 'react-data-table-component';
+import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+
 
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
@@ -18,10 +18,12 @@ const ResidentsTable = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filteredResidents, setFilteredResidents] = useState([]);
-    const [showModal, setShowModal] = useState(false); // State for modal visibility
-    const [residentToDelete, setResidentToDelete] = useState(null); // State to store resident to delete
-
+    const [showModal, setShowModal] = useState(false); 
+    const [residentToDelete, setResidentToDelete] = useState(null); 
+    
+    const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
+   
 
     const fetchResidents = async () => {
         try {
@@ -48,16 +50,24 @@ const ResidentsTable = () => {
 
     const deleteResident = async (id) => {
         try {
-            await axios.delete(`${endpoint}/${id}`, authHeaders);
-            fetchResidents();
-            setShowModal(false); // Close the modal after deletion
+            const response = await axios.delete(`${endpoint}/${id}`, authHeaders);
+            if (response.status === 200) {
+                setSuccessMessage('Resident deleted successfully.');
+                fetchResidents();
+            } else {
+                setErrorMessage('Failed to delete resident.');
+            }
+            setShowModal(false);
         } catch (error) {
             console.error('Error deleting resident:', error);
+            setErrorMessage('Failed to delete resident.');
+            setShowModal(false);
         }
     };
 
     const editResident = (id) => {
-        navigate(`/edit/${id}`);
+        //navigate(`/edit/${id}`);
+        navigate(`/edit/${id}`, { state: { setSuccessMessage, setErrorMessage } });
     };
 
     const createResident = () => {
@@ -130,7 +140,7 @@ const ResidentsTable = () => {
                     </button>
                     <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => confirmDelete(row.id)} // Call confirmDelete instead of deleteResident directly
+                        onClick={() => confirmDelete(row.id)} 
                         style={{ marginLeft: '10px' }}
                     >
                         Delete
@@ -139,6 +149,26 @@ const ResidentsTable = () => {
             ),
         },
     ];
+
+    // UseEffect to clear success message after 10 seconds
+    useEffect(() => {
+        if (successMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage(null);
+            }, 10000);
+            return () => clearTimeout(timer); // Cleanup the timer on unmount
+        }
+    }, [successMessage]);
+
+    // UseEffect to clear error message after 10 seconds
+    useEffect(() => {
+        if (errorMessage) {
+            const timer = setTimeout(() => {
+                setErrorMessage(null);
+            }, 10000);
+            return () => clearTimeout(timer); // Cleanup the timer on unmount
+        }
+    }, [errorMessage]);
 
     return (
         <div className="row mb-4 border border-primary rounded p-3">
@@ -161,14 +191,27 @@ const ResidentsTable = () => {
             </div>
 
             <div className="col-md-12 mt-4">
+                {successMessage && (
+                    <div className="alert alert-success text-center">
+                        {successMessage}
+                    </div>
+                )}
+                {errorMessage && (
+                    <div className="alert alert-danger text-center">
+                        {errorMessage}
+                    </div>
+                )}
+            </div>
+
+            <div className="col-md-12 mt-4">
                 <DataTable
                     title="Residents List"
                     columns={columns}
                     data={filteredResidents}
                     progressPending={loading}
                     pagination
-                    paginationPerPage={10}  // Number of rows per page
-                    paginationRowsPerPageOptions={[5, 10, 15, 20]} // Rows per page options
+                    paginationPerPage={10}  
+                    paginationRowsPerPageOptions={[5, 10, 15, 20]} 
                     selectableRows
                     selectableRowsHighlight
                     highlightOnHover
@@ -176,8 +219,7 @@ const ResidentsTable = () => {
                 />
             </div>
 
-            {/* Modal for Delete Confirmation */}
-            <div className="modal" tabIndex="-1" role="dialog" style={{ display: showModal ? 'block' : 'none' }}>
+            <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header">

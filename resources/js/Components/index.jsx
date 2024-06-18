@@ -4,6 +4,7 @@ import ShowResidents from './ShowResidents';
 import CreateResidents from './CreateResidents';
 import EditResidents from './EditResidents';
 import { createRoot } from 'react-dom/client';
+import { MessageProvider } from './MessageContext';
 
 export default function ShowEmployees() {
   return (
@@ -19,5 +20,9 @@ export default function ShowEmployees() {
   );
 }
 if (document.getElementById('Residents')) {
-  createRoot(document.getElementById('Residents')).render(<ShowEmployees />)
+  createRoot(document.getElementById('Residents')).render(
+    <MessageProvider>
+      <ShowEmployees />
+    </MessageProvider>,
+  )
 }

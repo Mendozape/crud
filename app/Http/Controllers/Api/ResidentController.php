@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Resident;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ResidentController extends Controller
 {
@@ -49,17 +50,30 @@ class ResidentController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $resident = Resident::findOrFail($id);
-        $resident->photo = $request->photo;
-        $resident->name = $request->name;
-        $resident->last_name = $request->last_name;
-        $resident->email = $request->email;
-        $resident->street = $request->street;
-        $resident->street_number = $request->street_number;
-        $resident->community = $request->community;
-        $resident->comments = $request->comments;
-        $resident->save();
-        return $resident;
+        try {
+            $resident = Resident::findOrFail($id);
+            $resident->photo = $request->photo;
+            $resident->name = $request->name;
+            $resident->last_name = $request->last_name;
+            $resident->email = $request->email;
+            $resident->street = $request->street;
+            $resident->street_number = $request->street_number;
+            $resident->community = $request->community;
+            $resident->comments = $request->comments;
+            $resident->save();
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Resident updated successfully',
+                'data' => $resident
+            ], 200);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to update resident',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
     }
 
     /**
@@ -67,10 +81,17 @@ class ResidentController extends Controller
      */
     public function destroy(string $id)
     {
-        //testing
-        $resident = Resident::destroy($id);
-        return $resident;
+        try {
+            $resident = Resident::findOrFail($id);
+            $resident->delete();
+            return response()->json(['message' => 'Resident deleted successfully.'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Resident not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete resident.'], 500);
+        }
     }
+
     public function redire()
     {
         //return redirect('http://localhost:8000/frontend/src/components/index.blade.php');
