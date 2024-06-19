@@ -23,7 +23,7 @@ export default function UserCount() {
                 const response = await axios.get('/api/users/count', {
                     method: 'GET', 
                     headers: {
-                        'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+                        'Authorization': 'Bearer 7|ug88Mtx7ClbpdxQUayEY8HY0z8sw6mGsWZeQAQNPe275265b',
                         'Accept': 'application/json',
                     },
                 });

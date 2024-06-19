@@ -1,12 +1,11 @@
 import axios from 'axios';
 import React, { useState, useEffect, useContext } from 'react';
-
 import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents/';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+        'Authorization': 'Bearer 7|ug88Mtx7ClbpdxQUayEY8HY0z8sw6mGsWZeQAQNPe275265b',
         'Accept': 'application/json',
     },
 };
@@ -20,10 +19,11 @@ export default function EditEmployee() {
     const [street_number, setStreetNumber] = useState('');
     const [community, setCommunity] = useState('');
     const [comments, setComments] = useState('');
-    const navigate = useNavigate();
-    const { id } = useParams();
-    const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
     
+    const { id } = useParams();
+    //const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
+    const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
+    const navigate = useNavigate();
     const update = async (e) => {
         e.preventDefault();
         try {
@@ -79,6 +79,8 @@ export default function EditEmployee() {
         };
         getEmployeeById();
     }, [id, setErrorMessage]);
+    
+    
 
     return (
         
@@ -159,8 +161,6 @@ export default function EditEmployee() {
                 </div>
                 <button type='submit' className='btn btn-success'>Update</button>
             </form>
-            {successMessage && <div className="alert alert-success">{successMessage}</div>}
-            {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
         </div>
     );
 }

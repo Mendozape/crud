@@ -61,7 +61,6 @@ class ResidentController extends Controller
             $resident->community = $request->community;
             $resident->comments = $request->comments;
             $resident->save();
-    
             return response()->json([
                 'success' => true,
                 'message' => 'Resident updated successfully',

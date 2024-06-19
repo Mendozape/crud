@@ -8,7 +8,7 @@ import axios from 'axios';
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 16|6Ll4eMbEkYq321VPmLqHOxHjEY2Jls3U9wreBqiE747f93f6',
+        'Authorization': 'Bearer 7|ug88Mtx7ClbpdxQUayEY8HY0z8sw6mGsWZeQAQNPe275265b',
         'Accept': 'application/json',
     },
 };
@@ -20,7 +20,6 @@ const ResidentsTable = () => {
     const [filteredResidents, setFilteredResidents] = useState([]);
     const [showModal, setShowModal] = useState(false); 
     const [residentToDelete, setResidentToDelete] = useState(null); 
-    
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
    
