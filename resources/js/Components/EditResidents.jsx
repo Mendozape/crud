@@ -19,16 +19,14 @@ export default function EditEmployee() {
     const [street_number, setStreetNumber] = useState('');
     const [community, setCommunity] = useState('');
     const [comments, setComments] = useState('');
-    
     const { id } = useParams();
-    //const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
-    const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
+    const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
     const update = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.put(
-                `${endpoint}${id}`,authHeaders,
+                `${endpoint}${id}`,
                 {
                     photo,
                     name,
@@ -39,6 +37,7 @@ export default function EditEmployee() {
                     community,
                     comments
                 },
+                authHeaders
             );
 
             console.log('Update response:', response); // Log response for debugging
@@ -79,11 +78,7 @@ export default function EditEmployee() {
         };
         getEmployeeById();
     }, [id, setErrorMessage]);
-    
-    
-
     return (
-        
         <div>
             <h2>Edit Resident</h2>
             <form onSubmit={update}>

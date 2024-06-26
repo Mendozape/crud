@@ -23,17 +23,21 @@ class ResidentController extends Controller
      */
     public function store(Request $request)
     {
-        $resident = new Resident();
-        $resident->photo = $request->photo;
-        $resident->name = $request->name;
-        $resident->last_name = $request->last_name;
-        $resident->email = $request->email;
-        $resident->street = $request->street;
-        $resident->street_number = $request->street_number;
-        $resident->community = $request->community;
-        $resident->comments = $request->comments;
-        $resident->save();
-
+        
+        $validatedData = $request->validate([
+            'photo' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:residents,email',
+            'street' => 'required|string|max:255',
+            'street_number' => 'required|string|max:10',
+            'community' => 'required|string|max:255',
+            'comments' => 'nullable|string|max:1000',
+        ]);
+    
+        $resident = Resident::create($validatedData);
+    
+        return response()->json(['message' => 'Resident created successfully', 'resident' => $resident], 201);
     }
 
     /**

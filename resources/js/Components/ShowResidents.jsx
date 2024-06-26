@@ -65,8 +65,7 @@ const ResidentsTable = () => {
     };
 
     const editResident = (id) => {
-        //navigate(`/edit/${id}`);
-        navigate(`/edit/${id}`, { state: { setSuccessMessage, setErrorMessage } });
+        navigate(`/edit/${id}`);
     };
 
     const createResident = () => {
@@ -154,7 +153,7 @@ const ResidentsTable = () => {
         if (successMessage) {
             const timer = setTimeout(() => {
                 setSuccessMessage(null);
-            }, 10000);
+            }, 5000);
             return () => clearTimeout(timer); // Cleanup the timer on unmount
         }
     }, [successMessage]);
@@ -164,7 +163,7 @@ const ResidentsTable = () => {
         if (errorMessage) {
             const timer = setTimeout(() => {
                 setErrorMessage(null);
-            }, 10000);
+            }, 5000);
             return () => clearTimeout(timer); // Cleanup the timer on unmount
         }
     }, [errorMessage]);
