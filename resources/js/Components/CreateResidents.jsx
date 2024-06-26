@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 7|ug88Mtx7ClbpdxQUayEY8HY0z8sw6mGsWZeQAQNPe275265b',
+        'Authorization': 'Bearer 17|uWtPh7Ru8lQOoMxFLDcriQZhBUiPQSudrPILbJJ62c60fee9',
         'Accept': 'application/json',
     },
 };
@@ -31,7 +31,7 @@ export default function CreateResidents() {
 
         if (form.checkValidity() === false) {
             e.stopPropagation();
-            setErrorMessage('Please fill out all required fields.');
+            //setErrorMessage('Please fill out all required fields.');
         } else {
             try {
                 await axios.post(

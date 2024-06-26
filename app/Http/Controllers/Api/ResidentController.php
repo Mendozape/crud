@@ -34,10 +34,24 @@ class ResidentController extends Controller
             'community' => 'required|string|max:255',
             'comments' => 'nullable|string|max:1000',
         ]);
+        try {
+            $resident = Resident::create($validatedData);
+            return response()->json([
+                'success' => true,
+                'message' => 'Resident created successfully',
+                'data' => $resident
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create resident',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     
-        $resident = Resident::create($validatedData);
+        
     
-        return response()->json(['message' => 'Resident created successfully', 'resident' => $resident], 201);
+       
     }
 
     /**
@@ -54,6 +68,16 @@ class ResidentController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $request->validate([
+            'photo' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'street' => 'required|string|max:255',
+            'street_number' => 'required|string|max:255',
+            'community' => 'required|string|max:255',
+            'comments' => 'required|string|max:255',
+        ]);
         try {
             $resident = Resident::findOrFail($id);
             $resident->photo = $request->photo;
@@ -70,13 +94,16 @@ class ResidentController extends Controller
                 'message' => 'Resident updated successfully',
                 'data' => $resident
             ], 200);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to update resident',
-                    'error' => $e->getMessage()
-                ], 500);
-            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update resident',
+                'error' => $e->getMessage(),
+                'errors' => [
+                    'name' => ['The name field is required.'],
+                ]
+            ], 500);
+        }
     }
 
     /**

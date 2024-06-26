@@ -2,10 +2,11 @@ import axios from 'axios';
 import React, { useState, useEffect, useContext } from 'react';
 import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
+
 const endpoint = 'http://localhost:8000/api/residents/';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 7|ug88Mtx7ClbpdxQUayEY8HY0z8sw6mGsWZeQAQNPe275265b',
+        'Authorization': 'Bearer 17|uWtPh7Ru8lQOoMxFLDcriQZhBUiPQSudrPILbJJ62c60fee9',
         'Accept': 'application/json',
     },
 };
@@ -19,41 +20,54 @@ export default function EditEmployee() {
     const [street_number, setStreetNumber] = useState('');
     const [community, setCommunity] = useState('');
     const [comments, setComments] = useState('');
+    const [formValidated, setFormValidated] = useState(false);
+    const [errors, setErrors] = useState({});
     const { id } = useParams();
     const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
+
     const update = async (e) => {
         e.preventDefault();
-        try {
-            const response = await axios.put(
-                `${endpoint}${id}`,
-                {
-                    photo,
-                    name,
-                    last_name,
-                    email,
-                    street,
-                    street_number,
-                    community,
-                    comments
-                },
-                authHeaders
-            );
+        const form = e.currentTarget;
 
-            console.log('Update response:', response); // Log response for debugging
-
-            if (response.status === 200) {
-                setSuccessMessage('Resident updated successfully.');
-                setTimeout(() => {
-                    navigate('/resident');
-                }, 100); // Small delay to ensure state update before navigation
-            } else {
-                setErrorMessage('Failed to update resident.');
+        if (form.checkValidity() === false) {
+            e.stopPropagation();
+        } else {
+            try {
+                const response = await axios.put(
+                    `${endpoint}${id}`,
+                    {
+                        photo,
+                        name,
+                        last_name,
+                        email,
+                        street,
+                        street_number,
+                        community,
+                        comments
+                    },
+                    authHeaders
+                );
+                console.log('Update response:', response); // Log response for debugging
+                if (response.status === 200) {
+                    setSuccessMessage('Resident updated successfully.');
+                    setTimeout(() => {
+                        navigate('/resident');
+                    }, 100); // Small delay to ensure state update before navigation
+                } else {
+                    setErrorMessage('Failed to update resident.');
+                }
+            } catch (error) {
+                console.error('Error updating resident:', error); // Log error for debugging
+                
+                if (error.response && error.response.data && error.response.data.errors) {
+                    setErrors(error.response.data.errors);
+                } else {
+                    setErrorMessage('Failed to update resident.');
+                }
             }
-        } catch (error) {
-            console.error('Error updating resident:', error); // Log error for debugging
-            setErrorMessage('Failed to update resident.');
         }
+        setFormValidated(true);
     };
 
     useEffect(() => {
@@ -78,10 +92,11 @@ export default function EditEmployee() {
         };
         getEmployeeById();
     }, [id, setErrorMessage]);
+
     return (
         <div>
             <h2>Edit Resident</h2>
-            <form onSubmit={update}>
+            <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
                 <div className='mb-3'>
                     <label className='form-label'>Photo</label>
                     <input 
@@ -89,7 +104,11 @@ export default function EditEmployee() {
                         onChange={(e) => setPhoto(e.target.value)}
                         type='text'
                         className='form-control'
+                        required
                     />
+                    <div className="invalid-feedback">
+                        Please provide a photo.
+                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Name</label>
@@ -98,7 +117,11 @@ export default function EditEmployee() {
                         onChange={(e) => setName(e.target.value)}
                         type='text'
                         className='form-control'
+                        required
                     />
+                    <div className="invalid-feedback">
+                        Please provide a name.
+                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Last Name</label>
@@ -107,16 +130,22 @@ export default function EditEmployee() {
                         onChange={(e) => setLastName(e.target.value)}
                         type='text'
                         className='form-control'
+                        required
                     />
+                    <div className="invalid-feedback">
+                        Please provide a last name.
+                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Email</label>
                     <input 
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)}
-                        type='text'
+                        type='email'
                         className='form-control'
+                        required
                     />
+                    
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Street</label>
@@ -125,7 +154,11 @@ export default function EditEmployee() {
                         onChange={(e) => setStreet(e.target.value)}
                         type='text'
                         className='form-control'
+                        required
                     />
+                    <div className="invalid-feedback">
+                        Please provide a street.
+                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Street Number</label>
@@ -134,7 +167,11 @@ export default function EditEmployee() {
                         onChange={(e) => setStreetNumber(e.target.value)}
                         type='text'
                         className='form-control'
+                        required
                     />
+                    <div className="invalid-feedback">
+                        Please provide a street number.
+                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Community</label>
@@ -143,7 +180,11 @@ export default function EditEmployee() {
                         onChange={(e) => setCommunity(e.target.value)}
                         type='text'
                         className='form-control'
+                        required
                     />
+                    <div className="invalid-feedback">
+                        Please provide a community.
+                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Comments</label>
@@ -152,7 +193,11 @@ export default function EditEmployee() {
                         onChange={(e) => setComments(e.target.value)}
                         type='text'
                         className='form-control'
+                        required
                     />
+                    <div className="invalid-feedback">
+                        Please provide a comment.
+                    </div>
                 </div>
                 <button type='submit' className='btn btn-success'>Update</button>
             </form>
