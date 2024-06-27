@@ -6,11 +6,11 @@ import { useNavigate } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 8|igEN76fA7W3Z9CTD4gM0ZIn2r3OS6bCS4oDAkpTO496bef4d',
+        'Authorization': 'Bearer 18|WGDD3jEWLmoJf72usSGuInbrVYTqX9b9CtsAV0kfaa8c1bae',
         'Accept': 'application/json',
     },
 };
-
+//in this file i am  using frontend validation (HTML5) and bootstrap to show the invalid messages
 export default function CreateResidents() {
     const [photo, setPhoto] = useState('');
     const [name, setName] = useState('');

@@ -6,12 +6,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents/';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 8|igEN76fA7W3Z9CTD4gM0ZIn2r3OS6bCS4oDAkpTO496bef4d',
+        'Authorization': 'Bearer 18|WGDD3jEWLmoJf72usSGuInbrVYTqX9b9CtsAV0kfaa8c1bae',
         'Accept': 'application/json',
     },
 };
-// Enhanced email validation regex
-//const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+//in this file i am  using backend  validation (laravel) and bootstrap to show the invalid messages in the frontend
 export default function EditEmployee() {
     const [photo, setPhoto] = useState('');
     const [name, setName] = useState('');
@@ -29,61 +28,36 @@ export default function EditEmployee() {
 
     const update = async (e) => {
         e.preventDefault();
-        const form = e.currentTarget;
-        /*let validationErrors = {};
-        // Check custom email validation
-        if (!email) {
-            validationErrors.email = 'Email is required.';
-        } else if (!emailRegex.test(email)) {
-            validationErrors.email = 'Please provide a valid email address.';
-            return;
-        }
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            setErrorMessage('Please fix the errors in the form.');
-            return;
-        }*/
-        if (form.checkValidity() === false) {
-            e.stopPropagation();
-            setErrorMessage('Please fill out all required fields.');
-        } else {
-            try {
-                const response = await axios.put(
-                    `${endpoint}${id}`,
-                    {
-                        photo,
-                        name,
-                        last_name,
-                        email,
-                        street,
-                        street_number,
-                        community,
-                        comments
-                    },
-                    authHeaders
-                );
-                //console.log('Update response:', response); // Log response for debugging
-                if (response.status === 200) {
-                    setSuccessMessage('Resident updated successfully.');
-                    setErrorMessage('');
-                    navigate('/resident');
-                } else {
-                    setErrorMessage('Failed to update resident.');
-                    //setErrors(response.data.errors || {});
-                    //console.log('a');
-                }
-            } catch (error) {
-                console.error('Error updating resident:', error); // Log error for debugging
-                //setErrors(error.data.errors);
-                //console.log('b');
-                /*if (error.response && error.response.data && error.response.data.errors) {
-                    setErrors(error.response.data.errors);
-                } else {
-                    setErrorMessage('Failed to update resident.');
-                }*/
+        try {
+            const response = await axios.put(
+                `${endpoint}${id}`,
+                {
+                    photo: photo || null,
+                    name,
+                    last_name,
+                    email,
+                    street,
+                    street_number,
+                    community,
+                    comments: comments || null
+                },
+                authHeaders
+            );
+            if (response.status === 200) {
+                setSuccessMessage('Resident updated successfully.');
+                setErrorMessage('');
+                navigate('/resident');
+            } else {
+                setErrorMessage('Failed to update resident.');
+            }
+        } catch (error) {
+            console.error('Error updating resident:', error);
+            if (error.response && error.response.data && error.response.data.errors) {
+                setErrors(error.response.data.errors);
+            } else {
+                setErrorMessage('Failed to update resident.');
             }
         }
-        setFormValidated(true);
     };
 
     useEffect(() => {
@@ -127,11 +101,7 @@ export default function EditEmployee() {
                         onChange={(e) => setPhoto(e.target.value)}
                         type='text'
                         className='form-control'
-                        required
                     />
-                    <div className="invalid-feedback">
-                        Please provide a photo.
-                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Name</label>
@@ -139,12 +109,9 @@ export default function EditEmployee() {
                         value={name} 
                         onChange={(e) => setName(e.target.value)}
                         type='text'
-                        className='form-control'
-                        required
+                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
                     />
-                    <div className="invalid-feedback">
-                        Please provide a name.
-                    </div>
+                    {errors.name && <div className="invalid-feedback">{errors.name[0]}</div>}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Last Name</label>
@@ -152,12 +119,9 @@ export default function EditEmployee() {
                         value={last_name} 
                         onChange={(e) => setLastName(e.target.value)}
                         type='text'
-                        className='form-control'
-                        required
+                        className={`form-control ${errors.last_name ? 'is-invalid' : ''}`}
                     />
-                    <div className="invalid-feedback">
-                        Please provide a last name.
-                    </div>
+                    {errors.last_name && <div className="invalid-feedback">{errors.last_name[0]}</div>}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Email</label>
@@ -165,25 +129,19 @@ export default function EditEmployee() {
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)}
                         type='email'
-                        className='form-control'
-                        required
+                        className={`form-control ${errors.email ? 'is-invalid' : ''}`}
                     />
-                    <div className="invalid-feedback">
-                        Please provide a valid email.
-                    </div>
+                    {errors.email && <div className="invalid-feedback">{errors.email[0]}</div>}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Street</label>
-                    <input 
+                    <input
                         value={street} 
                         onChange={(e) => setStreet(e.target.value)}
                         type='text'
-                        className='form-control'
-                        required
+                        className={`form-control ${errors.street ? 'is-invalid' : ''}`}
                     />
-                    <div className="invalid-feedback">
-                        Please provide a street.
-                    </div>
+                    {errors.street && <div className="invalid-feedback">{errors.street[0]}</div>}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Street Number</label>
@@ -191,12 +149,9 @@ export default function EditEmployee() {
                         value={street_number} 
                         onChange={(e) => setStreetNumber(e.target.value)}
                         type='text'
-                        className='form-control'
-                        required
+                        className={`form-control ${errors.street_number ? 'is-invalid' : ''}`}
                     />
-                    <div className="invalid-feedback">
-                        Please provide a street number.
-                    </div>
+                    {errors.street_number && <div className="invalid-feedback">{errors.street_number[0]}</div>}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Community</label>
@@ -204,12 +159,9 @@ export default function EditEmployee() {
                         value={community} 
                         onChange={(e) => setCommunity(e.target.value)}
                         type='text'
-                        className='form-control'
-                        required
+                        className={`form-control ${errors.community ? 'is-invalid' : ''}`}
                     />
-                    <div className="invalid-feedback">
-                        Please provide a community.
-                    </div>
+                   {errors.community && <div className="invalid-feedback">{errors.community[0]}</div>}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Comments</label>
@@ -218,11 +170,7 @@ export default function EditEmployee() {
                         onChange={(e) => setComments(e.target.value)}
                         type='text'
                         className='form-control'
-                        required
                     />
-                    <div className="invalid-feedback">
-                        Please provide a comment.
-                    </div>
                 </div>
                 <button type='submit' className='btn btn-success'>Update</button>
             </form>

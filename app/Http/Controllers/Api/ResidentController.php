@@ -7,6 +7,7 @@ use App\Models\Resident;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException; // Import ValidationException
 class ResidentController extends Controller
 {
     /**
@@ -69,26 +70,18 @@ class ResidentController extends Controller
      */
     public function update(Request $request, string $id)
     {
-    /*$validator = Validator::make($request->all(), [
-        'photo' => 'required|string|max:255',
-        'name' => 'required|string|max:255',
-        'last_name' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'street' => 'required|string|max:255',
-        'street_number' => 'required|string|max:255',
-        'community' => 'required|string|max:255',
-        'comments' => 'required|string|max:255',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation errors',
-            'errors' => $validator->errors()->messages()
-        ], 422);
-    }*/
-
         try {
+            $request->validate([
+                'photo' => 'nullable|string|max:255',
+                'name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'street' => 'required|string|max:255',
+                'street_number' => 'required|string|max:255',
+                'community' => 'required|string|max:255',
+                'comments' => 'nullable|string|max:255',
+            ]);
+    
             $resident = Resident::findOrFail($id);
             $resident->photo = $request->photo;
             $resident->name = $request->name;
@@ -99,13 +92,20 @@ class ResidentController extends Controller
             $resident->community = $request->community;
             $resident->comments = $request->comments;
             $resident->save();
-
             return response()->json([
                 'success' => true,
                 'message' => 'Resident updated successfully',
                 'data' => $resident
             ], 200);
+        } catch (ValidationException $e) {
+            // Validation errors
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation Error',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
+            // Other exceptions
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update resident',
