@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Resident;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use Illuminate\Support\Facades\Validator;
 class ResidentController extends Controller
 {
     /**
@@ -24,7 +24,7 @@ class ResidentController extends Controller
     public function store(Request $request)
     {
         
-        $validatedData = $request->validate([
+        /*$validatedData = $request->validate([
             'photo' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -33,9 +33,10 @@ class ResidentController extends Controller
             'street_number' => 'required|string|max:10',
             'community' => 'required|string|max:255',
             'comments' => 'nullable|string|max:1000',
-        ]);
+        ]);*/
         try {
-            $resident = Resident::create($validatedData);
+            $input=$request->all();
+            $resident = Resident::create($input);
             return response()->json([
                 'success' => true,
                 'message' => 'Resident created successfully',
@@ -68,16 +69,25 @@ class ResidentController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $request->validate([
-            'photo' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'street' => 'required|string|max:255',
-            'street_number' => 'required|string|max:255',
-            'community' => 'required|string|max:255',
-            'comments' => 'required|string|max:255',
-        ]);
+    /*$validator = Validator::make($request->all(), [
+        'photo' => 'required|string|max:255',
+        'name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'street' => 'required|string|max:255',
+        'street_number' => 'required|string|max:255',
+        'community' => 'required|string|max:255',
+        'comments' => 'required|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()->messages()
+        ], 422);
+    }*/
+
         try {
             $resident = Resident::findOrFail($id);
             $resident->photo = $request->photo;
@@ -89,6 +99,7 @@ class ResidentController extends Controller
             $resident->community = $request->community;
             $resident->comments = $request->comments;
             $resident->save();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Resident updated successfully',
@@ -99,9 +110,6 @@ class ResidentController extends Controller
                 'success' => false,
                 'message' => 'Failed to update resident',
                 'error' => $e->getMessage(),
-                'errors' => [
-                    'name' => ['The name field is required.'],
-                ]
             ], 500);
         }
     }

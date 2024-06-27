@@ -6,11 +6,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents/';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 17|uWtPh7Ru8lQOoMxFLDcriQZhBUiPQSudrPILbJJ62c60fee9',
+        'Authorization': 'Bearer 8|igEN76fA7W3Z9CTD4gM0ZIn2r3OS6bCS4oDAkpTO496bef4d',
         'Accept': 'application/json',
     },
 };
-
+// Enhanced email validation regex
+//const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 export default function EditEmployee() {
     const [photo, setPhoto] = useState('');
     const [name, setName] = useState('');
@@ -23,15 +24,28 @@ export default function EditEmployee() {
     const [formValidated, setFormValidated] = useState(false);
     const [errors, setErrors] = useState({});
     const { id } = useParams();
-    const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
+    const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
     const update = async (e) => {
         e.preventDefault();
         const form = e.currentTarget;
-
+        /*let validationErrors = {};
+        // Check custom email validation
+        if (!email) {
+            validationErrors.email = 'Email is required.';
+        } else if (!emailRegex.test(email)) {
+            validationErrors.email = 'Please provide a valid email address.';
+            return;
+        }
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            setErrorMessage('Please fix the errors in the form.');
+            return;
+        }*/
         if (form.checkValidity() === false) {
             e.stopPropagation();
+            setErrorMessage('Please fill out all required fields.');
         } else {
             try {
                 const response = await axios.put(
@@ -48,23 +62,25 @@ export default function EditEmployee() {
                     },
                     authHeaders
                 );
-                console.log('Update response:', response); // Log response for debugging
+                //console.log('Update response:', response); // Log response for debugging
                 if (response.status === 200) {
                     setSuccessMessage('Resident updated successfully.');
-                    setTimeout(() => {
-                        navigate('/resident');
-                    }, 100); // Small delay to ensure state update before navigation
+                    setErrorMessage('');
+                    navigate('/resident');
                 } else {
                     setErrorMessage('Failed to update resident.');
+                    //setErrors(response.data.errors || {});
+                    //console.log('a');
                 }
             } catch (error) {
                 console.error('Error updating resident:', error); // Log error for debugging
-                
-                if (error.response && error.response.data && error.response.data.errors) {
+                //setErrors(error.data.errors);
+                //console.log('b');
+                /*if (error.response && error.response.data && error.response.data.errors) {
                     setErrors(error.response.data.errors);
                 } else {
                     setErrorMessage('Failed to update resident.');
-                }
+                }*/
             }
         }
         setFormValidated(true);
@@ -97,6 +113,13 @@ export default function EditEmployee() {
         <div>
             <h2>Edit Resident</h2>
             <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
+                <div className="col-md-12 mt-4">
+                    {errorMessage && (
+                        <div className="alert alert-danger text-center">
+                            {errorMessage}
+                        </div>
+                    )}
+                </div>
                 <div className='mb-3'>
                     <label className='form-label'>Photo</label>
                     <input 
@@ -145,7 +168,9 @@ export default function EditEmployee() {
                         className='form-control'
                         required
                     />
-                    
+                    <div className="invalid-feedback">
+                        Please provide a valid email.
+                    </div>
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Street</label>

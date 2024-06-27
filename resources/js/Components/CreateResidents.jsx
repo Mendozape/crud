@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 17|uWtPh7Ru8lQOoMxFLDcriQZhBUiPQSudrPILbJJ62c60fee9',
+        'Authorization': 'Bearer 8|igEN76fA7W3Z9CTD4gM0ZIn2r3OS6bCS4oDAkpTO496bef4d',
         'Accept': 'application/json',
     },
 };
@@ -22,7 +22,7 @@ export default function CreateResidents() {
     const [comments, setComments] = useState('');
     const [formValidated, setFormValidated] = useState(false);
 
-    const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
+    const { setSuccessMessage, setErrorMessage,errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
     const store = async (e) => {
@@ -31,7 +31,7 @@ export default function CreateResidents() {
 
         if (form.checkValidity() === false) {
             e.stopPropagation();
-            //setErrorMessage('Please fill out all required fields.');
+            setErrorMessage('Please fill out all required fields.');
         } else {
             try {
                 await axios.post(
@@ -49,6 +49,7 @@ export default function CreateResidents() {
                     authHeaders
                 );
                 setSuccessMessage('Resident created successfully.');
+                setErrorMessage('');
                 navigate('/resident');
             } catch (error) {
                 setErrorMessage('Failed to create resident.');
@@ -62,6 +63,13 @@ export default function CreateResidents() {
         <div>
             <h2>Create a new resident</h2>
             <form onSubmit={store} noValidate className={formValidated ? 'was-validated' : ''}>
+                <div className="col-md-12 mt-4">
+                    {errorMessage && (
+                        <div className="alert alert-danger text-center">
+                            {errorMessage}
+                        </div>
+                    )}
+                </div>
                 <div className='mb-3'>
                     <label className='form-label'>Photo</label>
                     <input

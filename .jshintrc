@@ -11,7 +11,7 @@
   "unused"       : true, //true: Require all defined variables be used
   "camelcase"    : true, //true: Identifiers must be in camelCase
   "eqnull"       : true, //true: Tolerate use of `== null`
-  "esversion"    : 6,
+  "esversion"    : 9,
   "scripturl"    : true, //true: Tolerate script-targeted URLs
   "browser"      : true, //Web Browser (window, document, etc)
   "trailing"     : true,
