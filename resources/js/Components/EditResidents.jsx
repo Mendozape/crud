@@ -10,7 +10,7 @@ const authHeaders = {
         'Accept': 'application/json',
     },
 };
-//in this file i am  using backend  validation (laravel) and bootstrap to show the invalid messages in the frontend
+
 export default function EditEmployee() {
     const [photo, setPhoto] = useState('');
     const [name, setName] = useState('');
@@ -22,27 +22,29 @@ export default function EditEmployee() {
     const [comments, setComments] = useState('');
     const [formValidated, setFormValidated] = useState(false);
     const [errors, setErrors] = useState({});
+    const [showModal, setShowModal] = useState(false);
     const { id } = useParams();
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    const update = async (e) => {
-        e.preventDefault();
+    const handleUpdate = async () => {
+        const formData = new FormData();
+        formData.append('photo', photo);
+        formData.append('name', name);
+        formData.append('last_name', last_name);
+        formData.append('email', email);
+        formData.append('street', street);
+        formData.append('street_number', street_number);
+        formData.append('community', community);
+        formData.append('comments', comments || null);
+
         try {
-            const response = await axios.put(
-                `${endpoint}${id}`,
-                {
-                    photo: photo || null,
-                    name,
-                    last_name,
-                    email,
-                    street,
-                    street_number,
-                    community,
-                    comments: comments || null
-                },
-                authHeaders
-            );
+            const response = await axios.post(`${endpoint}${id}`, formData, {
+                headers: {
+                    ...authHeaders.headers,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             if (response.status === 200) {
                 setSuccessMessage('Resident updated successfully.');
                 setErrorMessage('');
@@ -57,16 +59,20 @@ export default function EditEmployee() {
             } else {
                 setErrorMessage('Failed to update resident.');
             }
+        } finally {
+            setShowModal(false);
         }
+    };
+
+    const update = (e) => {
+        e.preventDefault();
+        setShowModal(true);
     };
 
     useEffect(() => {
         const getEmployeeById = async () => {
             try {
                 const response = await axios.get(`${endpoint}${id}`, authHeaders);
-
-                console.log('Fetch response:', response); // Log response for debugging
-
                 setPhoto(response.data.photo);
                 setName(response.data.name);
                 setLastName(response.data.last_name);
@@ -76,12 +82,16 @@ export default function EditEmployee() {
                 setCommunity(response.data.community);
                 setComments(response.data.comments);
             } catch (error) {
-                console.error('Error fetching resident:', error); // Log error for debugging
+                console.error('Error fetching resident:', error);
                 setErrorMessage('Failed to fetch resident.');
             }
         };
         getEmployeeById();
     }, [id, setErrorMessage]);
+
+    const handleFileChange = (e) => {
+        setPhoto(e.target.files[0]);
+    };
 
     return (
         <div>
@@ -97,11 +107,19 @@ export default function EditEmployee() {
                 <div className='mb-3'>
                     <label className='form-label'>Photo</label>
                     <input 
-                        value={photo} 
-                        onChange={(e) => setPhoto(e.target.value)}
-                        type='text'
+                        onChange={handleFileChange}
+                        type='file'
                         className='form-control'
                     />
+                    {photo && (
+                        <div className='mt-3'>
+                            <img 
+                                src={`http://localhost:8000/storage/${photo}`} 
+                                alt="Current photo" 
+                                style={{ width: '50px' }}
+                            />
+                        </div>
+                    )}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Name</label>
@@ -174,6 +192,26 @@ export default function EditEmployee() {
                 </div>
                 <button type='submit' className='btn btn-success'>Update</button>
             </form>
+
+            <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Confirm Update</h5>
+                            <button type="button" className="close" aria-label="Close" onClick={() => setShowModal(false)}>
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            Are you sure you want to update this resident's information?
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                            <button type="button" className="btn btn-danger" onClick={handleUpdate}>Update</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

@@ -10,9 +10,9 @@ const authHeaders = {
         'Accept': 'application/json',
     },
 };
-//in this file i am  using frontend validation (HTML5) and bootstrap to show the invalid messages
+
 export default function CreateResidents() {
-    const [photo, setPhoto] = useState('');
+    const [photo, setPhoto] = useState(null);
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ export default function CreateResidents() {
     const [comments, setComments] = useState('');
     const [formValidated, setFormValidated] = useState(false);
 
-    const { setSuccessMessage, setErrorMessage,errorMessage } = useContext(MessageContext);
+    const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
     const store = async (e) => {
@@ -33,21 +33,23 @@ export default function CreateResidents() {
             e.stopPropagation();
             setErrorMessage('Please fill out all required fields.');
         } else {
+            const formData = new FormData();
+            formData.append('photo', photo);
+            formData.append('name', name);
+            formData.append('last_name', last_name);
+            formData.append('email', email);
+            formData.append('street', street);
+            formData.append('street_number', street_number);
+            formData.append('community', community);
+            formData.append('comments', comments);
+
             try {
-                await axios.post(
-                    endpoint,
-                    {
-                        photo,
-                        name,
-                        last_name,
-                        email,
-                        street,
-                        street_number,
-                        community,
-                        comments,
+                await axios.post(endpoint, formData, {
+                    headers: {
+                        ...authHeaders.headers,
+                        'Content-Type': 'multipart/form-data',
                     },
-                    authHeaders
-                );
+                });
                 setSuccessMessage('Resident created successfully.');
                 setErrorMessage('');
                 navigate('/resident');
@@ -73,9 +75,8 @@ export default function CreateResidents() {
                 <div className='mb-3'>
                     <label className='form-label'>Photo</label>
                     <input
-                        value={photo}
-                        onChange={(e) => setPhoto(e.target.value)}
-                        type='text'
+                        onChange={(e) => setPhoto(e.target.files[0])}
+                        type='file'
                         className='form-control'
                         required
                     />

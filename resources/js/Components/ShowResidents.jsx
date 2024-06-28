@@ -1,9 +1,8 @@
-import React, { useEffect, useState , useContext} from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import DataTable from 'react-data-table-component';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
 
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
@@ -23,7 +22,6 @@ const ResidentsTable = () => {
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
    
-
     const fetchResidents = async () => {
         try {
             const response = await axios.get(endpoint, authHeaders);
@@ -88,8 +86,8 @@ const ResidentsTable = () => {
     const columns = [
         {
             name: 'Photo',
-            selector: row => row.photo,
-            sortable: true,
+            selector: row => <img src={`http://127.0.0.1:8000/storage/${row.photo}`}  style={{ width: '50px', height: '50px' }} />,
+            sortable: false,
         },
         {
             name: 'Name',

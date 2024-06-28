@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException; // Import ValidationException
+use Carbon\Carbon;
 class ResidentController extends Controller
 {
     /**
@@ -24,9 +25,8 @@ class ResidentController extends Controller
      */
     public function store(Request $request)
     {
-        
-        /*$validatedData = $request->validate([
-            'photo' => 'required|string|max:255',
+        $validatedData = $request->validate([
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:residents,email',
@@ -34,9 +34,15 @@ class ResidentController extends Controller
             'street_number' => 'required|string|max:10',
             'community' => 'required|string|max:255',
             'comments' => 'nullable|string|max:1000',
-        ]);*/
+        ]);
         try {
-            $input=$request->all();
+            $input = $request->all();
+            // Handle the photo upload
+            if ($request->hasFile('photo')) {
+                $photo= Carbon::now()->timestamp.'.'.$request->photo->extension();
+                $request->photo->storeAs('/public/images', $photo);
+                $input['photo'] = $photo;
+            }
             $resident = Resident::create($input);
             return response()->json([
                 'success' => true,
@@ -50,10 +56,6 @@ class ResidentController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    
-        
-    
-       
     }
 
     /**
