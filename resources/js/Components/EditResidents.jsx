@@ -6,13 +6,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents/';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 18|WGDD3jEWLmoJf72usSGuInbrVYTqX9b9CtsAV0kfaa8c1bae',
-        'Accept': 'application/json',
+        'Authorization': 'Bearer 9|lxxNi3jqJmqubMN7Y4rHvfSO1OulJVGhkXQYpI2t9e4be798',
+        'Accept': 'application/json'
     },
 };
 
 export default function EditEmployee() {
-    const [photo, setPhoto] = useState('');
+    const [photo, setPhoto] = useState(null);
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -27,9 +27,12 @@ export default function EditEmployee() {
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    const handleUpdate = async () => {
+    const handleUpdate = async (e) => {
+        e.preventDefault();
         const formData = new FormData();
-        formData.append('photo', photo);
+        if (photo) {
+            formData.append('photo', photo);
+        }
         formData.append('name', name);
         formData.append('last_name', last_name);
         formData.append('email', email);
@@ -37,14 +40,10 @@ export default function EditEmployee() {
         formData.append('street_number', street_number);
         formData.append('community', community);
         formData.append('comments', comments || null);
-
+       
         try {
-            const response = await axios.post(`${endpoint}${id}`, formData, {
-                headers: {
-                    ...authHeaders.headers,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            const response = await axios.put(`${endpoint}${id}`, formData, authHeaders);
+            console.log('Responseb:'+response);
             if (response.status === 200) {
                 setSuccessMessage('Resident updated successfully.');
                 setErrorMessage('');
@@ -108,7 +107,7 @@ export default function EditEmployee() {
                     <label className='form-label'>Photo</label>
                     <input 
                         onChange={handleFileChange}
-                        type='file'
+                        type='text'
                         className='form-control'
                     />
                     {photo && (

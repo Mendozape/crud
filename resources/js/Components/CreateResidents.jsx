@@ -6,8 +6,9 @@ import { useNavigate } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 18|WGDD3jEWLmoJf72usSGuInbrVYTqX9b9CtsAV0kfaa8c1bae',
+        'Authorization': 'Bearer 9|lxxNi3jqJmqubMN7Y4rHvfSO1OulJVGhkXQYpI2t9e4be798',
         'Accept': 'application/json',
+        'Content-Type': 'multipart/form-data'
     },
 };
 
@@ -44,12 +45,7 @@ export default function CreateResidents() {
             formData.append('comments', comments);
 
             try {
-                await axios.post(endpoint, formData, {
-                    headers: {
-                        ...authHeaders.headers,
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
+                await axios.post(endpoint, formData,authHeaders);
                 setSuccessMessage('Resident created successfully.');
                 setErrorMessage('');
                 navigate('/resident');
