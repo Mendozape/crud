@@ -72,66 +72,54 @@ class ResidentController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, Resident $resident)
-{
-    // Log the incoming request data for debugging
-    Log::info('Update Resident Request', [
-        'name' => $request->input('name'),
-        'last_name' => $request->input('last_name'),
-        'email' => $request->input('email'),
-        // Add other fields as needed
-    ]);
+    {
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'street' => 'required|string|max:255',
+                'street_number' => 'required|string|max:255',
+                'community' => 'required|string|max:255',
+                'comments' => 'nullable|string|max:255',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+            if ($request->hasFile('photo')) {
+                $photo = Carbon::now()->timestamp . '.' . $request->file('photo')->extension();
+                $request->file('photo')->storeAs('/public/images', $photo);
+                $resident->photo = $photo;
+            }
+            $resident->photo = $request->photo;
+            $resident->name = $request->name;
+            $resident->last_name = $request->last_name;
+            $resident->email = $request->email;
+            $resident->street = $request->street;
+            $resident->street_number = $request->street_number;
+            $resident->community = $request->community;
+            $resident->comments = $request->comments;
+            $resident->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Resident updated successfully',
+                'data' => $resident
+            ], 200);
 
-    try {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'street' => 'required|string|max:255',
-            'street_number' => 'required|string|max:255',
-            'community' => 'required|string|max:255',
-            'comments' => 'nullable|string|max:255',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        //$resident = Resident::findOrFail($id);
-
-        /*if ($request->hasFile('photo')) {
-            $photo = Carbon::now()->timestamp . '.' . $request->file('photo')->extension();
-            $request->file('photo')->storeAs('/public/images', $photo);
-            $resident->photo = $photo;
-        }*/
-        $resident->photo = $request->photo;
-        $resident->name = $request->name;
-        $resident->last_name = $request->last_name;
-        $resident->email = $request->email;
-        $resident->street = $request->street;
-        $resident->street_number = $request->street_number;
-        $resident->community = $request->community;
-        $resident->comments = $request->comments;
-        $resident->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Resident updated successfully',
-            'data' => $resident
-        ], 200);
-
-    } catch (ValidationException $e) {
-        // Validation errors
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation Error',
-            'errors' => $e->errors(),
-        ], 422);
-    } catch (\Exception $e) {
-        // Other exceptions
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to update resident',
-            'error' => $e->getMessage(),
-        ], 500);
+        } catch (ValidationException $e) {
+            // Validation errors
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation Error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            // Other exceptions
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update resident',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
 
     /**
      * Remove the specified resource from storage.

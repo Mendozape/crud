@@ -6,8 +6,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents/';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 9|lxxNi3jqJmqubMN7Y4rHvfSO1OulJVGhkXQYpI2t9e4be798',
-        'Accept': 'application/json'
+        'Authorization': 'Bearer 19|QrjZXV4Drh50B7Ql0WRhv27IIHy4l6vZHn2Oo71Zdf859653',
+        'Accept': 'application/json',
+        'Content-Type': 'multipart/form-data'
     },
 };
 
@@ -40,7 +41,6 @@ export default function EditEmployee() {
         formData.append('street_number', street_number);
         formData.append('community', community);
         formData.append('comments', comments || null);
-       
         try {
             const response = await axios.put(`${endpoint}${id}`, formData, authHeaders);
             console.log('Responseb:'+response);
@@ -107,9 +107,10 @@ export default function EditEmployee() {
                     <label className='form-label'>Photo</label>
                     <input 
                         onChange={handleFileChange}
-                        type='text'
-                        className='form-control'
+                        type='file'
+                        className={`form-control ${errors.photo ? 'is-invalid' : ''}`}
                     />
+                    {errors.photo && <div className="invalid-feedback">{errors.photo[0]}</div>}
                     {photo && (
                         <div className='mt-3'>
                             <img 

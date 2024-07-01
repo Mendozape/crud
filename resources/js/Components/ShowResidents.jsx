@@ -7,7 +7,7 @@ import axios from 'axios';
 const endpoint = 'http://localhost:8000/api/residents';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 9|lxxNi3jqJmqubMN7Y4rHvfSO1OulJVGhkXQYpI2t9e4be798',
+        'Authorization': 'Bearer 19|QrjZXV4Drh50B7Ql0WRhv27IIHy4l6vZHn2Oo71Zdf859653',
         'Accept': 'application/json',
     },
 };
