@@ -11,7 +11,6 @@ const authHeaders = {
         'Content-Type': 'multipart/form-data'
     },
 };
-
 export default function EditEmployee() {
     const [photo, setPhoto] = useState(null);
     const [name, setName] = useState('');
