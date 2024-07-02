@@ -73,6 +73,8 @@ class ResidentController extends Controller
      */
     public function update(Request $request, Resident $resident)
     {
+        Log::info('Request Data: ', $request->all());
+        Log::info('CSRF Token:', ['token' => $request->header('X-CSRF-TOKEN')]);
         try {
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
@@ -89,7 +91,6 @@ class ResidentController extends Controller
                 $request->file('photo')->storeAs('/public/images', $photo);
                 $resident->photo = $photo;
             }
-            $resident->photo = $request->photo;
             $resident->name = $request->name;
             $resident->last_name = $request->last_name;
             $resident->email = $request->email;

@@ -4,11 +4,13 @@ import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents/';
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 const authHeaders = {
     headers: {
         'Authorization': 'Bearer 19|QrjZXV4Drh50B7Ql0WRhv27IIHy4l6vZHn2Oo71Zdf859653',
         'Accept': 'application/json',
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRF-TOKEN': csrfToken
     },
 };
 export default function EditEmployee() {
@@ -40,9 +42,13 @@ export default function EditEmployee() {
         formData.append('street_number', street_number);
         formData.append('community', community);
         formData.append('comments', comments || null);
+        // Log formData contents
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
         try {
             const response = await axios.put(`${endpoint}${id}`, formData, authHeaders);
-            console.log('Responseb:'+response);
+            console.log('Response data:', response.data);
             if (response.status === 200) {
                 setSuccessMessage('Resident updated successfully.');
                 setErrorMessage('');
