@@ -86,7 +86,13 @@ const ResidentsTable = () => {
     const columns = [
         {
             name: 'Photo',
-            selector: row => <img src={`http://127.0.0.1:8000/storage/${row.photo}`}  style={{ width: '50px', height: '50px' }} />,
+            selector: row => {
+                if (row.photo && row.photo != null ) {
+                    return <img src={`http://127.0.0.1:8000/storage/${row.photo}`} style={{ width: '50px', borderRadius: '50%' }} />;
+                } else {
+                    return null; // Render nothing if there's no photo
+                }
+            },
             sortable: false,
         },
         {

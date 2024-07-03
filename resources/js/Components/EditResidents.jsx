@@ -9,12 +9,14 @@ const authHeaders = {
     headers: {
         'Authorization': 'Bearer 19|QrjZXV4Drh50B7Ql0WRhv27IIHy4l6vZHn2Oo71Zdf859653',
         'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'multipart/form-data',
         'X-CSRF-TOKEN': csrfToken
     },
 };
+
 export default function EditEmployee() {
     const [photo, setPhoto] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -42,12 +44,10 @@ export default function EditEmployee() {
         formData.append('street_number', street_number);
         formData.append('community', community);
         formData.append('comments', comments || null);
+        formData.append('_method', 'PUT'); // Add this line
         // Log formData contents
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
-        }
         try {
-            const response = await axios.put(`${endpoint}${id}`, formData, authHeaders);
+            const response = await axios.post(`${endpoint}${id}`, formData, authHeaders);
             console.log('Response data:', response.data);
             if (response.status === 200) {
                 setSuccessMessage('Resident updated successfully.');
@@ -94,7 +94,9 @@ export default function EditEmployee() {
     }, [id, setErrorMessage]);
 
     const handleFileChange = (e) => {
-        setPhoto(e.target.files[0]);
+        const file = e.target.files[0];
+        setPhoto(file);
+        setPhotoPreview(URL.createObjectURL(file));
     };
 
     return (
@@ -109,21 +111,33 @@ export default function EditEmployee() {
                     )}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Photo</label>
+                    <label className='form-label'>Photo</label><br />
                     <input 
                         onChange={handleFileChange}
                         type='file'
-                        className={`form-control ${errors.photo ? 'is-invalid' : ''}`}
+                        id='fileInput'
+                        className={`form-control d-none ${errors.photo ? 'is-invalid' : ''}`} // Hide default input
                     />
+                    <label htmlFor='fileInput' className='btn btn-primary'>Select Image</label> {/* Custom label */}
                     {errors.photo && <div className="invalid-feedback">{errors.photo[0]}</div>}
-                    {photo && (
+                    {photoPreview ? (
                         <div className='mt-3'>
                             <img 
-                                src={`http://localhost:8000/storage/${photo}`} 
-                                alt="Current photo" 
-                                style={{ width: '50px' }}
+                                src={photoPreview} 
+                                alt="New photo" 
+                                style={{ width: '50px', borderRadius: '50%' }}
                             />
                         </div>
+                    ) : (
+                        photo && (
+                            <div className='mt-3'>
+                                <img 
+                                    src={`http://localhost:8000/storage/${photo}`} 
+                                    alt="Current photo" 
+                                    style={{ width: '50px', borderRadius: '50%' }}
+                                />
+                            </div>
+                        )
                     )}
                 </div>
                 <div className='mb-3'>
