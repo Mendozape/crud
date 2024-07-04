@@ -198,11 +198,7 @@ export default function CreateResidents() {
                         onChange={(e) => setComments(e.target.value)}
                         type='text'
                         className='form-control'
-                        required
                     />
-                    <div className="invalid-feedback">
-                        Please provide comments.
-                    </div>
                 </div>
                 <button type='submit' className='btn btn-success'>Save</button>
             </form>

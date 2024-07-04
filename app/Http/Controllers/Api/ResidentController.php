@@ -26,15 +26,6 @@ class ResidentController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:residents,email',
-            'street' => 'required|string|max:255',
-            'street_number' => 'required|string|max:10',
-            'community' => 'required|string|max:255',
-            'comments' => 'nullable|string|max:1000',
-        ]);
         try {
             $input = $request->all();
             // Handle the photo upload
