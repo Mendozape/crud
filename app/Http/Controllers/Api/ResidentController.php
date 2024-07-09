@@ -122,6 +122,13 @@ class ResidentController extends Controller
     {
         try {
             $resident = Resident::findOrFail($id);
+            // Delete the resident's image from storage
+            if ($resident->photo) {
+                $imagePath = storage_path('app/public/images/' . $resident->photo);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
             $resident->delete();
             return response()->json(['message' => 'Resident deleted successfully.'], 200);
         } catch (ModelNotFoundException $e) {
@@ -133,12 +140,6 @@ class ResidentController extends Controller
 
     public function redire()
     {
-        //return redirect('http://localhost:8000/frontend/src/components/index.blade.php');
-        //return view('../../../frontend/src/index');
         return view('residents.index ');
-        //$Residents = Resident::all();
-        //return view('residents.index')->with('data',$Residents);
-        //return redirect()->away(env('/frontend/src/components/index.blade.php'));
-        //return redirect('http://localhost:8000/frontend/src/components/index');
     }
 }

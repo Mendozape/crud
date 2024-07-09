@@ -17,6 +17,7 @@ const authHeaders = {
 export default function EditEmployee() {
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [isLoading, setIsLoading] = useState(false); // New state for loading status
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -95,8 +96,13 @@ export default function EditEmployee() {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
+        setIsLoading(true); // Set loading to true
         setPhoto(file);
-        setPhotoPreview(URL.createObjectURL(file));
+        setPhotoPreview(null); // Clear the previous photo preview
+        setTimeout(() => {
+            setPhotoPreview(URL.createObjectURL(file));
+            setIsLoading(false); // Set loading to false after 2 seconds
+        }, 500);
     };
 
     return (
@@ -120,7 +126,15 @@ export default function EditEmployee() {
                     />
                     <label htmlFor='fileInput' className='btn btn-primary'>Select Image</label> {/* Custom label */}
                     {errors.photo && <div className="invalid-feedback">{errors.photo[0]}</div>}
-                    {photoPreview ? (
+                    {isLoading ? (
+                        <div className='mt-3'>
+                            <img 
+                                src={`http://localhost:8000/storage/Loading_icon.gif`}
+                                alt="Loading"
+                                style={{ width: '50px', borderRadius: '50%' }}
+                            />
+                        </div>
+                    ) : photoPreview ? (
                         <div className='mt-3'>
                             <img 
                                 src={photoPreview} 

@@ -1,4 +1,3 @@
-
 @extends('adminlte::page')
 @section('title', 'Dashboard')
 @section('content_header')
@@ -9,9 +8,9 @@
 	<title>Laravel 10 - REACT 18</title>
 @stop
 @section('content')
-	<div id="Residents"></div>
+	<div id="Fees"></div>
 @stop
 @section('js')
 	@viteReactRefresh
-	@vite('resources/js/Components/index.jsx')
+	@vite('resources/js/Components/fees.jsx')
 @stop

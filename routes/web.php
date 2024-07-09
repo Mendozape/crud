@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Api\ResidentController;
+use App\Http\Controllers\FeeController;
 
 
 /*
@@ -69,6 +70,7 @@ Route::middleware(['auth'])->group(function(){
         return view('apiFetch.index');
     })->name('apiFetch');
     Route::get('/resident',[ResidentController::class, 'redire'])->name('redire');
+    Route::get('/fees',[FeeController::class, 'redire2'])->name('redire2');
     /*Route::get('/resident', function() {
         return redirect()->away(env('http://localhost:8000/frontend/src/components/index.blade.php'));
     });*/
