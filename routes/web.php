@@ -71,10 +71,6 @@ Route::middleware(['auth'])->group(function(){
     })->name('apiFetch');
     Route::get('/resident',[ResidentController::class, 'redire'])->name('redire');
     Route::get('/fees',[FeeController::class, 'redire2'])->name('redire2');
-    /*Route::get('/resident', function() {
-        return redirect()->away(env('http://localhost:8000/frontend/src/components/index.blade.php'));
-    });*/
-    
 });
 
 

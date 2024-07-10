@@ -21,7 +21,6 @@ const FeesTable = () => {
     const [feeToDelete, setFeeToDelete] = useState(null); 
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
-   
     const fetchFees = async () => {
         try {
             const response = await axios.get(endpoint, authHeaders);
@@ -39,18 +38,18 @@ const FeesTable = () => {
     }, []);
 
     useEffect(() => {
-        const result = residents.filter(resident => {
-            return resident.name.toLowerCase().includes(search.toLowerCase());
+        const result = fees.filter(fee => {
+            return fee.name.toLowerCase().includes(search.toLowerCase());
         });
-        setFilteredFee(result);
-    }, [search, residents]);
+        setFilteredFees(result);
+    }, [search, fees]);
 
-    const deleteResident = async (id) => {
+    const deleteFee = async (id) => {
         try {
             const response = await axios.delete(`${endpoint}/${id}`, authHeaders);
             if (response.status === 200) {
                 setSuccessMessage('Fee deleted successfully.');
-                fetchResidents();
+                fetchFees();
             } else {
                 setErrorMessage('Failed to delete fee.');
             }
@@ -69,7 +68,6 @@ const FeesTable = () => {
     const createFee = () => {
         navigate('/create');
     };
-
     const toggleModal = () => {
         setShowModal(!showModal);
     };
@@ -80,7 +78,7 @@ const FeesTable = () => {
     };
 
     const handleDelete = () => {
-        deleteFee(residentToDelete);
+        deleteFee(feeToDelete);
     };
 
     const columns = [

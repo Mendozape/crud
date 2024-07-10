@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { MessageProvider } from './MessageContext';
 
 
-export default function ShowFees() {
+export default function FeesApp() {
   return (
     <div className="App">
       <BrowserRouter>
@@ -23,7 +23,7 @@ export default function ShowFees() {
 if (document.getElementById('Fees')) {
   createRoot(document.getElementById('Fees')).render(
     <MessageProvider>
-      <ShowFees />
+      <FeesApp />
     </MessageProvider>,
   )
 }

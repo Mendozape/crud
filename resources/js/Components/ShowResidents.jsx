@@ -17,11 +17,11 @@ const ResidentsTable = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filteredResidents, setFilteredResidents] = useState([]);
-    const [showModal, setShowModal] = useState(false); 
-    const [residentToDelete, setResidentToDelete] = useState(null); 
+    const [showModal, setShowModal] = useState(false);
+    const [residentToDelete, setResidentToDelete] = useState(null);
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
-   
+
     const fetchResidents = async () => {
         try {
             const response = await axios.get(endpoint, authHeaders);
@@ -69,6 +69,10 @@ const ResidentsTable = () => {
     const createResident = () => {
         navigate('/create');
     };
+    const createPayment = (id) => {
+        navigate(`/payment/${id}`);
+    };
+
 
     const toggleModal = () => {
         setShowModal(!showModal);
@@ -133,13 +137,19 @@ const ResidentsTable = () => {
                 <div>
                     <button
                         className="btn btn-info btn-sm"
+                        onClick={() => createPayment(row.id)}
+                    >
+                        Pays
+                    </button>
+                    <button
+                        className="btn btn-info btn-sm"
                         onClick={() => editResident(row.id)}
                     >
                         Edit
                     </button>
                     <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => confirmDelete(row.id)} 
+                        onClick={() => confirmDelete(row.id)}
                         style={{ marginLeft: '10px' }}
                     >
                         Delete
@@ -209,8 +219,8 @@ const ResidentsTable = () => {
                     data={filteredResidents}
                     progressPending={loading}
                     pagination
-                    paginationPerPage={10}  
-                    paginationRowsPerPageOptions={[5, 10, 15, 20]} 
+                    paginationPerPage={10}
+                    paginationRowsPerPageOptions={[5, 10, 15, 20]}
                     selectableRows
                     selectableRowsHighlight
                     highlightOnHover

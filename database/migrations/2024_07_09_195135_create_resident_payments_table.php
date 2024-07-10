@@ -13,6 +13,8 @@ class CreateResidentPaymentsTable extends Migration
             $table->foreignId('resident_id')->constrained()->onDelete('cascade');
             $table->foreignId('fee_id')->constrained('fees')->onDelete('cascade'); // Add fee_id foreign key
             $table->decimal('amount', 8, 2);
+            $table->string('month');
+            $table->string('year');
             $table->string('description')->nullable();
             $table->date('payment_date');
             $table->timestamps();

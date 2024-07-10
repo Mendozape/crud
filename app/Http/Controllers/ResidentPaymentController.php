@@ -15,16 +15,17 @@ class ResidentPaymentController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'resident_id' => 'required|exists:residents,id',
             'fee_id' => 'required|exists:fees,id',
             'amount' => 'required|numeric',
-            'description' => 'nullable|string',
+            'month' => 'required',
+            'year' => 'required',
+            'description' => 'nullable|string|max:255',
             'payment_date' => 'required|date',
         ]);
-
-        $residentPayment = ResidentPayment::create($validated);
-        return response()->json($residentPayment, 201);
+        $payment = ResidentPayment::create($request->all());
+        return response()->json($payment, 201);
     }
 
     public function show($id)

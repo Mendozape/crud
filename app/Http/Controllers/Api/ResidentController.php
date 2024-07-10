@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException; // Import ValidationException
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 class ResidentController extends Controller
 {
     /**

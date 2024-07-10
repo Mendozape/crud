@@ -42,8 +42,6 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('/fees', FeeController::class);
     Route::apiResource('/resident_payments', ResidentPaymentController::class);
 });
-    
-
 
 //Route::middleware('auth:sanctum')->get('/users', [ApiController::class,'users']);
 
