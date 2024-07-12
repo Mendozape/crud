@@ -15,6 +15,8 @@ class ResidentPayment extends Model
         'amount',
         'description',
         'payment_date',
+        'month',
+        'year',
     ];
 
     public function resident()
