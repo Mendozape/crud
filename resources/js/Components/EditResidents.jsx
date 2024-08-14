@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 const endpoint = 'http://localhost:8000/api/residents/';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 19|QrjZXV4Drh50B7Ql0WRhv27IIHy4l6vZHn2Oo71Zdf859653',
+        'Authorization': 'Bearer 10|EJMHhmbcokzK3qxHHjOwypwB1r0RqXwv264VnP4r3068ecb9',
         'Accept': 'application/json',
         'Content-Type': 'multipart/form-data'
     },
