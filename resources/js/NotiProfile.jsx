@@ -21,7 +21,7 @@ export default function NotiProfile() {
                 const response = await axios.get(`/api/admin/notis/${notiId}`, {
                     method: 'GET', 
                     headers: {
-                        'Authorization': 'Bearer 7|ug88Mtx7ClbpdxQUayEY8HY0z8sw6mGsWZeQAQNPe275265b',
+                        'Authorization': 'Bearer 1|2dROElpPtCeRHJafIp7Kb1CqKa5i3lQaf8uDW4NK49262ad6',
                         'Accept': 'application/json',
                     },
                 });

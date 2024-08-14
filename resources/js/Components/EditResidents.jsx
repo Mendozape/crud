@@ -4,16 +4,20 @@ import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents/';
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 const authHeaders = {
     headers: {
         'Authorization': 'Bearer 10|EJMHhmbcokzK3qxHHjOwypwB1r0RqXwv264VnP4r3068ecb9',
         'Accept': 'application/json',
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': 'multipart/form-data',
+        'X-CSRF-TOKEN': csrfToken
     },
 };
 
 export default function EditEmployee() {
     const [photo, setPhoto] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
+    const [isLoading, setIsLoading] = useState(false); // New state for loading status
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -41,9 +45,11 @@ export default function EditEmployee() {
         formData.append('street_number', street_number);
         formData.append('community', community);
         formData.append('comments', comments || null);
+        formData.append('_method', 'PUT'); // Add this line
+        // Log formData contents
         try {
-            const response = await axios.put(`${endpoint}${id}`, formData, authHeaders);
-            console.log('Responseb:'+response);
+            const response = await axios.post(`${endpoint}${id}`, formData, authHeaders);
+            console.log('Response data:', response.data);
             if (response.status === 200) {
                 setSuccessMessage('Resident updated successfully.');
                 setErrorMessage('');
@@ -89,7 +95,14 @@ export default function EditEmployee() {
     }, [id, setErrorMessage]);
 
     const handleFileChange = (e) => {
-        setPhoto(e.target.files[0]);
+        const file = e.target.files[0];
+        setIsLoading(true); // Set loading to true
+        setPhoto(file);
+        setPhotoPreview(null); // Clear the previous photo preview
+        setTimeout(() => {
+            setPhotoPreview(URL.createObjectURL(file));
+            setIsLoading(false); // Set loading to false after 2 seconds
+        }, 500);
     };
 
     return (
@@ -104,21 +117,41 @@ export default function EditEmployee() {
                     )}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Photo</label>
+                    <label className='form-label'>Photo</label><br />
                     <input 
                         onChange={handleFileChange}
                         type='file'
-                        className={`form-control ${errors.photo ? 'is-invalid' : ''}`}
+                        id='fileInput'
+                        className={`form-control d-none ${errors.photo ? 'is-invalid' : ''}`} // Hide default input
                     />
+                    <label htmlFor='fileInput' className='btn btn-primary'>Select Image</label> {/* Custom label */}
                     {errors.photo && <div className="invalid-feedback">{errors.photo[0]}</div>}
-                    {photo && (
+                    {isLoading ? (
                         <div className='mt-3'>
                             <img 
-                                src={`http://localhost:8000/storage/${photo}`} 
-                                alt="Current photo" 
-                                style={{ width: '50px' }}
+                                src={`http://localhost:8000/storage/Loading_icon.gif`}
+                                alt="Loading"
+                                style={{ width: '50px', borderRadius: '50%' }}
                             />
                         </div>
+                    ) : photoPreview ? (
+                        <div className='mt-3'>
+                            <img 
+                                src={photoPreview} 
+                                alt="New photo" 
+                                style={{ width: '50px', borderRadius: '50%' }}
+                            />
+                        </div>
+                    ) : (
+                        photo && (
+                            <div className='mt-3'>
+                                <img 
+                                    src={`http://localhost:8000/storage/${photo}`} 
+                                    alt="Current photo" 
+                                    style={{ width: '50px', borderRadius: '50%' }}
+                                />
+                            </div>
+                        )
                     )}
                 </div>
                 <div className='mb-3'>

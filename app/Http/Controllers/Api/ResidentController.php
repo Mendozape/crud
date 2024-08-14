@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException; // Import ValidationException
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 class ResidentController extends Controller
 {
     /**
@@ -26,20 +25,13 @@ class ResidentController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:residents,email',
-            'street' => 'required|string|max:255',
-            'street_number' => 'required|string|max:10',
-            'community' => 'required|string|max:255',
-            'comments' => 'nullable|string|max:1000',
-        ]);
         try {
             $input = $request->all();
             // Handle the photo upload
             if ($request->hasFile('photo')) {
+                $request->validate([
+                    'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+                ]);
                 $photo= Carbon::now()->timestamp.'.'.$request->photo->extension();
                 $request->photo->storeAs('/public/images', $photo);
                 $input['photo'] = $photo;
@@ -74,7 +66,7 @@ class ResidentController extends Controller
     public function update(Request $request, Resident $resident)
     {
         try {
-            $validatedData = $request->validate([
+            $request->validate([
                 'name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
@@ -82,14 +74,15 @@ class ResidentController extends Controller
                 'street_number' => 'required|string|max:255',
                 'community' => 'required|string|max:255',
                 'comments' => 'nullable|string|max:255',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
             if ($request->hasFile('photo')) {
+                $request->validate([
+                    'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+                ]);
                 $photo = Carbon::now()->timestamp . '.' . $request->file('photo')->extension();
                 $request->file('photo')->storeAs('/public/images', $photo);
                 $resident->photo = $photo;
             }
-            $resident->photo = $request->photo;
             $resident->name = $request->name;
             $resident->last_name = $request->last_name;
             $resident->email = $request->email;
@@ -128,6 +121,13 @@ class ResidentController extends Controller
     {
         try {
             $resident = Resident::findOrFail($id);
+            // Delete the resident's image from storage
+            if ($resident->photo) {
+                $imagePath = storage_path('app/public/images/' . $resident->photo);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
             $resident->delete();
             return response()->json(['message' => 'Resident deleted successfully.'], 200);
         } catch (ModelNotFoundException $e) {
@@ -139,12 +139,6 @@ class ResidentController extends Controller
 
     public function redire()
     {
-        //return redirect('http://localhost:8000/frontend/src/components/index.blade.php');
-        //return view('../../../frontend/src/index');
         return view('residents.index ');
-        //$Residents = Resident::all();
-        //return view('residents.index')->with('data',$Residents);
-        //return redirect()->away(env('/frontend/src/components/index.blade.php'));
-        //return redirect('http://localhost:8000/frontend/src/components/index');
     }
 }

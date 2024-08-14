@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ShowResidents from './ShowResidents';
 import CreateResidents from './CreateResidents';
 import EditResidents from './EditResidents';
+import CreatePayments from './CreatePayments';
 import { createRoot } from 'react-dom/client';
 import { MessageProvider } from './MessageContext';
 
@@ -15,6 +16,7 @@ export default function ShowEmployees() {
           <Route path='/resident' element={ <ShowResidents/>} />
           <Route path='/create' element={ <CreateResidents/>} />
           <Route path='/edit/:id' element={ <EditResidents/>} />
+          <Route path='/payment/:id' element={ <CreatePayments/>} />
         </Routes>
       </BrowserRouter>
     </div>

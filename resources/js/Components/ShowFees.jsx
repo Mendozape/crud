@@ -4,131 +4,97 @@ import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const endpoint = 'http://localhost:8000/api/residents';
+const endpoint = 'http://localhost:8000/api/fees';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 10|EJMHhmbcokzK3qxHHjOwypwB1r0RqXwv264VnP4r3068ecb9',
+        'Authorization': 'Bearer 1|2dROElpPtCeRHJafIp7Kb1CqKa5i3lQaf8uDW4NK49262ad6',
         'Accept': 'application/json',
     },
 };
 
-const ResidentsTable = () => {
-    const [residents, setResidents] = useState([]);
+const FeesTable = () => {
+    const [fees, setFees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [filteredResidents, setFilteredResidents] = useState([]);
-    const [showModal, setShowModal] = useState(false);
-    const [residentToDelete, setResidentToDelete] = useState(null);
+    const [filteredFees, setFilteredFees] = useState([]);
+    const [showModal, setShowModal] = useState(false); 
+    const [feeToDelete, setFeeToDelete] = useState(null); 
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
-
-    const fetchResidents = async () => {
+    const fetchFees = async () => {
         try {
             const response = await axios.get(endpoint, authHeaders);
-            setResidents(response.data);
-            setFilteredResidents(response.data);
+            setFees(response.data);
+            setFilteredFees(response.data);
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching residents:', error);
+            console.error('Error fetching fees:', error);
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchResidents();
+        fetchFees();
     }, []);
 
     useEffect(() => {
-        const result = residents.filter(resident => {
-            return resident.name.toLowerCase().includes(search.toLowerCase());
+        const result = fees.filter(fee => {
+            return fee.name.toLowerCase().includes(search.toLowerCase());
         });
-        setFilteredResidents(result);
-    }, [search, residents]);
+        setFilteredFees(result);
+    }, [search, fees]);
 
-    const deleteResident = async (id) => {
+    const deleteFee = async (id) => {
         try {
             const response = await axios.delete(`${endpoint}/${id}`, authHeaders);
             if (response.status === 200) {
-                setSuccessMessage('Resident deleted successfully.');
-                fetchResidents();
+                setSuccessMessage('Fee deleted successfully.');
+                fetchFees();
             } else {
-                setErrorMessage('Failed to delete resident.');
+                setErrorMessage('Failed to delete fee.');
             }
             setShowModal(false);
         } catch (error) {
-            console.error('Error deleting resident:', error);
-            setErrorMessage('Failed to delete resident.');
+            console.error('Error deleting fee:', error);
+            setErrorMessage('Failed to delete fee.');
             setShowModal(false);
         }
     };
 
-    const editResident = (id) => {
+    const editFee = (id) => {
         navigate(`/edit/${id}`);
     };
 
-    const createResident = () => {
+    const createFee = () => {
         navigate('/create');
     };
-    const createPayment = (id) => {
-        navigate(`/payment/${id}`);
-    };
-
-
     const toggleModal = () => {
         setShowModal(!showModal);
     };
 
     const confirmDelete = (id) => {
-        setResidentToDelete(id);
+        setFeeToDelete(id);
         toggleModal();
     };
 
     const handleDelete = () => {
-        deleteResident(residentToDelete);
+        deleteFee(feeToDelete);
     };
 
     const columns = [
-        {
-            name: 'Photo',
-            selector: row => {
-                const photoUrl = (row.photo && row.photo !== 'undefined' && row.photo !== 'null' && row.photo !== '') ? `http://127.0.0.1:8000/storage/${row.photo}` : `http://127.0.0.1:8000/storage/no_image.jpg`;
-                return <img src={photoUrl} style={{ width: '50px', borderRadius: '50%' }} />;
-            },
-            sortable: false,
-        },
         {
             name: 'Name',
             selector: row => row.name,
             sortable: true,
         },
         {
-            name: 'Last Name',
-            selector: row => row.last_name,
+            name: 'Amount',
+            selector: row => row.amount,
             sortable: true,
         },
         {
-            name: 'Email',
-            selector: row => row.email,
-            sortable: true,
-        },
-        {
-            name: 'Street',
-            selector: row => row.street,
-            sortable: true,
-        },
-        {
-            name: 'Street Number',
-            selector: row => row.street_number,
-            sortable: true,
-        },
-        {
-            name: 'Community',
-            selector: row => row.community,
-            sortable: true,
-        },
-        {
-            name: 'Comments',
-            selector: row => row.comments,
+            name: 'Description',
+            selector: row => row.description,
             sortable: true,
         },
         {
@@ -137,19 +103,13 @@ const ResidentsTable = () => {
                 <div>
                     <button
                         className="btn btn-info btn-sm"
-                        onClick={() => createPayment(row.id)}
-                    >
-                        Pays
-                    </button>
-                    <button
-                        className="btn btn-info btn-sm"
-                        onClick={() => editResident(row.id)}
+                        onClick={() => editFee(row.id)}
                     >
                         Edit
                     </button>
                     <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => confirmDelete(row.id)}
+                        onClick={() => confirmDelete(row.id)} 
                         style={{ marginLeft: '10px' }}
                     >
                         Delete
@@ -184,7 +144,7 @@ const ResidentsTable = () => {
             <div className="col-md-6">
                 <button
                     className='btn btn-success btn-sm mt-2 mb-2 text-white'
-                    onClick={createResident}
+                    onClick={createFee}
                 >
                     Create
                 </button>
@@ -214,13 +174,13 @@ const ResidentsTable = () => {
 
             <div className="col-md-12 mt-4">
                 <DataTable
-                    title="Residents List"
+                    title="Fees List"
                     columns={columns}
-                    data={filteredResidents}
+                    data={filteredFees}
                     progressPending={loading}
                     pagination
-                    paginationPerPage={10}
-                    paginationRowsPerPageOptions={[5, 10, 15, 20]}
+                    paginationPerPage={10}  
+                    paginationRowsPerPageOptions={[5, 10, 15, 20]} 
                     selectableRows
                     selectableRowsHighlight
                     highlightOnHover
@@ -238,7 +198,7 @@ const ResidentsTable = () => {
                             </button>
                         </div>
                         <div className="modal-body">
-                            Are you sure you want to delete this resident?
+                            Are you sure you want to delete this fee?
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancel</button>
@@ -251,4 +211,4 @@ const ResidentsTable = () => {
     );
 };
 
-export default ResidentsTable;
+export default FeesTable;

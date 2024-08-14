@@ -14,6 +14,7 @@ const authHeaders = {
 
 export default function CreateResidents() {
     const [photo, setPhoto] = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -45,7 +46,7 @@ export default function CreateResidents() {
             formData.append('comments', comments);
 
             try {
-                await axios.post(endpoint, formData,authHeaders);
+                await axios.post(endpoint, formData, authHeaders);
                 setSuccessMessage('Resident created successfully.');
                 setErrorMessage('');
                 navigate('/resident');
@@ -55,6 +56,15 @@ export default function CreateResidents() {
             }
         }
         setFormValidated(true);
+    };
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setPhoto(file);
+        setPhotoPreview(URL.createObjectURL(file));
+    };
+    const handleRemoveImage = () => {
+        setPhoto(null);
+        setPhotoPreview(null);
     };
 
     return (
@@ -69,16 +79,39 @@ export default function CreateResidents() {
                     )}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Photo</label>
+                    <label className='form-label'>Photo</label><br />
                     <input
-                        onChange={(e) => setPhoto(e.target.files[0])}
+                        onChange={handleFileChange}
                         type='file'
-                        className='form-control'
-                        required
+                        id='fileInput'
+                        className='form-control d-none'
                     />
                     <div className="invalid-feedback">
                         Please provide a photo.
                     </div>
+                    <label htmlFor='fileInput' className='btn btn-primary'>Select Image</label> <br />
+                    {photoPreview && (
+                        <div className='position-relative mt-3' style={{ display: 'inline-block' }}>
+                            <img
+                                src={photoPreview}
+                                alt="New photo"
+                                style={{ width: '100px', borderRadius: '50%' }}
+                            />
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-danger position-absolute top-0 end-0 border-0 bg-transparent text-dark"
+                                style={{
+                                    transform: 'translate(50%, -50%)',
+                                    borderRadius: '50%',
+                                    fontSize: '1.5rem', // Adjust the font size to make the "x" larger
+                                    color: '#000' // Set the color to black
+                                }}
+                                onClick={handleRemoveImage}
+                            >
+                                &times;
+                            </button>
+                        </div>
+                    )}
                 </div>
                 <div className='mb-3'>
                     <label className='form-label'>Name</label>
@@ -165,11 +198,7 @@ export default function CreateResidents() {
                         onChange={(e) => setComments(e.target.value)}
                         type='text'
                         className='form-control'
-                        required
                     />
-                    <div className="invalid-feedback">
-                        Please provide comments.
-                    </div>
                 </div>
                 <button type='submit' className='btn btn-success'>Save</button>
             </form>

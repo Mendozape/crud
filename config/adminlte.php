@@ -354,7 +354,12 @@ return [
             'icon' => 'fas fa-fw fa-user',
         ],
         [
-            'text' => 'REACT RESIDENTS',
+            'text' => 'FEES',
+            'url'  => 'fees/',
+            'icon' => 'fas fa-fw fa-user',
+        ],
+        [
+            'text' => 'RESIDENTS',
             'url'  => 'resident/',
             'icon' => 'fas fa-fw fa-user',
         ],
