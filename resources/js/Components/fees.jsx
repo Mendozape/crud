@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { createRoot } from 'react-dom/client';
 //se importa el componente
 import ShowFees from './ShowFees';
 import CreateFees from './CreateFees';
 import EditFees from './EditFees';
-import { createRoot } from 'react-dom/client';
+
 import { MessageProvider } from './MessageContext';
 
 

@@ -10,9 +10,11 @@ class CreateFeesTable extends Migration
     {
         Schema::create('fees', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->unique();
             $table->decimal('amount', 8, 2);
             $table->text('description')->nullable();
+            $table->boolean('active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

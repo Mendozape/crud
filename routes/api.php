@@ -8,7 +8,7 @@ use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ResidentController;
-use App\Http\Controllers\FeeController;
+use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\ResidentPaymentController;
 
 
@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::post('/login',[ApiController::class,'login']);
-
+//Route::get('/test-fees', [FeeController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('/articles',ArticleController::class);
     Route::get('/users', [ApiController::class,'users']);

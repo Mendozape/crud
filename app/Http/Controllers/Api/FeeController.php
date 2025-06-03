@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Api;
+use App\Http\Controllers\Controller;
 use App\Models\Fee;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException; // Import ValidationException
@@ -90,6 +90,6 @@ class FeeController extends Controller
     }
     public function redire2()
     {
-        return view('fees.index ');
+        return view('fees.index');
     }
 }

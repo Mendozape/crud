@@ -9,7 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Api\ResidentController;
-use App\Http\Controllers\FeeController;
+use App\Http\Controllers\Api\FeeController;
 
 
 /*

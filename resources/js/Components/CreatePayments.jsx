@@ -19,7 +19,7 @@ const PaymentForm = () => {
 
     const authHeaders = {
         headers: {
-            'Authorization': 'Bearer 1|2dROElpPtCeRHJafIp7Kb1CqKa5i3lQaf8uDW4NK49262ad6',
+            'Authorization': 'Bearer 14|HKapR03HomrQlNsbYs1FALL7tw2xPK2IBgguPruLa3f529aa',
             'Accept': 'application/json',
         },
     };
@@ -41,6 +41,7 @@ const PaymentForm = () => {
         const fetchFees = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/api/fees', authHeaders);
+                console.log('Fees from API:', response.data); 
                 setFees(response.data);
             } catch (error) {
                 console.error('Error fetching fees:', error);

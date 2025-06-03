@@ -9,15 +9,25 @@ class CreateResidentPaymentsTable extends Migration
     public function up()
     {
         Schema::create('resident_payments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('resident_id')->constrained()->onDelete('cascade');
-            $table->foreignId('fee_id')->constrained('fees')->onDelete('cascade'); // Add fee_id foreign key
-            $table->decimal('amount', 8, 2);
-            $table->string('month');
-            $table->string('year');
-            $table->string('description')->nullable();
-            $table->date('payment_date');
-            $table->timestamps();
+            $table->id(); // Auto-incrementing primary key
+
+            // Foreign key to residents table, deletes payments if resident is deleted
+            $table->foreignId('resident_id')
+                  ->constrained()
+                  ->onDelete('cascade');
+
+            // Foreign key to fees table, deletes payments if fee is deleted
+            $table->foreignId('fee_id')
+                  ->constrained('fees')
+                  ->onDelete('cascade');
+
+            $table->decimal('amount', 8, 2);     // Payment amount
+            $table->string('month');             // Month of the payment (e.g., "January")
+            $table->string('year');              // Year of the payment (e.g., "2025")
+            $table->string('description')->nullable(); // Optional description
+            $table->date('payment_date');        // Date the payment was made
+
+            $table->timestamps();                // created_at and updated_at
         });
     }
 
