@@ -5,13 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const endpoint = 'http://localhost:8000/api/fees';
-
-// Function to get auth headers dynamically from localStorage
-const getAuthHeaders = () => {
+// Function to generate authentication headers dynamically
+const authHeaders = () => {
+    // Retrieve the token from localStorage (saved after login)
     const token = localStorage.getItem('api_token');
+    // Return the headers object needed for authenticated API requests
     return {
         headers: {
+            // Set the Authorization header using the token, if it exists
             Authorization: token ? `Bearer ${token}` : '',
+            // Specify that we expect JSON responses from the server
             Accept: 'application/json',
         }
     };
@@ -30,7 +33,7 @@ const FeesTable = () => {
     // Fetch fees from API with dynamic auth headers
     const fetchFees = async () => {
         try {
-            const response = await axios.get(endpoint, getAuthHeaders());
+            const response = await axios.get(endpoint, authHeaders());
             setFees(response.data);
             setFilteredFees(response.data);
             setLoading(false);
@@ -53,7 +56,7 @@ const FeesTable = () => {
     // Delete fee with dynamic auth headers
     const deleteFee = async (id) => {
         try {
-            const response = await axios.delete(`${endpoint}/${id}`, getAuthHeaders());
+            const response = await axios.delete(`${endpoint}/${id}`, authHeaders());
             if (response.status === 200) {
                 setSuccessMessage('Fee deleted successfully.');
                 fetchFees();

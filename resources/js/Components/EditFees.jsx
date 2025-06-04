@@ -5,13 +5,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/fees/';
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-const authHeaders = {
-    headers: {
-        'Authorization': 'Bearer 2|hSXdgzbH39B0U1vuOjgEFh4A68mRNT6ZL5I23WSP49c98648',
-        'Accept': 'application/json',
-        'Content-Type': 'multipart/form-data',
-        'X-CSRF-TOKEN': csrfToken
-    },
+const authHeaders = () => {
+    // Retrieve the token from localStorage (saved after login)
+    const token = localStorage.getItem('api_token');
+    // Return the headers object needed for authenticated API requests
+    return {
+        headers: {
+            // Set the Authorization header using the token, if it exists
+            Authorization: token ? `Bearer ${token}` : '',
+            // Specify that we expect JSON responses from the server
+            Accept: 'application/json',
+        }
+    };
 };
 
 export default function EditFees() {
@@ -33,7 +38,7 @@ export default function EditFees() {
         formData.append('description', description);
         formData.append('_method', 'PUT'); // Add this line
         try {
-            const response = await axios.post(`${endpoint}${id}`, formData, authHeaders);
+            const response = await axios.post(`${endpoint}${id}`, formData, authHeaders());
             console.log('Response data:', response.data);
             if (response.status === 200) {
                 setSuccessMessage('Fee updated successfully.');
@@ -62,7 +67,7 @@ export default function EditFees() {
     useEffect(() => {
         const getFeeById = async () => {
             try {
-                const response = await axios.get(`${endpoint}${id}`, authHeaders);
+                const response = await axios.get(`${endpoint}${id}`, authHeaders());
                 setName(response.data.name);
                 setAmount(response.data.amount);
                 setDescription(response.data.description);

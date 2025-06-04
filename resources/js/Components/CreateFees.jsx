@@ -4,12 +4,18 @@ import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/fees';
-const authHeaders = {
-    headers: {
-        'Authorization': 'Bearer 2|hSXdgzbH39B0U1vuOjgEFh4A68mRNT6ZL5I23WSP49c98648',
-        'Accept': 'application/json',
-        'Content-Type': 'multipart/form-data'
-    },
+const authHeaders = () => {
+    // Retrieve the token from localStorage (saved after login)
+    const token = localStorage.getItem('api_token');
+    // Return the headers object needed for authenticated API requests
+    return {
+        headers: {
+            // Set the Authorization header using the token, if it exists
+            Authorization: token ? `Bearer ${token}` : '',
+            // Specify that we expect JSON responses from the server
+            Accept: 'application/json',
+        }
+    };
 };
 
 export default function CreateResidents() {
@@ -34,7 +40,7 @@ export default function CreateResidents() {
             formData.append('amount', amount);
             formData.append('description', description);
             try {
-                await axios.post(endpoint, formData, authHeaders);
+                await axios.post(endpoint, formData, authHeaders());
                 setSuccessMessage('Fee created successfully.');
                 setErrorMessage('');
                 navigate('/fees');

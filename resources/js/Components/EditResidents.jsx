@@ -5,13 +5,23 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents/';
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-const authHeaders = {
-    headers: {
-        'Authorization': 'Bearer 2|hSXdgzbH39B0U1vuOjgEFh4A68mRNT6ZL5I23WSP49c98648',
-        'Accept': 'application/json',
-        'Content-Type': 'multipart/form-data',
-        'X-CSRF-TOKEN': csrfToken
-    },
+
+// Function to generate authentication headers dynamically
+const authHeaders = () => {
+    // Retrieve the API token stored in localStorage (usually set after login)
+    const token = localStorage.getItem('api_token');
+    return {
+        headers: {
+            // Include the Authorization header if the token exists
+            Authorization: token ? `Bearer ${token}` : '',
+            // Indicate the expected response format
+            Accept: 'application/json',
+            // Set the content type for sending multipart/form-data (e.g., for file uploads)
+            'Content-Type': 'multipart/form-data',
+            // Include CSRF token for added security (if available in the DOM)
+            'X-CSRF-TOKEN': csrfToken || '', // Fallback to empty string if csrfToken is undefined
+        }
+    };
 };
 
 export default function EditEmployee() {
@@ -48,7 +58,7 @@ export default function EditEmployee() {
         formData.append('_method', 'PUT'); // Add this line
         // Log formData contents
         try {
-            const response = await axios.post(`${endpoint}${id}`, formData, authHeaders);
+            const response = await axios.post(`${endpoint}${id}`, formData, authHeaders());
             console.log('Response data:', response.data);
             if (response.status === 200) {
                 setSuccessMessage('Resident updated successfully.');
@@ -77,7 +87,7 @@ export default function EditEmployee() {
     useEffect(() => {
         const getEmployeeById = async () => {
             try {
-                const response = await axios.get(`${endpoint}${id}`, authHeaders);
+                const response = await axios.get(`${endpoint}${id}`, authHeaders());
                 setPhoto(response.data.photo);
                 setName(response.data.name);
                 setLastName(response.data.last_name);

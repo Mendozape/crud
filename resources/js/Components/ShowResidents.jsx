@@ -5,11 +5,19 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const endpoint = 'http://localhost:8000/api/residents';
-const authHeaders = {
-    headers: {
-        'Authorization': 'Bearer 2|hSXdgzbH39B0U1vuOjgEFh4A68mRNT6ZL5I23WSP49c98648',
-        'Accept': 'application/json',
-    },
+// Function to get auth headers dynamically from localStorage
+const authHeaders = () => {
+    // Retrieve the token from localStorage (saved after login)
+    const token = localStorage.getItem('api_token');
+    // Return the headers object needed for authenticated API requests
+    return {
+        headers: {
+            // Set the Authorization header using the token, if it exists
+            Authorization: token ? `Bearer ${token}` : '',
+            // Specify that we expect JSON responses from the server
+            Accept: 'application/json',
+        }
+    };
 };
 
 const ResidentsTable = () => {
@@ -24,7 +32,7 @@ const ResidentsTable = () => {
 
     const fetchResidents = async () => {
         try {
-            const response = await axios.get(endpoint, authHeaders);
+            const response = await axios.get(endpoint, authHeaders());
             setResidents(response.data);
             setFilteredResidents(response.data);
             setLoading(false);
@@ -47,7 +55,7 @@ const ResidentsTable = () => {
 
     const deleteResident = async (id) => {
         try {
-            const response = await axios.delete(`${endpoint}/${id}`, authHeaders);
+            const response = await axios.delete(`${endpoint}/${id}`, authHeaders());
             if (response.status === 200) {
                 setSuccessMessage('Resident deleted successfully.');
                 fetchResidents();

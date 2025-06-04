@@ -349,17 +349,17 @@ return [
             ],
         ],
         [
-            'text' => 'CRUD CLIENTS',
+            'text' => 'CRUD',
             'url'  => 'client/',
             'icon' => 'fas fa-fw fa-user',
         ],
         [
-            'text' => 'FEES',
+            'text' => 'PAGOS',
             'url'  => 'fees/',
             'icon' => 'fas fa-fw fa-user',
         ],
         [
-            'text' => 'RESIDENTS',
+            'text' => 'RESIDENTES',
             'url'  => 'resident/',
             'icon' => 'fas fa-fw fa-user',
         ],
