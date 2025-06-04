@@ -7,7 +7,7 @@ import axios from 'axios';
 const endpoint = 'http://localhost:8000/api/fees';
 const authHeaders = {
     headers: {
-        'Authorization': 'Bearer 10|EJMHhmbcokzK3qxHHjOwypwB1r0RqXwv264VnP4r3068ecb9',
+        'Authorization': 'Bearer 2|hSXdgzbH39B0U1vuOjgEFh4A68mRNT6ZL5I23WSP49c98648',
         'Accept': 'application/json',
     },
 };

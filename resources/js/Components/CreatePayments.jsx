@@ -19,7 +19,7 @@ const PaymentForm = () => {
 
     const authHeaders = {
         headers: {
-            'Authorization': 'Bearer 14|HKapR03HomrQlNsbYs1FALL7tw2xPK2IBgguPruLa3f529aa',
+            'Authorization': 'Bearer 2|hSXdgzbH39B0U1vuOjgEFh4A68mRNT6ZL5I23WSP49c98648',
             'Accept': 'application/json',
         },
     };
