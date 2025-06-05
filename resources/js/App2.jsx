@@ -35,8 +35,7 @@ const App = () => {
           if (!reloadAttempted) {
             setReloadAttempted(true);
             // Recargar la página para intentar obtener nuevo token CSRF
-            //window.location.reload();
-            window.location.href = 'http://localhost:8000/
+            window.location.reload();
           }
         } else {
           setAuthenticated(false);
