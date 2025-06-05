@@ -6,16 +6,16 @@ use Illuminate\Auth\Events\Login;
 use App\Models\User; 
 
 
-class GenerateTokenAfterLogin
+/*class GenerateTokenAfterLogin
 {
     public function handle(Login $event): void
     {
-        //$user = $event->user;
+        $user = $event->user;
         // Revoca tokens anteriores (opcional)
-        //$user->tokens()->delete();
+        $user->tokens()->delete();
         // Crea un nuevo token
-        //$token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
         // Guarda el token en la sesión
-        //session(['api_token' => $token]);
+        session(['api_token' => $token]);
     }
-}
+}*/
