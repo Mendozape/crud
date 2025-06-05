@@ -5,11 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const endpoint = 'http://localhost:8000/api/fees';
-const authHeaders = {
-    headers: {
-        'Authorization': 'Bearer 2|hSXdgzbH39B0U1vuOjgEFh4A68mRNT6ZL5I23WSP49c98648',
-        'Accept': 'application/json',
-    },
+
+// Function to get auth headers dynamically from localStorage
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('api_token');
+    return {
+        headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+            Accept: 'application/json',
+        }
+    };
 };
 
 const FeesTable = () => {
@@ -17,19 +22,22 @@ const FeesTable = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filteredFees, setFilteredFees] = useState([]);
-    const [showModal, setShowModal] = useState(false); 
-    const [feeToDelete, setFeeToDelete] = useState(null); 
+    const [showModal, setShowModal] = useState(false);
+    const [feeToDelete, setFeeToDelete] = useState(null);
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
+
+    // Fetch fees from API with dynamic auth headers
     const fetchFees = async () => {
         try {
-            const response = await axios.get(endpoint, authHeaders);
+            const response = await axios.get(endpoint, getAuthHeaders());
             setFees(response.data);
             setFilteredFees(response.data);
             setLoading(false);
         } catch (error) {
             console.error('Error fetching fees:', error);
             setLoading(false);
+            setErrorMessage('Failed to fetch fees. Please check your authentication.');
         }
     };
 
@@ -38,15 +46,14 @@ const FeesTable = () => {
     }, []);
 
     useEffect(() => {
-        const result = fees.filter(fee => {
-            return fee.name.toLowerCase().includes(search.toLowerCase());
-        });
+        const result = fees.filter(fee => fee.name.toLowerCase().includes(search.toLowerCase()));
         setFilteredFees(result);
     }, [search, fees]);
 
+    // Delete fee with dynamic auth headers
     const deleteFee = async (id) => {
         try {
-            const response = await axios.delete(`${endpoint}/${id}`, authHeaders);
+            const response = await axios.delete(`${endpoint}/${id}`, getAuthHeaders());
             if (response.status === 200) {
                 setSuccessMessage('Fee deleted successfully.');
                 fetchFees();
@@ -68,6 +75,7 @@ const FeesTable = () => {
     const createFee = () => {
         navigate('/create');
     };
+
     const toggleModal = () => {
         setShowModal(!showModal);
     };
@@ -109,7 +117,7 @@ const FeesTable = () => {
                     </button>
                     <button
                         className="btn btn-danger btn-sm"
-                        onClick={() => confirmDelete(row.id)} 
+                        onClick={() => confirmDelete(row.id)}
                         style={{ marginLeft: '10px' }}
                     >
                         Delete
@@ -119,23 +127,19 @@ const FeesTable = () => {
         },
     ];
 
-    // UseEffect to clear success message after 10 seconds
+    // Clear success message after 5 seconds
     useEffect(() => {
         if (successMessage) {
-            const timer = setTimeout(() => {
-                setSuccessMessage(null);
-            }, 5000);
-            return () => clearTimeout(timer); // Cleanup the timer on unmount
+            const timer = setTimeout(() => setSuccessMessage(null), 5000);
+            return () => clearTimeout(timer);
         }
     }, [successMessage]);
 
-    // UseEffect to clear error message after 10 seconds
+    // Clear error message after 5 seconds
     useEffect(() => {
         if (errorMessage) {
-            const timer = setTimeout(() => {
-                setErrorMessage(null);
-            }, 5000);
-            return () => clearTimeout(timer); // Cleanup the timer on unmount
+            const timer = setTimeout(() => setErrorMessage(null), 5000);
+            return () => clearTimeout(timer);
         }
     }, [errorMessage]);
 
@@ -179,8 +183,8 @@ const FeesTable = () => {
                     data={filteredFees}
                     progressPending={loading}
                     pagination
-                    paginationPerPage={10}  
-                    paginationRowsPerPageOptions={[5, 10, 15, 20]} 
+                    paginationPerPage={10}
+                    paginationRowsPerPageOptions={[5, 10, 15, 20]}
                     selectableRows
                     selectableRowsHighlight
                     highlightOnHover

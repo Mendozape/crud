@@ -20,7 +20,7 @@ class ApiController extends Controller
         //return response()->json($headers);
         
     }
-    public function login(Request $request){
+    /*public function login(Request $request){
         $response = ["status"=>0, "msgx"=>""];
         $data=json_decode($request->getContent());
         $user=User::where('email',$data->email)->first();
@@ -36,5 +36,25 @@ class ApiController extends Controller
             $response = ["msgx"=>"User didn find"];
         }
         return response()->json($response);
+    }*/
+    public function login(Request $request)
+    {
+        $data = $request->json()->all(); // lee el JSON del cuerpo de la petición
+
+        $user = User::where('email', $data['email'])->first();
+        if (!$user || !Hash::check($data['password'], $user->password)) {
+            return response()->json([
+                'status' => 0,
+                'message' => 'Invalid credentials'
+            ], 401);
+        }
+        $token = $user->createToken('example')->plainTextToken;
+        return response()->json([
+            'status' => 1,
+            'message' => 'Login successful',
+            'token' => $token,
+            'user' => $user
+        ]);
     }
+
 }
