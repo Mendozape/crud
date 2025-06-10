@@ -23,12 +23,11 @@ const router = createBrowserRouter([
 const App = () => {
   useEffect(() => {
     const storedToken = localStorage.getItem('api_token');
-    
     if (!storedToken) {
       // No token found, perform login to get it
       axios.post('http://localhost:8000/api/login', {
-        email: 'admin@gmail.com',   
-        password: '12345678'       
+        email: 'admin@gmail.com',
+        password: '12345678'
       })
       .then(response => {
         const token = response.data.token;
@@ -45,7 +44,7 @@ const App = () => {
     } else {
       console.log('Token already exists in localStorage:', storedToken);
     }
-  }, []);
+  }, []); // <-- Aquí están los corchetes de dependencias vacíos, para que se ejecute solo una vez
 
   return (
     <div>

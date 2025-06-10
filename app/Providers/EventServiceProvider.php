@@ -7,7 +7,8 @@ use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use App\Events\EmployeesUpdated;
 use App\Listeners\SendEmployeesNotification;
 use App\Listeners\SendNewUserNotification;
-use App\Listeners\CreateApiTokenAfterLogin;
+use App\Listeners\GenerateTokenAfterLogin;
+use Illuminate\Auth\Events\Login;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -28,6 +29,9 @@ class EventServiceProvider extends ServiceProvider
         EmployeesUpdated::class => [
             SendEmployeesNotification::class,
         ],
+        /*Login::class => [
+            GenerateTokenAfterLogin::class,
+        ],*/
     ];
 
     /**

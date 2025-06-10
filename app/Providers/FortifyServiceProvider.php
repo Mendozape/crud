@@ -42,7 +42,7 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
         // 🔑 PERSONAlIZE LOGIN REQUEST
-        Fortify::loginResponseUsing(function (Request $request) {
+        /*Fortify::loginResponseUsing(function (Request $request) {
             $token = session('api_token'); // Get it from listener
 
             return response()->json([
@@ -50,7 +50,7 @@ class FortifyServiceProvider extends ServiceProvider
                 'token' => $token,
                 'user' => $request->user(),
             ]);
-        });
+        });*/
         
     }
 }
