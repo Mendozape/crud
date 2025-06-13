@@ -17,24 +17,17 @@ const PaymentForm = () => {
     const [formValidated, setFormValidated] = useState(false);
     const navigate = useNavigate();
 
-    const authHeaders = () => {
-        // Retrieve the token from localStorage (saved after login)
-        const token = localStorage.getItem('api_token');
-        // Return the headers object needed for authenticated API requests
-        return {
-            headers: {
-                // Set the Authorization header using the token, if it exists
-                Authorization: token ? `Bearer ${token}` : '',
-                // Specify that we expect JSON responses from the server
-                Accept: 'application/json',
-            }
-        };
+    const axiosOptions = {
+        withCredentials: true,
+        headers: {
+            Accept: 'application/json',
+        },
     };
 
     useEffect(() => {
         const fetchResidentName = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/api/residents/${residentId}`, authHeaders());
+                const response = await axios.get(`http://localhost:8000/api/residents/${residentId}`, axiosOptions);
                 setResidentName(response.data.name);
             } catch (error) {
                 console.error('Error fetching resident name:', error);
@@ -47,8 +40,8 @@ const PaymentForm = () => {
     useEffect(() => {
         const fetchFees = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/fees', authHeaders());
-                console.log('Fees from API:', response.data); 
+                const response = await axios.get('http://localhost:8000/api/fees', axiosOptions);
+                console.log('Fees from API:', response.data);
                 setFees(response.data);
             } catch (error) {
                 console.error('Error fetching fees:', error);
@@ -57,7 +50,6 @@ const PaymentForm = () => {
 
         fetchFees();
 
-        // Set current date
         const currentDate = new Date().toISOString().split('T')[0];
         setPaymentDate(currentDate);
     }, []);
@@ -86,7 +78,7 @@ const PaymentForm = () => {
         };
 
         try {
-            const response = await axios.post('http://localhost:8000/api/resident_payments', paymentData, authHeaders);
+            const response = await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
             setSuccessMessage('Payment registered successfully.');
             navigate('/resident');
         } catch (error) {

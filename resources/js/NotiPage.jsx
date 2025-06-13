@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { NavLink, Outlet } from "react-router-dom";
 
-// Set Axios to include credentials (cookies)
+// Configure Axios to include cookies in requests (needed for Laravel Sanctum)
 axios.defaults.withCredentials = true;
+
+// Function to get CSRF token from Laravel Sanctum
 const getCsrfToken = async () => {
     try {
         await axios.get('/sanctum/csrf-cookie');
@@ -16,71 +18,74 @@ const getCsrfToken = async () => {
 export default function Notifications() {
     const [isAdmin, setIsAdmin] = useState([]);
     let notis = [];
+
     useEffect(() => {
-            const fetchAdminStatus = async () => {
-                try {
-                    await getCsrfToken(); // Fetch CSRF token
-                    const response = await axios.get('/api/admin/isAdmin', {
-                        method: 'GET', 
-                        headers: {
-                            'Authorization': 'Bearer 1|2dROElpPtCeRHJafIp7Kb1CqKa5i3lQaf8uDW4NK49262ad6',
-                            'Accept': 'application/json',
-                        },
-                    });
-                    if (response.data && response.data.admin) {
-                        setIsAdmin(response.data.admin);
-                    } else {
-                        setIsAdmin([]); // Handle the case when admin data is not present
-                    }
-                } catch (error) {
-                    console.error('Error fetching admin: ', error);
-                    setIsAdmin([]); // Handle the case when there is an error
+        const fetchAdminStatus = async () => {
+            try {
+                // First, get the CSRF cookie (required by Sanctum)
+                await getCsrfToken();
+
+                // Then fetch admin status from the API
+                const response = await axios.get('/api/admin/isAdmin', {
+                    withCredentials: true,
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                // If admin data exists, store it in state
+                if (response.data && response.data.admin) {
+                    setIsAdmin(response.data.admin);
+                } else {
+                    setIsAdmin([]); // If no admin data, set an empty array
                 }
-            };
-            fetchAdminStatus();
+            } catch (error) {
+                console.error('Error fetching admin:', error);
+                setIsAdmin([]); // On error, set empty array
+            }
+        };
+
+        fetchAdminStatus();
     }, []);
 
+    // Convert admin object to array (if needed)
     if (isAdmin.length >= 1) {
-        for (let Key in isAdmin) {
-            notis.push(isAdmin[Key]);
+        for (let key in isAdmin) {
+            notis.push(isAdmin[key]);
         }
-
     }
+
     return (
-        <>
-
-            <div className=''>
-                <div className=''>
-                    <div className=''>
-                        <h1>Notifications</h1>
-                    </div>
-                </div>
-                <div className='d-flex'>
-                    <div className=''>
-                        <ul>
-                            {
-                                notis.map((row, index) => (
-                                    <li key={index}>
-                                        <NavLink
-                                            key={row.id} 
-                                            to={`/home/${row.id}`}
-                                            className={({ isActive }) => {
-                                                return isActive ? 'text-danger' : '';
-                                            }}
-                                        >
-                                            {row.data.name}
-                                        </NavLink>
-                                    </li>
-                                ))
-                            }
-                        </ul>
-                    </div>
-                    <div className='ml-4'>
-                        <Outlet />
-                    </div>
-                </div>
-
+        <div>
+            <div>
+                <h1>Notifications</h1>
             </div>
-        </>
+
+            <div className='d-flex'>
+                {/* Sidebar with list of notifications */}
+                <div>
+                    <ul>
+                        {notis.map((row, index) => (
+                            <li key={index}>
+                                <NavLink
+                                    key={row.id}
+                                    to={`/home/${row.id}`}
+                                    className={({ isActive }) =>
+                                        isActive ? 'text-danger' : ''
+                                    }
+                                >
+                                    {row.data.name}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Outlet for rendering nested route */}
+                <div className='ml-4'>
+                    <Outlet />
+                </div>
+            </div>
+        </div>
     );
-};
+}

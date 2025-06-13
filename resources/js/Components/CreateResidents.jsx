@@ -4,18 +4,13 @@ import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents';
-const authHeaders = () => {
-    // Retrieve the token from localStorage (saved after login)
-    const token = localStorage.getItem('api_token');
-    // Return the headers object needed for authenticated API requests
-    return {
-        headers: {
-            // Set the Authorization header using the token, if it exists
-            Authorization: token ? `Bearer ${token}` : '',
-            // Specify that we expect JSON responses from the server
-            Accept: 'application/json',
-        }
-    };
+
+// Axios options with credentials
+const axiosOptions = {
+    withCredentials: true,
+    headers: {
+        Accept: 'application/json',
+    },
 };
 
 export default function CreateResidents() {
@@ -52,7 +47,7 @@ export default function CreateResidents() {
             formData.append('comments', comments);
 
             try {
-                await axios.post(endpoint, formData, authHeaders());
+                await axios.post(endpoint, formData, axiosOptions);
                 setSuccessMessage('Resident created successfully.');
                 setErrorMessage('');
                 navigate('/resident');
@@ -63,11 +58,13 @@ export default function CreateResidents() {
         }
         setFormValidated(true);
     };
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         setPhoto(file);
         setPhotoPreview(URL.createObjectURL(file));
     };
+
     const handleRemoveImage = () => {
         setPhoto(null);
         setPhotoPreview(null);
@@ -109,8 +106,8 @@ export default function CreateResidents() {
                                 style={{
                                     transform: 'translate(50%, -50%)',
                                     borderRadius: '50%',
-                                    fontSize: '1.5rem', // Adjust the font size to make the "x" larger
-                                    color: '#000' // Set the color to black
+                                    fontSize: '1.5rem',
+                                    color: '#000'
                                 }}
                                 onClick={handleRemoveImage}
                             >

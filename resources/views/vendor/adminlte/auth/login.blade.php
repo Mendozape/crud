@@ -21,6 +21,13 @@
 @section('auth_header', __('adminlte::adminlte.login_message'))
 
 @section('auth_body')
+    <!--
+    {{-- Display session flash messages like "session expired" --}}
+    @if (session('message'))
+        <div class="alert alert-warning" role="alert">
+            {{ session('message') }}
+        </div>
+    @endif-->
     <form action="{{ $login_url }}" method="post">
         @csrf
 

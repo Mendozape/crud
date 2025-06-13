@@ -6,7 +6,7 @@ import NotiPage from './NotiPage';
 import NotiProfile from './NotiProfile';
 import Stats from './Stats';
 
-// Siempre enviar cookies con axios
+// Always send cookies with axios
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = 'http://localhost:8000';
 
@@ -16,10 +16,10 @@ const App = () => {
   const [reloadAttempted, setReloadAttempted] = useState(false);
 
   useEffect(() => {
-    // Paso 1: Obtener cookie CSRF
+    // Step 1: Get CSRF cookie
     axios.get('/sanctum/csrf-cookie')
       .then(() => {
-        // Paso 2: Verificar si el usuario está autenticado
+        // Step 2: Check if the user is authenticated
         return axios.get('/api/user');
       })
       .then(response => {
@@ -30,11 +30,11 @@ const App = () => {
       .catch(error => {
         console.warn('User not authenticated:', error);
 
-        // Detectar error 419 (CSRF token expired)
+        // Detect 419 error (CSRF token expired)
         if (error.response && error.response.status === 419) {
           if (!reloadAttempted) {
             setReloadAttempted(true);
-            // Recargar la página para intentar obtener nuevo token CSRF
+            // Reload the page to try to obtain a new CSRF token
             window.location.reload();
           }
         } else {

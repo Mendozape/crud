@@ -27,16 +27,6 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-/*Route::middleware('auth:sanctum')->get('/user-token', function (Request $request) {
-    $user = $request->user();
-    $token = $user->tokens()->latest()->first()?->plainTextToken;
-
-    return response()->json([
-        'token' => $token,
-        'user' => $user,
-    ]);
-})->name('user-token');*/
-
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

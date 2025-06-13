@@ -318,7 +318,7 @@ return [
             'icon' => 'fas fa-fw fa-home',
         ],
         [
-            'text'    => 'CONFIGURATION',
+            'text'    => 'CONFIG',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
                 [

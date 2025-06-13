@@ -16,7 +16,6 @@ const FeesTable = () => {
 
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
-
     // Fetch all fees from the backend using session-based cookies
     const fetchFees = async () => {
         try {

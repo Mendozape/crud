@@ -4,19 +4,13 @@ import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/fees/';
-const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-const authHeaders = () => {
-    // Retrieve the token from localStorage (saved after login)
-    const token = localStorage.getItem('api_token');
-    // Return the headers object needed for authenticated API requests
-    return {
-        headers: {
-            // Set the Authorization header using the token, if it exists
-            Authorization: token ? `Bearer ${token}` : '',
-            // Specify that we expect JSON responses from the server
-            Accept: 'application/json',
-        }
-    };
+
+const axiosOptions = {
+    withCredentials: true,
+    headers: {
+        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
+    }
 };
 
 export default function EditFees() {
@@ -26,6 +20,7 @@ export default function EditFees() {
     const [formValidated, setFormValidated] = useState(false);
     const [errors, setErrors] = useState({});
     const [showModal, setShowModal] = useState(false);
+
     const { id } = useParams();
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
@@ -36,10 +31,10 @@ export default function EditFees() {
         formData.append('name', name);
         formData.append('amount', amount);
         formData.append('description', description);
-        formData.append('_method', 'PUT'); // Add this line
+        formData.append('_method', 'PUT');
+
         try {
-            const response = await axios.post(`${endpoint}${id}`, formData, authHeaders());
-            console.log('Response data:', response.data);
+            const response = await axios.post(`${endpoint}${id}`, formData, axiosOptions);
             if (response.status === 200) {
                 setSuccessMessage('Fee updated successfully.');
                 setErrorMessage('');
@@ -49,7 +44,7 @@ export default function EditFees() {
             }
         } catch (error) {
             console.error('Error updating fee:', error);
-            if (error.response && error.response.data && error.response.data.errors) {
+            if (error.response?.data?.errors) {
                 setErrors(error.response.data.errors);
             } else {
                 setErrorMessage('Failed to update fee.');
@@ -67,7 +62,7 @@ export default function EditFees() {
     useEffect(() => {
         const getFeeById = async () => {
             try {
-                const response = await axios.get(`${endpoint}${id}`, authHeaders());
+                const response = await axios.get(`${endpoint}${id}`, axiosOptions);
                 setName(response.data.name);
                 setAmount(response.data.amount);
                 setDescription(response.data.description);
@@ -78,6 +73,7 @@ export default function EditFees() {
         };
         getFeeById();
     }, [id, setErrorMessage]);
+
     return (
         <div>
             <h2>Edit Fee</h2>
@@ -96,6 +92,7 @@ export default function EditFees() {
                         onChange={(e) => setName(e.target.value)}
                         type='text'
                         className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                        required
                     />
                     {errors.name && <div className="invalid-feedback">{errors.name[0]}</div>}
                 </div>
@@ -106,6 +103,7 @@ export default function EditFees() {
                         onChange={(e) => setAmount(e.target.value)}
                         type='text'
                         className={`form-control ${errors.amount ? 'is-invalid' : ''}`}
+                        required
                     />
                     {errors.amount && <div className="invalid-feedback">{errors.amount[0]}</div>}
                 </div>
