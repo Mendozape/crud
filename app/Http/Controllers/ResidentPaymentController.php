@@ -13,7 +13,7 @@ class ResidentPaymentController extends Controller
         return response()->json($residentPayments);
     }
 
-    public function store(Request $request)
+    /*public function store(Request $request)
     {
         $request->validate([
             'resident_id' => 'required|exists:residents,id',
@@ -26,6 +26,35 @@ class ResidentPaymentController extends Controller
         ]);
         $payment = ResidentPayment::create($request->all());
         return response()->json($payment, 201);
+    }*/
+    public function store(Request $request)
+    {
+        $request->validate([
+            'resident_id' => 'required|exists:residents,id',
+            'fee_id' => 'required|exists:fees,id',
+            'amount' => 'required|numeric',
+            'months' => 'required|array|min:1',
+            'months.*' => 'integer|between:1,12',
+            'year' => 'required|integer',
+            'description' => 'nullable|string|max:255',
+            'payment_date' => 'required|date',
+        ]);
+
+        $payments = [];
+
+        foreach ($request->months as $month) {
+            $payments[] = ResidentPayment::create([
+                'resident_id' => $request->resident_id,
+                'fee_id' => $request->fee_id,
+                'amount' => $request->amount,
+                'description' => $request->description,
+                'payment_date' => $request->payment_date,
+                'month' => $month,
+                'year' => $request->year,
+            ]);
+        }
+
+        return response()->json($payments, 201);
     }
 
     public function show($id)
