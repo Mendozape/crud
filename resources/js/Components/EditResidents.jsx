@@ -5,7 +5,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents/';
 
-// Centralized axios config
 const axiosOptions = {
     withCredentials: true,
     headers: {
@@ -36,7 +35,7 @@ export default function EditEmployee() {
     const handleUpdate = async (e) => {
         e.preventDefault();
         const formData = new FormData();
-        if (photo) {
+        if (photo instanceof File) {
             formData.append('photo', photo);
         }
         formData.append('name', name);
@@ -71,6 +70,7 @@ export default function EditEmployee() {
 
     const update = (e) => {
         e.preventDefault();
+        setFormValidated(true);
         setShowModal(true);
     };
 
@@ -96,9 +96,8 @@ export default function EditEmployee() {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        setIsLoading(true);
         setPhoto(file);
-        setPhotoPreview(null);
+        setIsLoading(true);
         setTimeout(() => {
             setPhotoPreview(URL.createObjectURL(file));
             setIsLoading(false);
@@ -106,20 +105,104 @@ export default function EditEmployee() {
     };
 
     return (
-        <div>
+        <div className="container mt-4">
             <h2>Edit Resident</h2>
+
             <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
-                <div className="col-md-12 mt-4">
-                    {errorMessage && (
-                        <div className="alert alert-danger text-center">{errorMessage}</div>
+                {errorMessage && (
+                    <div className="alert alert-danger text-center">{errorMessage}</div>
+                )}
+
+                <div className="form-group">
+                    <label>Photo</label><br />
+                    {(photoPreview || (photo && typeof photo === 'string')) && (
+                        <img
+                            src={photoPreview || `http://127.0.0.1:8000/storage/${photo}`}
+                            alt="Resident"
+                            style={{ width: '100px', borderRadius: '50%', marginBottom: '10px' }}
+                        />
                     )}
+                    <input
+                        type="file"
+                        className="form-control"
+                        onChange={handleFileChange}
+                        accept="image/*"
+                    />
                 </div>
 
-                {/* --- Form Fields (unchanged) --- */}
-                {/* Only change: Removed 'authHeaders' and replaced with 'axiosOptions' above */}
+                <div className="form-group">
+                    <label>Name</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
+                </div>
 
-                {/* The rest of the JSX (inputs, preview, modal) remains unchanged. */}
-                {/* You don’t need to change structure; just the axios call config. */}
+                <div className="form-group">
+                    <label>Last Name</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={last_name}
+                        onChange={(e) => setLastName(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        className="form-control"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Street</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Street Number</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={street_number}
+                        onChange={(e) => setStreetNumber(e.target.value)}
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Community</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={community}
+                        onChange={(e) => setCommunity(e.target.value)}
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label>Comments</label>
+                    <textarea
+                        className="form-control"
+                        value={comments}
+                        onChange={(e) => setComments(e.target.value)}
+                    />
+                </div>
+
+                <button type="submit" className="btn btn-primary mt-3">Submit</button>
             </form>
 
             <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">

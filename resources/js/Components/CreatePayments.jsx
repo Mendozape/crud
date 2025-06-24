@@ -1,218 +1,3 @@
-/*import React, { useEffect, useState, useContext } from 'react';
-import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { MessageContext } from './MessageContext';
-
-const PaymentForm = () => {
-    const { id: residentId } = useParams();
-    const [residentName, setResidentName] = useState('');
-    const [amount, setAmount] = useState('');
-    const [description, setDescription] = useState('');
-    const [paymentDate, setPaymentDate] = useState('');
-    const [feeId, setFeeId] = useState('');
-    const [month, setMonth] = useState('');
-    const [year, setYear] = useState('');
-    const [fees, setFees] = useState([]);
-    const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
-    const [formValidated, setFormValidated] = useState(false);
-    const navigate = useNavigate();
-
-    const axiosOptions = {
-        withCredentials: true,
-        headers: {
-            Accept: 'application/json',
-        },
-    };
-
-    useEffect(() => {
-        const fetchResidentName = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8000/api/residents/${residentId}`, axiosOptions);
-                setResidentName(response.data.name);
-            } catch (error) {
-                console.error('Error fetching resident name:', error);
-            }
-        };
-
-        fetchResidentName();
-    }, [residentId]);
-
-    useEffect(() => {
-        const fetchFees = async () => {
-            try {
-                const response = await axios.get('http://localhost:8000/api/fees', axiosOptions);
-                console.log('Fees from API:', response.data);
-                setFees(response.data);
-            } catch (error) {
-                console.error('Error fetching fees:', error);
-            }
-        };
-
-        fetchFees();
-
-        const currentDate = new Date().toISOString().split('T')[0];
-        setPaymentDate(currentDate);
-    }, []);
-
-    const handleFeeChange = (e) => {
-        const selectedFee = fees.find(fee => fee.id === parseInt(e.target.value));
-        setFeeId(e.target.value);
-        if (selectedFee) {
-            setAmount(selectedFee.amount);
-            setDescription(selectedFee.description);
-        }
-    };
-
-    const store = async (e) => {
-        e.preventDefault();
-        setFormValidated(true);
-
-        const paymentData = {
-            resident_id: residentId,
-            fee_id: feeId,
-            amount,
-            description,
-            payment_date: paymentDate,
-            month,
-            year
-        };
-
-        try {
-            const response = await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
-            setSuccessMessage('Payment registered successfully.');
-            navigate('/resident');
-        } catch (error) {
-            console.error('Error registering payment:', error);
-            setErrorMessage('Failed to register payment.');
-        }
-    };
-
-    const months = [
-        { value: '', label: 'Select Month' },
-        { value: 1, label: 'January' },
-        { value: 2, label: 'February' },
-        { value: 3, label: 'March' },
-        { value: 4, label: 'April' },
-        { value: 5, label: 'May' },
-        { value: 6, label: 'June' },
-        { value: 7, label: 'July' },
-        { value: 8, label: 'August' },
-        { value: 9, label: 'September' },
-        { value: 10, label: 'October' },
-        { value: 11, label: 'November' },
-        { value: 12, label: 'December' },
-    ];
-
-    const currentYear = new Date().getFullYear();
-    const years = [
-        { value: '', label: 'Select Year' },
-        { value: currentYear - 2, label: currentYear - 2 },
-        { value: currentYear - 1, label: currentYear - 1 },
-        { value: currentYear, label: currentYear },
-        { value: currentYear + 1, label: currentYear + 1 },
-        { value: currentYear + 2, label: currentYear + 2 }
-    ];
-
-    return (
-        <div className="container mt-5">
-            <h2>Register Payment for {residentName}</h2>
-            <form onSubmit={store} noValidate className={formValidated ? 'was-validated' : ''}>
-                <div className="form-group">
-                    <label>Fee</label>
-                    <select
-                        value={feeId}
-                        onChange={handleFeeChange}
-                        className="form-control"
-                        required
-                    >
-                        <option value="">Select Fee</option>
-                        {fees.map(fee => (
-                            <option key={fee.id} value={fee.id}>{fee.name}</option>
-                        ))}
-                    </select>
-                    <div className="invalid-feedback">
-                        Please select a fee.
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label>Amount</label>
-                    <input
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        type='number'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Please enter an amount.
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label>Description</label>
-                    <input
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        type='text'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Please enter a description.
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label>Payment Date</label>
-                    <input
-                        value={paymentDate}
-                        onChange={(e) => setPaymentDate(e.target.value)}
-                        type='date'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Please select a payment date.
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label>Month</label>
-                    <select
-                        value={month}
-                        onChange={(e) => setMonth(e.target.value)}
-                        className="form-control"
-                        required
-                    >
-                        {months.map(month => (
-                            <option key={month.value} value={month.value}>{month.label}</option>
-                        ))}
-                    </select>
-                    <div className="invalid-feedback">
-                        Please select a month.
-                    </div>
-                </div>
-                <div className="form-group">
-                    <label>Year</label>
-                    <select
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                        className="form-control"
-                        required
-                    >
-                        {years.map(year => (
-                            <option key={year.value} value={year.value}>{year.label}</option>
-                        ))}
-                    </select>
-                    <div className="invalid-feedback">
-                        Please select a year.
-                    </div>
-                </div>
-                <button type="submit" className="btn btn-primary mt-3">Register Payment</button>
-            </form>
-        </div>
-    );
-};
-
-export default PaymentForm;*/
-
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -225,7 +10,8 @@ const PaymentForm = () => {
     const [description, setDescription] = useState('');
     const [paymentDate, setPaymentDate] = useState('');
     const [feeId, setFeeId] = useState('');
-    const [selectedMonths, setSelectedMonths] = useState([]); // array of selected months
+    const [selectedMonths, setSelectedMonths] = useState([]);
+    const [paidMonths, setPaidMonths] = useState([]);
     const [year, setYear] = useState('');
     const [fees, setFees] = useState([]);
     const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
@@ -239,7 +25,13 @@ const PaymentForm = () => {
         },
     };
 
-    // Fetch resident name by ID
+    const getLocalDate = () => {
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const localDate = new Date(now.getTime() - offset * 60000);
+        return localDate.toISOString().split('T')[0];
+    };
+
     useEffect(() => {
         const fetchResidentName = async () => {
             try {
@@ -253,7 +45,6 @@ const PaymentForm = () => {
         fetchResidentName();
     }, [residentId]);
 
-    // Fetch available fees and set default payment date
     useEffect(() => {
         const fetchFees = async () => {
             try {
@@ -265,28 +56,52 @@ const PaymentForm = () => {
         };
 
         fetchFees();
-
-        const currentDate = new Date().toISOString().split('T')[0];
-        setPaymentDate(currentDate);
+        setPaymentDate(getLocalDate());
     }, []);
 
-    // Handle fee selection change
+    useEffect(() => {
+        const fetchPaidMonths = async () => {
+            if (!year || !feeId) return;
+            try {
+                const response = await axios.get(
+                    `http://localhost:8000/api/resident_payments/${residentId}/${year}?fee_id=${feeId}`,
+                    axiosOptions
+                );
+                setPaidMonths(response.data.months.map(m => parseInt(m)));
+            } catch (error) {
+                console.error('Error fetching paid months:', error);
+                setPaidMonths([]);
+            }
+        };
+
+        fetchPaidMonths();
+        setSelectedMonths([]);
+    }, [year, residentId, feeId]);
+
     const handleFeeChange = (e) => {
         const selectedFee = fees.find(fee => fee.id === parseInt(e.target.value));
         setFeeId(e.target.value);
+        setPaidMonths([]);
+        setSelectedMonths([]);
+        setYear(''); // Optional: force year reselect if you want to reset that too
         if (selectedFee) {
             setAmount(selectedFee.amount);
             setDescription(selectedFee.description);
         }
     };
 
-    // Handle form submit
     const store = async (e) => {
         e.preventDefault();
         setFormValidated(true);
+        setErrorMessage('');
+        setSuccessMessage('');
 
-        if (selectedMonths.length === 0) {
-            setErrorMessage('Please select at least one month.');
+        const unpaidSelectedMonths = selectedMonths.filter(
+            (month) => !paidMonths.includes(Number(month))
+        );
+
+        if (unpaidSelectedMonths.length === 0) {
+            setErrorMessage('Please select at least one unpaid month.');
             return;
         }
 
@@ -297,20 +112,23 @@ const PaymentForm = () => {
             description,
             payment_date: paymentDate,
             year,
-            months: selectedMonths, // array of integers (1-12)
+            months: unpaidSelectedMonths,
         };
 
         try {
-            await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
+            const response = await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
             setSuccessMessage('Payment(s) registered successfully.');
             navigate('/resident');
         } catch (error) {
-            console.error('Error registering payment(s):', error);
-            setErrorMessage('Failed to register payment(s).');
+            if (error.response?.status === 422 && error.response.data.message) {
+                setErrorMessage(error.response.data.message);
+            } else {
+                console.error('Error registering payment(s):', error);
+                setErrorMessage('Failed to register payment(s).');
+            }
         }
     };
 
-    // List of months (excluding the empty option)
     const months = [
         { value: 1, label: 'January' },
         { value: 2, label: 'February' },
@@ -336,9 +154,10 @@ const PaymentForm = () => {
         { value: currentYear + 2, label: currentYear + 2 }
     ];
 
-    // Handle selecting all or individual months
     const toggleMonth = (monthValue) => {
-        setSelectedMonths(prev => 
+        if (paidMonths.includes(Number(monthValue))) return;
+
+        setSelectedMonths(prev =>
             prev.includes(monthValue)
                 ? prev.filter(m => m !== monthValue)
                 : [...prev, monthValue]
@@ -347,7 +166,10 @@ const PaymentForm = () => {
 
     const handleSelectAllMonths = (e) => {
         if (e.target.checked) {
-            setSelectedMonths(months.map(m => m.value));
+            const unpaid = months
+                .map(m => m.value)
+                .filter(m => !paidMonths.includes(Number(m)));
+            setSelectedMonths(unpaid);
         } else {
             setSelectedMonths([]);
         }
@@ -370,88 +192,17 @@ const PaymentForm = () => {
                             <option key={fee.id} value={fee.id}>{fee.name}</option>
                         ))}
                     </select>
-                    <div className="invalid-feedback">
-                        Please select a fee.
-                    </div>
+                    <div className="invalid-feedback">Please select a fee.</div>
                 </div>
 
-                <div className="form-group">
-                    <label>Amount</label>
-                    <input
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        type='number'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Please enter an amount.
-                    </div>
+                <div className="form-group d-flex align-items-center">
+                    <label className="mb-0 mr-2" style={{ width: '100px' }}>Amount:</label>
+                    <span>{amount}</span>
                 </div>
 
-                <div className="form-group">
-                    <label>Description</label>
-                    <input
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        type='text'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Please enter a description.
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Payment Date</label>
-                    <input
-                        value={paymentDate}
-                        onChange={(e) => setPaymentDate(e.target.value)}
-                        type='date'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Please select a payment date.
-                    </div>
-                </div>
-
-                {/* Month checkboxes with "Select All" */}
-                <div className="form-group">
-                    <label>Months</label>
-                    <div className="form-check mb-2">
-                        <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="selectAllMonths"
-                            checked={selectedMonths.length === 12}
-                            onChange={handleSelectAllMonths}
-                        />
-                        <label className="form-check-label" htmlFor="selectAllMonths">
-                            Select All
-                        </label>
-                    </div>
-                    <div className="d-flex flex-wrap">
-                        {months.map((monthObj) => (
-                            <div key={monthObj.value} className="form-check mr-3">
-                                <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    id={`month-${monthObj.value}`}
-                                    value={monthObj.value}
-                                    checked={selectedMonths.includes(monthObj.value)}
-                                    onChange={() => toggleMonth(monthObj.value)}
-                                />
-                                <label className="form-check-label" htmlFor={`month-${monthObj.value}`}>
-                                    {monthObj.label}
-                                </label>
-                            </div>
-                        ))}
-                    </div>
-                    {formValidated && selectedMonths.length === 0 && (
-                        <div className="text-danger mt-2">Please select at least one month.</div>
-                    )}
+                <div className="form-group d-flex align-items-center">
+                    <label className="mb-0 mr-2" style={{ width: '100px' }}>Description:</label>
+                    <span>{description}</span>
                 </div>
 
                 <div className="form-group">
@@ -466,9 +217,63 @@ const PaymentForm = () => {
                             <option key={year.value} value={year.value}>{year.label}</option>
                         ))}
                     </select>
-                    <div className="invalid-feedback">
-                        Please select a year.
+                    <div className="invalid-feedback">Please select a year.</div>
+                </div>
+
+                <div className="form-group">
+                    <label>Months</label>
+                    <div className="form-check mb-2">
+                        <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="selectAllMonths"
+                            checked={selectedMonths.length === months.filter(m => !paidMonths.includes(m.value)).length}
+                            onChange={handleSelectAllMonths}
+                        />
+                        <label className="form-check-label" htmlFor="selectAllMonths">
+                            Select All
+                        </label>
                     </div>
+
+                    <div className="d-flex flex-wrap">
+                        {months.map((monthObj) => {
+                            const isPaid = paidMonths.includes(Number(monthObj.value));
+                            const isChecked = selectedMonths.includes(monthObj.value) || isPaid;
+
+                            return (
+                                <div key={monthObj.value} className="form-check mr-3">
+                                    <input
+                                        type="checkbox"
+                                        className="form-check-input"
+                                        id={`month-${monthObj.value}`}
+                                        value={monthObj.value}
+                                        checked={isChecked}
+                                        onChange={() => toggleMonth(monthObj.value)}
+                                        disabled={isPaid}
+                                    />
+                                    <label className="form-check-label" htmlFor={`month-${monthObj.value}`}>
+                                        {monthObj.label}
+                                    </label>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {formValidated && selectedMonths.filter(m => !paidMonths.includes(m)).length === 0 && (
+                        <div className="text-danger mt-2">Please select at least one unpaid month.</div>
+                    )}
+                </div>
+
+                <div className="form-group mt-3">
+                    <label>Payment Date</label>
+                    <input
+                        value={paymentDate}
+                        onChange={(e) => setPaymentDate(e.target.value)}
+                        type='date'
+                        className='form-control'
+                        required
+                    />
+                    <div className="invalid-feedback">Please select a payment date.</div>
                 </div>
 
                 <button type="submit" className="btn btn-primary mt-3">Register Payment</button>

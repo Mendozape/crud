@@ -13,23 +13,9 @@ class ResidentPaymentController extends Controller
         return response()->json($residentPayments);
     }
 
-    /*public function store(Request $request)
-    {
-        $request->validate([
-            'resident_id' => 'required|exists:residents,id',
-            'fee_id' => 'required|exists:fees,id',
-            'amount' => 'required|numeric',
-            'month' => 'required',
-            'year' => 'required',
-            'description' => 'nullable|string|max:255',
-            'payment_date' => 'required|date',
-        ]);
-        $payment = ResidentPayment::create($request->all());
-        return response()->json($payment, 201);
-    }*/
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'resident_id' => 'required|exists:residents,id',
             'fee_id' => 'required|exists:fees,id',
             'amount' => 'required|numeric',
@@ -40,17 +26,35 @@ class ResidentPaymentController extends Controller
             'payment_date' => 'required|date',
         ]);
 
-        $payments = [];
+        // Get months that are already registered in the DB
+        $existingMonths = ResidentPayment::where('resident_id', $validated['resident_id'])
+            ->where('fee_id', $validated['fee_id'])
+            ->where('year', $validated['year'])
+            ->whereIn('month', $validated['months'])
+            ->pluck('month')
+            ->toArray();
 
-        foreach ($request->months as $month) {
+        // Keep only months that are not already saved
+        $newMonths = array_diff($validated['months'], $existingMonths);
+
+        // If no new months to save, return an error
+        if (empty($newMonths)) {
+            return response()->json([
+                'message' => 'All selected months are already registered.'
+            ], 422);
+        }
+
+        // Register payments only for the new months
+        $payments = [];
+        foreach ($newMonths as $month) {
             $payments[] = ResidentPayment::create([
-                'resident_id' => $request->resident_id,
-                'fee_id' => $request->fee_id,
-                'amount' => $request->amount,
-                'description' => $request->description,
-                'payment_date' => $request->payment_date,
+                'resident_id' => $validated['resident_id'],
+                'fee_id' => $validated['fee_id'],
+                'amount' => $validated['amount'],
+                'description' => $validated['description'],
+                'payment_date' => $validated['payment_date'],
                 'month' => $month,
-                'year' => $request->year,
+                'year' => $validated['year'],
             ]);
         }
 
@@ -85,5 +89,20 @@ class ResidentPaymentController extends Controller
         $residentPayment->delete();
 
         return response()->json(['message' => 'Resident payment deleted successfully.'], 200);
+    }
+
+    // NEW METHOD: Get paid months for a resident in a specific year
+    public function getPaidMonths($residentId, $year, Request $request)
+    {
+        $feeId = $request->query('fee_id');
+        $query = ResidentPayment::where('resident_id', $residentId)
+                    ->where('year', $year);
+        if ($feeId) {
+            $query->where('fee_id', $feeId);
+        }
+        $months = $query->pluck('month')->unique()->values();
+        return response()->json([
+            'months' => $months
+        ]);
     }
 }

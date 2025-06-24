@@ -52,5 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/residents', ResidentController::class);
     Route::apiResource('/fees', FeeController::class);
     Route::apiResource('/resident_payments', ResidentPaymentController::class);
+    //New route to get already-paid months for a resident and year
+    Route::get('/resident_payments/{residentId}/{year}', [ResidentPaymentController::class, 'getPaidMonths']);
 });
 
