@@ -16,6 +16,7 @@ const FeesTable = () => {
 
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
+
     // Fetch all fees from the backend using session-based cookies
     const fetchFees = async () => {
         try {
@@ -62,7 +63,12 @@ const FeesTable = () => {
             }
         } catch (error) {
             console.error('Error deleting fee:', error);
-            setErrorMessage('Failed to delete fee.');
+
+            if (error.response && error.response.data && error.response.data.message) {
+                setErrorMessage(error.response.data.message);
+            } else {
+                setErrorMessage('Failed to delete fee.');
+            }
         } finally {
             setShowModal(false);
         }

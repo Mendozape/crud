@@ -64,56 +64,65 @@ class ResidentController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, Resident $resident)
-    {
-        try {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'street' => 'required|string|max:255',
-                'street_number' => 'required|string|max:255',
-                'community' => 'required|string|max:255',
-                'comments' => 'nullable|string|max:255',
-            ]);
-            if ($request->hasFile('photo')) {
-                $request->validate([
-                    'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-                ]);
-                $photo = Carbon::now()->timestamp . '.' . $request->file('photo')->extension();
-                $request->file('photo')->storeAs('/public/images', $photo);
-                $resident->photo = $photo;
-            }
-            $resident->name = $request->name;
-            $resident->last_name = $request->last_name;
-            $resident->email = $request->email;
-            $resident->street = $request->street;
-            $resident->street_number = $request->street_number;
-            $resident->community = $request->community;
-            $resident->comments = $request->comments;
-            $resident->save();
+{
+    try {
+        // Validate fields
+        $request->validate([
+            'name' => 'bail|required|string|max:255',
+            'last_name' => 'bail|required|string|max:255',
+            'email' => 'bail|required|email|max:255',
+            'street' => 'bail|required|string|max:255',
+            'street_number' => 'bail|required|string|max:255',
+            'community' => 'bail|required|string|max:255',
+            'comments' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // If this is only a validation request, return success here without saving
+        if ($request->header('X-Validate-Only') === 'true') {
             return response()->json([
                 'success' => true,
-                'message' => 'Resident updated successfully',
-                'data' => $resident
+                'message' => 'Validation passed (no update performed)'
             ], 200);
-
-        } catch (ValidationException $e) {
-            // Validation errors
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation Error',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            // Other exceptions
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update resident',
-                'error' => $e->getMessage(),
-            ], 500);
         }
-    }
 
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            $photo = Carbon::now()->timestamp . '.' . $request->file('photo')->extension();
+            $request->file('photo')->storeAs('/public/images', $photo);
+            $resident->photo = $photo;
+        }
+
+        // Update resident info
+        $resident->name = $request->name;
+        $resident->last_name = $request->last_name;
+        $resident->email = $request->email;
+        $resident->street = $request->street;
+        $resident->street_number = $request->street_number;
+        $resident->community = $request->community;
+        $resident->comments = $request->comments;
+        $resident->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Resident updated successfully',
+            'data' => $resident
+        ], 200);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation Error',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update resident',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
     /**
      * Remove the specified resource from storage.
      */

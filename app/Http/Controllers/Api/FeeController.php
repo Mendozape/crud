@@ -6,6 +6,7 @@ use App\Models\Fee;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException; // Import ValidationException
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\ResidentPayment; // Make sure to import the ResidentPayment model
 class FeeController extends Controller
 {
     public function index()
@@ -75,18 +76,26 @@ class FeeController extends Controller
     }
 
     public function destroy($id)
-    {
-        try {
-            $fee = Fee::findOrFail($id);
-            // Delete the resident's image from storage
-            $fee->delete();
-            return response()->json(['message' => 'Fee deleted successfully.'], 200);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Fee not found.'], 404);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to delete fee.'], 500);
+{
+    try {
+        $fee = Fee::findOrFail($id);
+
+        // Supongamos que tienes una relación llamada 'residentPayments' para verificar pagos asociados
+        if ($fee->residentPayments()->count() > 0) {
+            return response()->json([
+                'message' => 'Cannot delete fee because there are payments made with a resident.'
+            ], 400);  // Bad Request o 409 Conflict también sirve
         }
+
+        $fee->delete();
+
+        return response()->json(['message' => 'Fee deleted successfully.'], 200);
+    } catch (ModelNotFoundException $e) {
+        return response()->json(['message' => 'Fee not found.'], 404);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Failed to delete fee.'], 500);
     }
+}
     public function redire2()
     {
         return view('fees.index');

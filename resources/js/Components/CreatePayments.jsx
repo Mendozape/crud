@@ -14,8 +14,11 @@ const PaymentForm = () => {
     const [paidMonths, setPaidMonths] = useState([]);
     const [year, setYear] = useState('');
     const [fees, setFees] = useState([]);
-    const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
     const [formValidated, setFormValidated] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [validationWarning, setValidationWarning] = useState(false);
+
+    const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
     const axiosOptions = {
@@ -83,16 +86,14 @@ const PaymentForm = () => {
         setFeeId(e.target.value);
         setPaidMonths([]);
         setSelectedMonths([]);
-        setYear(''); // Optional: force year reselect if you want to reset that too
+        setYear('');
         if (selectedFee) {
             setAmount(selectedFee.amount);
             setDescription(selectedFee.description);
         }
     };
 
-    const store = async (e) => {
-        e.preventDefault();
-        setFormValidated(true);
+    const handleConfirmSubmit = async () => {
         setErrorMessage('');
         setSuccessMessage('');
 
@@ -102,6 +103,7 @@ const PaymentForm = () => {
 
         if (unpaidSelectedMonths.length === 0) {
             setErrorMessage('Please select at least one unpaid month.');
+            setShowModal(false);
             return;
         }
 
@@ -116,8 +118,9 @@ const PaymentForm = () => {
         };
 
         try {
-            const response = await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
+            await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
             setSuccessMessage('Payment(s) registered successfully.');
+            setShowModal(false);
             navigate('/resident');
         } catch (error) {
             if (error.response?.status === 422 && error.response.data.message) {
@@ -126,6 +129,7 @@ const PaymentForm = () => {
                 console.error('Error registering payment(s):', error);
                 setErrorMessage('Failed to register payment(s).');
             }
+            setShowModal(false);
         }
     };
 
@@ -168,7 +172,7 @@ const PaymentForm = () => {
         if (e.target.checked) {
             const unpaid = months
                 .map(m => m.value)
-                .filter(m => !paidMonths.includes(Number(m)));
+                .filter(m => !paidMonths.includes(m));
             setSelectedMonths(unpaid);
         } else {
             setSelectedMonths([]);
@@ -178,7 +182,22 @@ const PaymentForm = () => {
     return (
         <div className="container mt-5">
             <h2>Register Payment for {residentName}</h2>
-            <form onSubmit={store} noValidate className={formValidated ? 'was-validated' : ''}>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    setFormValidated(true);
+
+                    const hasUnpaidSelected = selectedMonths.some(month => !paidMonths.includes(Number(month)));
+
+                    if (!feeId || !year || !hasUnpaidSelected || !paymentDate) {
+                        setValidationWarning(true);
+                    } else {
+                        setShowModal(true);
+                    }
+                }}
+                noValidate
+                className={formValidated ? 'was-validated' : ''}
+            >
                 <div className="form-group">
                     <label>Fee</label>
                     <select
@@ -278,6 +297,47 @@ const PaymentForm = () => {
 
                 <button type="submit" className="btn btn-primary mt-3">Register Payment</button>
             </form>
+
+            {/* ✅ Confirmation Modal */}
+            <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Confirm Payment</h5>
+                            <button type="button" className="close" onClick={() => setShowModal(false)}>
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            Are you sure you want to register this payment?
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                            <button type="button" className="btn btn-primary" onClick={handleConfirmSubmit}>Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/*  Validation Warning Modal */}
+            <div className={`modal ${validationWarning ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header bg-warning">
+                            <h5 className="modal-title text-dark">Validation Required</h5>
+                            <button type="button" className="close" onClick={() => setValidationWarning(false)}>
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body text-dark">
+                            Please check the form. Some required fields are missing or contain invalid data.
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" onClick={() => setValidationWarning(false)}>OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
