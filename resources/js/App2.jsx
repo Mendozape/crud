@@ -29,7 +29,6 @@ const App = () => {
       })
       .catch(error => {
         console.warn('User not authenticated:', error);
-
         // Detect 419 error (CSRF token expired)
         if (error.response && error.response.status === 419) {
           if (!reloadAttempted) {

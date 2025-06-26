@@ -16,17 +16,17 @@ const getCsrfToken = async () => {
 };
 
 export default function Notifications() {
-    const [isAdmin, setIsAdmin] = useState([]);
+    const [countNotis, setCountNotis] = useState([]);
     let notis = [];
 
     useEffect(() => {
-        const fetchAdminStatus = async () => {
+        const fetchNotiStatus = async () => {
             try {
                 // First, get the CSRF cookie (required by Sanctum)
                 await getCsrfToken();
 
-                // Then fetch admin status from the API
-                const response = await axios.get('/api/admin/isAdmin', {
+                // Then fetch countNotis status from the API
+                const response = await axios.get('/api/notis/countNotis', {
                     withCredentials: true,
                     headers: {
                         'Accept': 'application/json',
@@ -34,24 +34,24 @@ export default function Notifications() {
                 });
 
                 // If admin data exists, store it in state
-                if (response.data && response.data.admin) {
-                    setIsAdmin(response.data.admin);
+                if (response.data && response.data.countNotis) {
+                    setCountNotis(response.data.countNotis);
                 } else {
-                    setIsAdmin([]); // If no admin data, set an empty array
+                    setCountNotis([]); // If no countNotis data, set an empty array
                 }
             } catch (error) {
                 console.error('Error fetching admin:', error);
-                setIsAdmin([]); // On error, set empty array
+                setCountNotis([]); // On error, set empty array
             }
         };
 
-        fetchAdminStatus();
+        fetchNotiStatus();
     }, []);
 
-    // Convert admin object to array (if needed)
-    if (isAdmin.length >= 1) {
-        for (let key in isAdmin) {
-            notis.push(isAdmin[key]);
+    // Convert countNotis object to array (if needed)
+    if (countNotis.length >= 1) {
+        for (let key in countNotis) {
+            notis.push(countNotis[key]);
         }
     }
 

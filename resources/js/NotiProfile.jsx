@@ -23,7 +23,8 @@ export default function NotiProfile() {
     const fetchNotification = async () => {
       try {
         await getCsrfToken();
-        const response = await axios.get(`/api/admin/notis/${notiId}`, {
+        //const response = await axios.get(`/api/admin/notis/${notiId}`, {
+          const response = await axios.get(`/api/notis/notis/${notiId}`, {
           headers: { Accept: 'application/json' },
         });
 

@@ -288,6 +288,7 @@ const PaymentForm = () => {
                     <input
                         value={paymentDate}
                         onChange={(e) => setPaymentDate(e.target.value)}
+                        
                         type='date'
                         className='form-control'
                         required

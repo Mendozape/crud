@@ -39,31 +39,20 @@ class UserController extends Controller
                                  'roleCount' => $roleCount,
                                 ]);
     }
-    public function isAdmin()
+    public function countNotis()
     {
-        //$admin = Auth()->user()->isAdmin;
-        //Auth::user()->isAdmin()
-        //$admin = (Auth()->user()->isAdmin) ? 'Yes' : 'No';
-        $admin = auth()->user()->unreadNotifications;
-        //$noti = auth()->user()->unreadNotifications->where('id',$id);
-        /*$data = [
-            'notifications'  => $notifications
-        ];*/
-
-        //$admin = Auth()->user()->unreadNotifications;
+        $countNotis = auth()->user()->unreadNotifications;
         return response()->json([
-            'admin' => $admin
+            'countNotis' => $countNotis
         ]);
     }
     public function notis ($id) {
         $noti = auth()->user()->unreadNotifications->where('id',$id);
         return response()->json(['noti' => $noti]);
     }
-
     public function importView(Request $request){
         return view('excel.importFile');
     }
-
     public function import(Request $request){
         $request->validate([
             'file' => 'required|file |mimes:xlsx,csv|max:2048'
@@ -71,7 +60,6 @@ class UserController extends Controller
         Excel::import(new ImportUser, $request->file('file')->store('files'));
         return redirect()->back()->with('users_added','The users have been added');
     }
-
     public function exportUsers(Request $request){
         return Excel::download(new ExportUser, 'users.xlsx');
     }

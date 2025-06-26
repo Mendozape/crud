@@ -44,8 +44,8 @@ Route::middleware('auth:sanctum')->get('/get-token', function (Request $request)
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/articles', ArticleController::class);
     Route::get('/users', [ApiController::class, 'users']);
-    Route::get('/admin/isAdmin', [UserController::class, 'isAdmin']);
-    Route::get('/admin/notis/{id}', [UserController::class, 'notis']);
+    Route::get('/notis/countNotis', [UserController::class, 'countNotis']);
+    Route::get('/notis/notis/{id}', [UserController::class, 'notis']);
     Route::get('/users/count', [UserController::class, 'count']);
     Route::get('/clients/count', [ClientController::class, 'count']);
     Route::get('/roles/count', [RolesController::class, 'count']);

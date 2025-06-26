@@ -13,16 +13,35 @@
     @php( $logout_url = $logout_url ? url($logout_url) : '' )
 @endif
 
+{{-- Notifications icon - separate from user menu --}}
+<li class="nav-item dropdown">
+    <a class="nav-link" href="#" id="navbarDropdownNotifications" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Notifications">
+        <i class="fas fa-bell text-warning"></i>
+        <span class="badge badge-danger navbar-badge">3</span> {{-- Notification count badge --}}
+    </a>
+    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" aria-labelledby="navbarDropdownNotifications">
+        <span class="dropdown-item dropdown-header">3 Notifications</span>
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item">
+            <i class="fas fa-envelope mr-2"></i> 1 new message
+            <span class="float-right text-muted text-sm">3 mins</span>
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+    </div>
+</li>
+
+{{-- User menu dropdown --}}
 <li class="nav-item dropdown user-menu">
 
     {{-- User menu toggler --}}
-    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" title="{{ Auth::user()->name }}">
         @if(config('adminlte.usermenu_image'))
             <img src="{{ Auth::user()->adminlte_image() }}"
                  class="user-image img-circle elevation-2"
                  alt="{{ Auth::user()->name }}">
         @endif
-        <span @if(config('adminlte.usermenu_image')) class="d-none d-md-inline" @endif>
+        <span class="d-inline align-middle text-nowrap">
             {{ Auth::user()->name }}
         </span>
     </a>
