@@ -61,9 +61,6 @@ export default function UserCount() {
 
     return (
         <section className="section" align="center">
-            <div className="section-header" align="center">
-                <h1>Dashboard</h1>
-            </div>
             <div className="section-body">
                 <div className="row">
                     <div className="col-lg-12">

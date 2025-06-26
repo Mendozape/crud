@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
-// Configure Axios to include cookies in requests (needed for Laravel Sanctum)
+// Configure Axios
 axios.defaults.withCredentials = true;
 
-// Function to get CSRF token from Laravel Sanctum
 const getCsrfToken = async () => {
     try {
         await axios.get('/sanctum/csrf-cookie');
@@ -15,74 +14,66 @@ const getCsrfToken = async () => {
     }
 };
 
-export default function Notifications() {
+export default function NotiPage() {
     const [countNotis, setCountNotis] = useState([]);
-    let notis = [];
+    const [loading, setLoading] = useState(true);
+    const location = useLocation();
 
     useEffect(() => {
         const fetchNotiStatus = async () => {
             try {
-                // First, get the CSRF cookie (required by Sanctum)
                 await getCsrfToken();
-
-                // Then fetch countNotis status from the API
                 const response = await axios.get('/api/notis/countNotis', {
-                    withCredentials: true,
                     headers: {
                         'Accept': 'application/json',
                     },
                 });
 
-                // If admin data exists, store it in state
                 if (response.data && response.data.countNotis) {
-                    setCountNotis(response.data.countNotis);
+                    setCountNotis(Object.values(response.data.countNotis));
                 } else {
-                    setCountNotis([]); // If no countNotis data, set an empty array
+                    setCountNotis([]);
                 }
             } catch (error) {
-                console.error('Error fetching admin:', error);
-                setCountNotis([]); // On error, set empty array
+                console.error('Error fetching notifications:', error);
+                setCountNotis([]);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchNotiStatus();
     }, []);
 
-    // Convert countNotis object to array (if needed)
-    if (countNotis.length >= 1) {
-        for (let key in countNotis) {
-            notis.push(countNotis[key]);
-        }
-    }
+    if (loading) return <p>Loading notifications...</p>;
 
     return (
         <div>
             <div>
-                <h1>Notifications</h1>
+                <h3>Notifications</h3>
             </div>
 
             <div className='d-flex'>
                 {/* Sidebar with list of notifications */}
                 <div>
                     <ul>
-                        {notis.map((row, index) => (
-                            <li key={index}>
+                        {countNotis.map((row) => (
+                            <li key={row.id}>
                                 <NavLink
-                                    key={row.id}
-                                    to={`/home/${row.id}`}
+                                    to={row.id}
                                     className={({ isActive }) =>
                                         isActive ? 'text-danger' : ''
                                     }
                                 >
-                                    {row.data.name}
+                                    {row.data?.name || 'Unnamed Notification'}
                                 </NavLink>
                             </li>
                         ))}
                     </ul>
                 </div>
 
-                {/* Outlet for rendering nested route */}
-                <div className='ml-4'>
+                {/* Detail view */}
+                <div className='ml-4' style={{ flex: 1 }}>
                     <Outlet />
                 </div>
             </div>

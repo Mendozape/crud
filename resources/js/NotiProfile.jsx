@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
+// Always include credentials (cookies) in Axios requests
 axios.defaults.withCredentials = true;
 
+// Get CSRF token from Laravel Sanctum
 const getCsrfToken = async () => {
   try {
     await axios.get('/sanctum/csrf-cookie');
@@ -13,8 +15,7 @@ const getCsrfToken = async () => {
 };
 
 export default function NotiProfile() {
-  const { notiId } = useParams();
-  const [notiObj, setNotiObj] = useState(null);
+  const { id } = useParams(); // React Router param (must match :id in router)
   const [notiList, setNotiList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,26 +24,24 @@ export default function NotiProfile() {
     const fetchNotification = async () => {
       try {
         await getCsrfToken();
-        //const response = await axios.get(`/api/admin/notis/${notiId}`, {
-          const response = await axios.get(`/api/notis/notis/${notiId}`, {
+
+        // Update the endpoint below if your Laravel route is different
+        const response = await axios.get(`/api/notis/notis/${id}`, {
           headers: { Accept: 'application/json' },
         });
 
         console.log('Notification response:', response.data);
 
         if (response.data && response.data.noti) {
-          setNotiObj(response.data.noti);
-          // Convert the object with numeric keys into an array of notification objects
+          // Convert object into array if needed
           const valuesArray = Object.values(response.data.noti);
           setNotiList(valuesArray);
         } else {
-          setNotiObj(null);
           setNotiList([]);
         }
       } catch (err) {
         console.error('Error fetching notification:', err);
         setError('Failed to load notification.');
-        setNotiObj(null);
         setNotiList([]);
       } finally {
         setIsLoading(false);
@@ -50,7 +49,7 @@ export default function NotiProfile() {
     };
 
     fetchNotification();
-  }, [notiId]);
+  }, [id]);
 
   if (isLoading) return <p>Loading notification...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
@@ -59,8 +58,20 @@ export default function NotiProfile() {
   return (
     <div>
       {notiList.map((item) => (
-        <div key={item.id} style={{ border: '1px solid #ccc', marginBottom: '1rem', padding: '1rem' }}>
+        <div
+          key={item.id}
+          style={{
+            border: '1px solid #ccc',
+            borderRadius: '6px',
+            marginBottom: '1rem',
+            padding: '1rem',
+            backgroundColor: '#f9f9f9',
+          }}
+        >
           <p><strong>ID:</strong> {item.id}</p>
+          <p><strong>Name:</strong> {item.data?.name || 'No name'}</p>
+          <p><strong>Created at:</strong> {item.created_at}</p>
+          {/* Add more fields as needed */}
         </div>
       ))}
     </div>

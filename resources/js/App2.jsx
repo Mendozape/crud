@@ -1,14 +1,20 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import NotiPage from './NotiPage';
-import NotiProfile from './NotiProfile';
-import Stats from './Stats';
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 
-// Always send cookies with axios
+import Stats from "./Stats";
+import NotiPage from "./NotiPage";
+import NotiProfile from "./NotiProfile";
+import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
+
+// Axios setup
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = 'http://localhost:8000';
+axios.defaults.baseURL = "http://localhost:8000";
 
 const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -16,26 +22,17 @@ const App = () => {
   const [reloadAttempted, setReloadAttempted] = useState(false);
 
   useEffect(() => {
-    // Step 1: Get CSRF cookie
-    axios.get('/sanctum/csrf-cookie')
-      .then(() => {
-        // Step 2: Check if the user is authenticated
-        return axios.get('/api/user');
-      })
-      .then(response => {
-        console.log('Authenticated user:', response.data);
+    axios
+      .get("/sanctum/csrf-cookie")
+      .then(() => axios.get("/api/user"))
+      .then((response) => {
         setAuthenticated(true);
         setLoading(false);
       })
-      .catch(error => {
-        console.warn('User not authenticated:', error);
-        // Detect 419 error (CSRF token expired)
-        if (error.response && error.response.status === 419) {
-          if (!reloadAttempted) {
-            setReloadAttempted(true);
-            // Reload the page to try to obtain a new CSRF token
-            window.location.reload();
-          }
+      .catch((error) => {
+        if (error.response && error.response.status === 419 && !reloadAttempted) {
+          setReloadAttempted(true);
+          window.location.reload();
         } else {
           setAuthenticated(false);
           setLoading(false);
@@ -52,10 +49,10 @@ const App = () => {
         <button
           onClick={async () => {
             try {
-              await axios.get('/sanctum/csrf-cookie');
-              window.location.href = 'http://localhost:8000';
+              await axios.get("/sanctum/csrf-cookie");
+              window.location.href = "http://localhost:8000";
             } catch (error) {
-              console.error('CSRF init failed:', error);
+              console.error("CSRF init failed:", error);
             }
           }}
         >
@@ -65,28 +62,38 @@ const App = () => {
     );
   }
 
+  // Routes
   const router = createBrowserRouter([
     {
-      path: '/home',
+      path: "/home",
+      element: <Stats />,
+    },
+    {
+      path: "/notificationsList",
       element: <NotiPage />,
       children: [
         {
-          path: ':notiId',
+          path: ":id",
           element: <NotiProfile />,
         },
       ],
+      errorElement: <div style={{ padding: 20 }}>Error loading notifications page</div>,
     },
     {
-      path: '/',
+      path: "/",
       element: <Navigate to="/home" replace />,
+    },
+    {
+      path: "*",
+      element: <div style={{ padding: 20 }}>404 - Page Not Found</div>,
     },
   ]);
 
   return (
-    <div>
+    <>
+      <NotificationBadgeUpdater />
       <RouterProvider router={router} />
-      <Stats />
-    </div>
+    </>
   );
 };
 
