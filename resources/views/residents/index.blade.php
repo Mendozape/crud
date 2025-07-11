@@ -1,6 +1,7 @@
 
 @extends('adminlte::page')
 @section('title', 'Dashboard')
+
 @section('content_header')
 	<div id="header"></div>
 	<meta charset="utf-8">

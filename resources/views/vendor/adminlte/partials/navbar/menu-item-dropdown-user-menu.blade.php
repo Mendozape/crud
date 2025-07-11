@@ -34,7 +34,7 @@
 <li class="nav-item dropdown user-menu">
 
     {{-- User menu toggler --}}
-    <a class="nav-link" href="#" onclick="event.preventDefault(); window.history.pushState({}, '', '/notifications'); window.dispatchEvent(new PopStateEvent('popstate'));">
+    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
         @if(config('adminlte.usermenu_image'))
             <img src="{{ Auth::user()->adminlte_image() }}"
                  class="user-image img-circle elevation-2"
@@ -45,7 +45,7 @@
         </span>
     </a>
 
-    {{-- User menu dropdown --}}
+    {{-- User menu dropdown content --}}
     <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
 
         {{-- User menu header --}}

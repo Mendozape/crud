@@ -1,16 +1,16 @@
 <?php
 
 namespace App\Notifications;
-
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class DataBase extends Notification
+class UserRegisteredNotification extends Notification
 {
-    public $user;
     use Queueable;
+
+    public $user;
 
     /**
      * Create a new notification instance.
@@ -23,6 +23,7 @@ class DataBase extends Notification
     /**
      * Get the notification's delivery channels.
      *
+     * @param  mixed  $notifiable
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -30,18 +31,18 @@ class DataBase extends Notification
         return ['database'];
     }
 
-
     /**
      * Get the array representation of the notification.
      *
+     * @param  mixed  $notifiable
      * @return array<string, mixed>
      */
-    public function toDataBase(object $notifiable): array
+    public function toDatabase(object $notifiable): array
     {
         return [
-            'name' => $this->user->name,
-            'message'=>'Has just registered',
-            'url'=>'/'
+            'name' => 'User Registered',
+            'message' => 'A new user named "' . $this->user->name . '" has just registered.',
+            'url' => route('usuarios.index'), // Cambia esta ruta si quieres
         ];
     }
 }

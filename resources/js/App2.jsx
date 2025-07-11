@@ -20,7 +20,6 @@ const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reloadAttempted, setReloadAttempted] = useState(false);
-
   useEffect(() => {
     axios
       .get("/sanctum/csrf-cookie")

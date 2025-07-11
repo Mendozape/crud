@@ -13,7 +13,7 @@ const NotificationBadgeUpdater = () => {
 
       const badge = document.getElementById("notification-count");
       if (badge) {
-        badge.textContent = count > 0 ? count : '';
+        badge.textContent = count > 0 ? count : "";
       }
     } catch (err) {
       console.error("Failed to fetch notification count:", err);
@@ -23,12 +23,12 @@ const NotificationBadgeUpdater = () => {
   useEffect(() => {
     fetchNotificationCount();
 
-    // Optional: refresh every 60 seconds
-    const interval = setInterval(fetchNotificationCount, 60000);
-    return () => clearInterval(interval);
+    // Aquí puedes omitir el intervalo si ya tienes Echo funcionando
+    // const interval = setInterval(fetchNotificationCount, 60000);
+    // return () => clearInterval(interval);
   }, []);
 
-  return null; // No visible UI
+  return null;
 };
 
 export default NotificationBadgeUpdater;
