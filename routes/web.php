@@ -33,10 +33,14 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+
+// Protected routes (only accessible for authenticated users)
+/*Route::middleware(['auth'])->group(function () {
+    // Route to show the user profile
+    Route::get('/user/profile', [UserController::class, 'show'])->name('profile.show');
+});*/
+
 Route::middleware(['auth'])->group(function(){
-    // Uncomment this line if you want to enable residents resource routes
-    // Route::resource('residents',ResidentController::class);
-    Route::get('/home',[HomeController::class, 'index'])->name('index');
     Route::get('/livewire',function () { 
         return view('/livewire/home'); 
     });
@@ -66,6 +70,7 @@ Route::middleware(['auth'])->group(function(){
     })->name('apiFetch');
     Route::get('/resident',[ResidentController::class, 'redire'])->name('redire');
     Route::get('/fees',[FeeController::class, 'redire2'])->name('redire2');
+    //Route::get('/home',[HomeController::class, 'index'])->name('index');
     /*
      * SPA catch-all route
      * This route must be last in the group.

@@ -63,4 +63,13 @@ class UserController extends Controller
     public function exportUsers(Request $request){
         return Excel::download(new ExportUser, 'users.xlsx');
     }
+    /*public function show()
+    {
+        // Get authenticated user
+        $user = Auth::user();
+
+        // Return a Blade view (you must create it at resources/views/user/profile.blade.php)
+        return view('user.profile', compact('user'));
+    }*/
+
 }

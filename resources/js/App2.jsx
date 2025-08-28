@@ -7,9 +7,9 @@ import {
   Navigate,
 } from "react-router-dom";
 
-import Stats from "./Stats";
-import NotiPage from "./NotiPage";
-import NotiProfile from "./NotiProfile";
+import Stats from "./pages/Stats";
+import NotiPage from "./pages/NotiPage";
+import NotiProfile from "./pages/NotiProfile";
 import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 
 // Axios setup
