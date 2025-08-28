@@ -9,151 +9,174 @@ const TopNav = () => {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Ajuste de margen/padding para body y div#App
   useEffect(() => {
-    document.body.style.paddingTop = "0px";
-    document.body.style.marginTop = "0px";
+    const handleClickOutside = (event) => {
+      if (dropdownOpen && !event.target.closest('.user-dropdown')) {
+        setDropdownOpen(false);
+      }
+    };
 
-    const appDiv = document.getElementById("App");
-    if (appDiv) {
-      appDiv.style.margin = "0";
-      appDiv.style.padding = "0";
-    }
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen]);
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-
-  const handleNotificationsClick = (e) => {
-    e.preventDefault();
-    navigate("/notificationsList");
-  };
-
-  const handleProfileClick = (e) => {
-    e.preventDefault();
-    navigate("/profile");
-  };
+  const handleNotificationsClick = () => navigate("/notificationsList");
+  const handleProfileClick = () => navigate("/profile");
 
   const handleLogout = (e) => {
     e.preventDefault();
     const form = document.createElement("form");
     form.method = "POST";
     form.action = logoutUrl;
-
     const csrfInput = document.createElement("input");
     csrfInput.type = "hidden";
     csrfInput.name = "_token";
     csrfInput.value = laravel.csrfToken || "";
     form.appendChild(csrfInput);
-
     document.body.appendChild(form);
     form.submit();
   };
 
   const toggleSidebar = () => {
-    document.body.classList.toggle("sidebar-collapse");
+    if (typeof window.toggleAdminSidebar === 'function') {
+      window.toggleAdminSidebar();
+    } else {
+      document.body.classList.toggle('sidebar-collapse');
+      document.body.classList.toggle('sidebar-open');
+    }
   };
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
-    } else if (document.exitFullscreen) {
+    } else {
       document.exitFullscreen();
     }
   };
 
   return (
-    <nav
-      className="main-header navbar navbar-expand-md navbar-white navbar-light"
-      style={{
-        margin: 0,
-        padding: 0,
-        top: 0,
-        position: "fixed",
-        width: "100%",
-        zIndex: 1030,
-      }}
-    >
-      <div
-        className="container d-flex align-items-center justify-content-between"
-        style={{ paddingTop: 0, paddingBottom: 0 }}
+    <>
+      {/* BURGER ICON - SOLO A LA IZQUIERDA */}
+      <button
+        onClick={toggleSidebar}
+        className="burger-button"
+        title="Toggle Sidebar"
       >
-        {/* Left: Hamburger */}
-        <button className="btn btn-link" onClick={toggleSidebar}>
-          <i className="fas fa-bars"></i>
+        <i className="fas fa-bars"></i>
+      </button>
+
+      {/* CONTENEDOR DERECHO - TODO ESTO VA A LA DERECHA GRACIAS AL CSS */}
+      <div className="nav-right-container">
+        
+        {/* Fullscreen */}
+        <button
+          onClick={toggleFullScreen}
+          className="nav-right-button"
+          title="Pantalla completa"
+        >
+          <i className="fas fa-expand-arrows-alt"></i>
         </button>
 
-        {/* Right: Fullscreen, Notifications, User */}
-        <ul className="navbar-nav ml-auto d-flex align-items-center">
-          {/* Fullscreen */}
-          <li className="nav-item">
-            <button
-              className="nav-link btn btn-link"
-              title="Fullscreen"
-              onClick={toggleFullScreen}
-            >
-              <i className="fas fa-expand-arrows-alt"></i>
-            </button>
-          </li>
+        {/* Notifications */}
+        <button
+          onClick={handleNotificationsClick}
+          className="nav-right-button"
+          title="Notificaciones"
+        >
+          <i className="fas fa-bell text-warning"></i>
+        </button>
 
-          {/* Notifications */}
-          <li className="nav-item">
-            <button
-              className="nav-link btn btn-link"
-              title="Notifications"
-              onClick={handleNotificationsClick}
-            >
-              <i className="fas fa-bell text-warning"></i>
-            </button>
-          </li>
-
-          {/* User menu */}
-          <li className="nav-item dropdown user-menu">
-            <button
-              className="nav-link btn btn-link d-flex align-items-center"
-              onClick={toggleDropdown}
-              style={{ maxWidth: "200px" }} // ancho máximo del botón
-            >
-              {user.image && (
-                <img
-                  src={user.image}
-                  className="user-image img-circle elevation-2"
-                  alt={user.name || "User"}
-                />
-              )}
-              <span
-                className="d-inline-block text-truncate"
+        {/* User Dropdown */}
+        <div className="user-dropdown" style={{ position: "relative" }}>
+          <button
+            onClick={toggleDropdown}
+            style={{
+              border: "1px solid #dee2e6",
+              background: "#f8f9fa",
+              cursor: "pointer",
+              padding: "6px 12px",
+              borderRadius: "20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              minWidth: "120px"
+            }}
+          >
+            {user.image ? (
+              <img
+                src={user.image}
                 style={{
-                  marginLeft: "5px",
-                  maxWidth: "calc(100% - 40px)", // ajusta según tamaño de imagen
+                  width: "25px",
+                  height: "25px",
+                  borderRadius: "50%",
+                  objectFit: "cover"
                 }}
-                title={user.name}
-              >
-                {user.name || "Guest"}
-              </span>
-            </button>
-
-            {dropdownOpen && (
-              <ul className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <li className="user-footer d-flex justify-content-between">
-                  <button
-                    onClick={handleProfileClick}
-                    className="btn btn-default btn-flat"
-                  >
-                    <i className="fa fa-fw fa-user text-lightblue"></i> Profile
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="btn btn-default btn-flat"
-                  >
-                    <i className="fa fa-fw fa-power-off text-red"></i> Logout
-                  </button>
-                </li>
-              </ul>
+                alt="User"
+              />
+            ) : (
+              <i className="fas fa-user-circle"></i>
             )}
-          </li>
-        </ul>
+            <span style={{ fontSize: "14px", fontWeight: "500" }}>
+              {user.name || "Usuario"}
+            </span>
+          </button>
+
+          {dropdownOpen && (
+            <div style={{
+              position: "absolute",
+              right: 0,
+              top: "45px",
+              backgroundColor: "white",
+              border: "1px solid #ddd",
+              borderRadius: "6px",
+              padding: "8px 0",
+              minWidth: "140px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              zIndex: 1040
+            }}>
+              <button
+                onClick={handleProfileClick}
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px"
+                }}
+              >
+                <i className="fas fa-user text-primary"></i>
+                <span>Perfil</span>
+              </button>
+              
+              <div style={{ height: "1px", backgroundColor: "#eee", margin: "5px 0" }}></div>
+              
+              <button
+                onClick={handleLogout}
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px"
+                }}
+              >
+                <i className="fas fa-sign-out-alt text-danger"></i>
+                <span>Salir</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </nav>
+    </>
   );
 };
 

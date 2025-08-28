@@ -34,12 +34,6 @@ Route::middleware([
     })->name('dashboard');
 });
 
-// Protected routes (only accessible for authenticated users)
-/*Route::middleware(['auth'])->group(function () {
-    // Route to show the user profile
-    Route::get('/user/profile', [UserController::class, 'show'])->name('profile.show');
-});*/
-
 Route::middleware(['auth'])->group(function(){
     Route::get('/livewire',function () { 
         return view('/livewire/home'); 

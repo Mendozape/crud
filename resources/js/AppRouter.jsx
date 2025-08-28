@@ -1,6 +1,5 @@
 import React from "react";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
-
 import TopNav from "./components/TopNav";
 import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 import Stats from "./pages/Stats";
@@ -8,25 +7,20 @@ import NotiPage from "./pages/NotiPage";
 import NotiProfile from "./pages/NotiProfile";
 import ProfilePage from "./pages/ProfilePage";
 
-// Layout component: always shows TopNav
 const Layout = () => (
-  <>
+  <div style={{ paddingTop: '0' }}>
     <TopNav />
     <NotificationBadgeUpdater />
-    <Outlet /> {/* Page content */}
-  </>
+    <Outlet />
+  </div>
 );
 
 const router = createBrowserRouter([
   {
-    element: <Layout />, // Wrap all routes
+    element: <Layout />,
     children: [
       { path: "/home", element: <Stats /> },
-      {
-        path: "/notificationsList",
-        element: <NotiPage />,
-        children: [{ path: ":id", element: <NotiProfile /> }],
-      },
+      { path: "/notificationsList", element: <NotiPage /> },
       { path: "/profile", element: <ProfilePage /> },
       { path: "/", element: <Stats /> },
       { path: "*", element: <div>404 - Page Not Found</div> },
