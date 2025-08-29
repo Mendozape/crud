@@ -8,9 +8,9 @@ import {
 } from "react-router-dom";
 
 import Stats from "./pages/Stats";
-import NotiPage from "./pages/NotiPage";
-import NotiProfile from "./pages/NotiProfile";
-import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
+import NotiPage from "./pages/Notfications/NotiPage";
+import NotiProfile from "./pages/Notfications/NotiProfile";
+import NotificationBadgeUpdater from "./Components/NotificationBadgeUpdater";
 
 // Axios setup
 axios.defaults.withCredentials = true;
