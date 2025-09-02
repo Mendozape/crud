@@ -1,136 +1,88 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { createBrowserRouter, RouterProvider, Navigate, useLocation } from 'react-router-dom';
+import * as React from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
-// Import pages
-import Stats from './pages/Stats';
-import NotiPage from './pages/Notifications/NotiPage';
-import NotiProfile from './pages/Notifications/NotiProfile';
-import Permissions from './pages/Permissions';
-import Users from './pages/Users';
-import NotificationBadgeUpdater from './components/NotificationBadgeUpdater';
+import Stats from "./pages/Stats";
+import NotiPage from "./pages/Notfications/NotiPage";
+import NotiProfile from "./pages/Notfications/NotiProfile";
+import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 
-// Axios configuration
+// Axios setup
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = "http://localhost:8000";
 
-// Component to handle navigation from Blade topnav
-const BladeNavigationHandler = () => {
-    const location = useLocation();
-    
-    useEffect(() => {
-        // Sync React Router with browser URL
-        // This ensures that when you click links in Blade, React Router knows about it
-        const handleBladeNavigation = () => {
-            // React Router will automatically detect URL changes
-        };
-        
-        window.addEventListener('popstate', handleBladeNavigation);
-        return () => window.removeEventListener('popstate', handleBladeNavigation);
-    }, []);
-
-    return null;
-};
-
 const App = () => {
-    const [authenticated, setAuthenticated] = useState(false);
-    const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [reloadAttempted, setReloadAttempted] = useState(false);
 
-    // Check authentication status
-    useEffect(() => {
-        const checkAuth = async () => {
+  useEffect(() => {
+    axios
+      .get("/sanctum/csrf-cookie")
+      .then(() => axios.get("/api/user"))
+      .then(() => {
+        setAuthenticated(true);
+        setLoading(false);
+      })
+      .catch((error) => {
+        if (error.response && error.response.status === 419 && !reloadAttempted) {
+          setReloadAttempted(true);
+          window.location.reload();
+        } else {
+          setAuthenticated(false);
+          setLoading(false);
+        }
+      });
+  }, [reloadAttempted]);
+
+  if (loading) return <div>Loading...</div>;
+
+  if (!authenticated) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h2>Session not started</h2>
+        <button
+          onClick={async () => {
             try {
-                await axios.get("/sanctum/csrf-cookie");
-                await axios.get("/api/user");
-                setAuthenticated(true);
+              await axios.get("/sanctum/csrf-cookie");
+              window.location.href = "http://localhost:8000";
             } catch (error) {
-                setAuthenticated(false);
-            } finally {
-                setLoading(false);
+              console.error("CSRF init failed:", error);
             }
-        };
+          }}
+        >
+          Login
+        </button>
+      </div>
+    );
+  }
 
-        checkAuth();
-    }, []);
+  return (
+    <>
+      <NotificationBadgeUpdater />
+      <BrowserRouter>
+        <Routes>
+          {/* Redirect root to /home */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
 
-    if (loading) return <div>Loading...</div>;
+          {/* Main routes */}
+          <Route path="/home" element={<Stats />} />
+          <Route path="/notificationsList" element={<NotiPage />}>
+            <Route path=":id" element={<NotiProfile />} />
+          </Route>
 
-    if (!authenticated) {
-        return (
-            <div style={{ padding: 40 }}>
-                <h2>Session not started</h2>
-                <button onClick={() => window.location.href = "http://localhost:8000"}>
-                    Login
-                </button>
-            </div>
-        );
-    }
-
-    // Router configuration - React Router maneja TODAS las rutas
-    const router = createBrowserRouter([
-        {
-            path: "/home",
-            element: (
-                <>
-                    <BladeNavigationHandler />
-                    <NotificationBadgeUpdater />
-                    <Stats />
-                </>
-            ),
-        },
-        {
-            path: "/notificationsList",
-            element: (
-                <>
-                    <BladeNavigationHandler />
-                    <NotificationBadgeUpdater />
-                    <NotiPage />
-                </>
-            ),
-            children: [
-                {
-                    path: ":id",
-                    element: <NotiProfile />,
-                },
-            ],
-        },
-        {
-            path: "/permissions",
-            element: (
-                <>
-                    <BladeNavigationHandler />
-                    <NotificationBadgeUpdater />
-                    <Permissions />
-                </>
-            ),
-        },
-        {
-            path: "/users",
-            element: (
-                <>
-                    <BladeNavigationHandler />
-                    <NotificationBadgeUpdater />
-                    <Users />
-                </>
-            ),
-        },
-        {
-            path: "/",
-            element: <Navigate to="/home" replace />,
-        },
-        {
-            path: "*",
-            element: (
-                <div style={{ padding: 20 }}>
-                    404 - Page Not Found
-                    <br />
-                    <button onClick={() => window.history.back()}>Go Back</button>
-                </div>
-            ),
-        },
-    ]);
-
-    return <RouterProvider router={router} />;
+          {/* Catch-all: redirect everything else to /home */}
+          <Route path="*" element={<Navigate to="/home" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </>
+  );
 };
 
 export default App;
