@@ -15,7 +15,7 @@ import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 
 // Axios setup
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "http://localhost:8000";
+axios.defaults.baseURL = "http://localhost:8000";d3a11e4
 
 const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
