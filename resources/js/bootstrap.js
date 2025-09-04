@@ -43,7 +43,7 @@ window.Echo = new Echo({
  * Increment the bell badge automatically and dispatch a custom event.
  */
 window.Echo.channel('notifications')
-    .listen('UserRegistered', (e) => {
+    .listen('.UserRegistered', (e) => {
         console.log('Notification received:', e);
 
         const badge = document.getElementById('notification-count');
@@ -52,6 +52,8 @@ window.Echo.channel('notifications')
             badge.textContent = count + 1;
         }
 
-        // Dispatch custom event for React components to listen and update state
-        window.dispatchEvent(new CustomEvent('notification-updated'));
+        // Notificar a React si quieres que también lo sepa
+        window.dispatchEvent(new CustomEvent('notification-updated', { detail: e }));
     });
+
+

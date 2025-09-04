@@ -58,8 +58,8 @@ class UsuariosController extends Controller
         $admins = User::role('Admin')->get(); // 6. Get admins
         Notification::send($admins, new DataBase($user)); // 7. Notify admins
 
-        event(new UserRegistered($user)); // 8. Dispatch broadcast event
-
+        //event(new UserRegistered($user)); // 8. Dispatch broadcast event
+        event(new UserRegistered($user->name));
         return redirect()->route('usuarios.index') // 9. Redirect with message
             ->with('user_added', 'El usuario ha sido creado con éxito');
     }

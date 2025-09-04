@@ -40,4 +40,8 @@ class UserRegistered implements ShouldBroadcast
             'message' => "A new user \"{$this->userName}\" has been registered."
         ];
     }
+    public function broadcastAs()
+    {
+        return 'UserRegistered';
+    }
 }

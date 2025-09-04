@@ -22,13 +22,7 @@ const NotificationBadgeUpdater = () => {
 
   useEffect(() => {
     fetchNotificationCount();
-
-    // Aquí puedes omitir el intervalo si ya tienes Echo funcionando
-    // const interval = setInterval(fetchNotificationCount, 60000);
-    // return () => clearInterval(interval);
   }, []);
-
   return null;
 };
-
 export default NotificationBadgeUpdater;

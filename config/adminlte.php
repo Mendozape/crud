@@ -347,22 +347,30 @@ return [
                 ],
             ],
         ],
-        [
+        /*[
             'text' => 'CRUD',
             'url'  => 'client/',
             'icon' => 'fas fa-fw fa-user',
-        ],
+        ],*/
         [
-            'text' => 'PAGOS',
+            'text' => 'PAGOS (React)',
             'url'  => 'fees/',
             'icon' => 'fas fa-fw fa-user',
         ],
-        [
-            'text' => 'RESIDENTES',
-            'url'  => 'resident/',
+        /*[
+            'text' => 'RESIDENTES (React)',
+            'url'  => 'resident',
             'icon' => 'fas fa-fw fa-user',
-        ],
+        ],*/
         [
+        'text' => 'RESIDENTES (React)',
+        'url'  => '#',
+        'icon' => 'fas fa-fw fa-user',
+        'attributes' => [
+            'onclick' => "event.preventDefault(); window.history.pushState({}, '', '/residents'); window.dispatchEvent(new PopStateEvent('popstate'));",
+        ],
+    ],
+        /*[
             'text'    => 'CRUD (Livewire)',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
@@ -371,7 +379,7 @@ return [
                     'url'  => 'employees',
                 ],
             ],
-        ],
+        ],*/
         /*[
             'text'    => 'WEBSOCKETS',
             'icon'    => 'fas fa-fw fa-share',

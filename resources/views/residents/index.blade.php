@@ -14,5 +14,5 @@
 @stop
 @section('js')
 	@viteReactRefresh
-	@vite('resources/js/Components/index.jsx')
+	@vite('resources/js/components/index.jsx')
 @stop

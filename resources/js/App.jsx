@@ -1,21 +1,25 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+// Pages
 import Stats from "./pages/Stats";
 import NotiPage from "./pages/Notfications/NotiPage";
 import NotiProfile from "./pages/Notfications/NotiProfile";
+
+// Residents SPA
+import ShowResidents from "./Components/ShowResidents";
+import CreateResidents from "./Components/CreateResidents";
+import EditResidents from "./Components/EditResidents";
+import CreatePayments from "./Components/CreatePayments";
+
+// Components
 import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 
 // Axios setup
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "http://localhost:8000";d3a11e4
+axios.defaults.baseURL = "http://localhost:8000";
 
 const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
@@ -65,7 +69,9 @@ const App = () => {
 
   return (
     <>
+      {/* Notification bell always mounted so it updates globally */}
       <NotificationBadgeUpdater />
+
       <BrowserRouter>
         <Routes>
           {/* Redirect root to /home */}
@@ -77,7 +83,13 @@ const App = () => {
             <Route path=":id" element={<NotiProfile />} />
           </Route>
 
-          {/* Catch-all: redirect everything else to /home */}
+          {/* Residents SPA routes */}
+          <Route path="/residents" element={<ShowResidents />} />
+          <Route path="/residents/create" element={<CreateResidents />} />
+          <Route path="/residents/edit/:id" element={<EditResidents />} />
+          <Route path="/residents/payment/:id" element={<CreatePayments />} />
+
+          {/* Catch-all: redirect unmatched routes to /home */}
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </BrowserRouter>

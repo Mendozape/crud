@@ -5,19 +5,23 @@ class SpaController extends Controller
 {
     public function index()
     {
-        // Get unread notifications and admin status
-        $notifications = auth()->user()->unreadNotifications;
-        $admin = auth()->user()->isAdmin ? 'Yes' : 'No';
+        $data = null;
 
-        $data = [
-            'notifications' => $notifications,
-            'admin' => $admin,
-            'user' => auth()->user(),
-            'logout_url' => route('logout'),
-        ];
-        // Inject data into Blade view
-        return view('app')->with('data', $data);
+        // Only load stats if the route is /home
+        if (request()->is('home')) {
+            $data = [
+                'stats' => [
+                    'usersCount' => User::count(),
+                    'paymentsCount' => Payment::count(),
+                    // other data needed for home page
+                ]
+            ];
+        }
+
+        // Pass data to app.blade.php. If not home, $data will be null
+        return view('app', compact('data'));
     }
+
 }
 
 
