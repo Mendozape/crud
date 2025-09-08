@@ -73,7 +73,6 @@ export default function EditFees() {
         };
         getFeeById();
     }, [id, setErrorMessage]);
-
     return (
         <div>
             <h2>Edit Fee</h2>

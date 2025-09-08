@@ -74,8 +74,8 @@ const FeesTable = () => {
         }
     };
 
-    const editFee = (id) => navigate(`/edit/${id}`);
-    const createFee = () => navigate('/create');
+    const editFee = (id) => navigate(`/fees/edit/${id}`);
+    const createFee = () => navigate('/fees/create');
 
     const toggleModal = () => setShowModal(!showModal);
     const confirmDelete = (id) => {

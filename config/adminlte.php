@@ -307,11 +307,6 @@ return [
             'text' => 'search',
         ],
         [
-            'text' => 'blog',
-            'url'  => 'admin/blog',
-            'can'  => 'manage-blog',
-        ],
-        [
             'text' => 'Home',
             'url'  => '/home',
             'icon' => 'fas fa-fw fa-home',
@@ -322,7 +317,7 @@ return [
             'submenu' => [
                 [
                     'text' => 'Profile',
-                    'url'  => 'user/profile',
+                    'url'  => 'profile',
                     'icon' => 'fas fa-fw fa-user',
                 ],
                 [
@@ -337,14 +332,14 @@ return [
                     'text' => 'Users',
                     'url'  => 'usuarios/',
                 ],
-                [
+                /*[
                     'text' => 'Select user',
                     'url'  => 'select/',
                 ],
                 [
                     'text' => 'Excel import & export',
                     'url'  => 'excel/importFile',
-                ],
+                ],*/
             ],
         ],
         /*[
@@ -354,22 +349,14 @@ return [
         ],*/
         [
             'text' => 'PAGOS (React)',
-            'url'  => 'fees/',
+            'url'  => 'fees',
             'icon' => 'fas fa-fw fa-user',
         ],
-        /*[
-            'text' => 'RESIDENTES (React)',
-            'url'  => 'resident',
-            'icon' => 'fas fa-fw fa-user',
-        ],*/
         [
-        'text' => 'RESIDENTES (React)',
-        'url'  => '#',
-        'icon' => 'fas fa-fw fa-user',
-        'attributes' => [
-            'onclick' => "event.preventDefault(); window.history.pushState({}, '', '/residents'); window.dispatchEvent(new PopStateEvent('popstate'));",
+            'text' => 'RESIDENTES (React)',
+            'url'  => 'residents',
+            'icon' => 'fas fa-fw fa-user',
         ],
-    ],
         /*[
             'text'    => 'CRUD (Livewire)',
             'icon'    => 'fas fa-fw fa-share',

@@ -78,7 +78,7 @@ export default function EditEmployee() {
       if (response.status === 200) {
         setSuccessMessage('Resident updated successfully.');
         setErrorMessage('');
-        navigate('/resident');
+        navigate('/residents');
       }
     } catch (error) {
       setErrorMessage('Failed to update resident.');

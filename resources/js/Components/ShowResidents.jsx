@@ -64,9 +64,9 @@ const ResidentsTable = () => {
         }
     };
 
-    const editResident = (id) => navigate(`/edit/${id}`);
-    const createResident = () => navigate('/create');
-    const createPayment = (id) => navigate(`/payment/${id}`);
+    const editResident = (id) => navigate(`/residents/edit/${id}`);
+    const createResident = () => navigate('/residents/create');
+    const createPayment = (id) => navigate(`/residents/payment/${id}`);
     const toggleModal = () => setShowModal(!showModal);
     const confirmDelete = (id) => {
         setResidentToDelete(id);
@@ -78,10 +78,13 @@ const ResidentsTable = () => {
         {
             name: 'Photo',
             selector: row => {
+                // The photo is stored in storage/app/public/images, 
+                // and the 'public' disk in config/filesystems.php points to this folder.
+                // The storage link (php artisan storage:link) makes it accessible via /storage/filename
                 const photoUrl =
                     row.photo && row.photo !== 'undefined' && row.photo !== 'null' && row.photo !== ''
                         ? `http://127.0.0.1:8000/storage/${row.photo}`
-                        : `http://127.0.0.1:8000/storage/no_image.jpg`;
+                        : `http://127.0.0.1:8000/storage/no_image.png`;
                 return <img src={photoUrl} style={{ width: '50px', borderRadius: '50%' }} />;
             },
             sortable: false,

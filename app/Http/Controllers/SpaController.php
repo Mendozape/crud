@@ -5,23 +5,18 @@ class SpaController extends Controller
 {
     public function index()
     {
-        $data = null;
+        // Always include the basic user info
+        $data = [
+            'user' => auth()->user(),
+            'logout_url' => route('logout'),
+        ];
 
-        // Only load stats if the route is /home
+        // Only include notifications and admin flag if route is /home
         if (request()->is('home')) {
-            $data = [
-                'stats' => [
-                    'usersCount' => User::count(),
-                    'paymentsCount' => Payment::count(),
-                    // other data needed for home page
-                ]
-            ];
+            $data['notifications'] = auth()->user()->unreadNotifications ?? null;
+            $data['admin'] = auth()->user()->isAdmin ? 'Yes' : 'No';
         }
 
-        // Pass data to app.blade.php. If not home, $data will be null
-        return view('app', compact('data'));
+        return view('app')->with('data', $data);
     }
-
 }
-
-

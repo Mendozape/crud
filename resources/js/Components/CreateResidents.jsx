@@ -50,7 +50,7 @@ export default function CreateResidents() {
                 await axios.post(endpoint, formData, axiosOptions);
                 setSuccessMessage('Resident created successfully.');
                 setErrorMessage('');
-                navigate('/resident');
+                navigate('/residents');
             } catch (error) {
                 setErrorMessage('Failed to create resident.');
                 console.error('Error creating resident:', error);

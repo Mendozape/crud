@@ -12,5 +12,5 @@
 @stop
 @section('js')
 	@viteReactRefresh
-	@vite('resources/js/Components/fees.jsx')
+	@vite('resources/js/components/fees.jsx')
 @stop
