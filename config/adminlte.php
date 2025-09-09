@@ -322,11 +322,11 @@ return [
                 ],
                 [
                     'text' => 'Permissions',
-                    'url'  => 'permisos/',
+                    'url'  => 'permissions',
                 ],
                 [
                     'text' => 'Roles',
-                    'url'  => 'roles/',
+                    'url'  => 'roles',
                 ],
                 [
                     'text' => 'Users',

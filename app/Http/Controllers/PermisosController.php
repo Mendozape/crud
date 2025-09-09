@@ -1,111 +1,100 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
-//agregamos
-use spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+
 class PermisosController extends Controller
 {
-    function __construct()
+    public function __construct()
     {
-        $this->middleware('permission:ver-permiso|crear-permiso|editar-permiso|borrar-permiso',['only'=>['index']]);
-        $this->middleware('permission:crear-permiso',['only'=>['create','store']]);
-        $this->middleware('permission:editar-permiso',['only'=>['edit','update']]);
-        $this->middleware('permission:borrar-permiso',['only'=>['destroy']]);
-        $this->middleware('permission:borrar-permiso',['only'=>['destroy']]);
+        $this->middleware('permission:ver-permiso|crear-permiso|editar-permiso|borrar-permiso', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-permiso', ['only' => ['store']]);
+        $this->middleware('permission:editar-permiso', ['only' => ['update']]);
+        $this->middleware('permission:borrar-permiso', ['only' => ['destroy']]);
     }
+
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $permisos=Permission::paginate(10);
-        return view('permisos.index',compact('permisos'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        $permission = Permission::get();
-        return view('permisos.crear',compact('permission'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name'=>'required'
-        ]);
-        //$input=$request->all(); 
-        $permiso= Permission::create(['name'=>$request->input('name')]);
-        //$permiso->syncPermissions($request->input('permission'));
-        return redirect()->route('permisos.index')->with('permiso_added','El permiso ha sido creado con éxito');
+        $permisos = Permission::all(); // trae todos los permisos
+        return response()->json($permisos);
     }
 
     /**
      * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        //
+        $permiso = Permission::find($id);
+
+        if (!$permiso) {
+            return response()->json(['message' => 'Permiso no encontrado'], 404);
+        }
+
+        return response()->json($permiso);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Store a newly created resource in storage.
      */
-    public function edit($id)
-    {
-        $permiso = Permission::find($id);
-        $permissions = Permission::get();
-        return view('permisos.editar',compact('permiso','permissions'));
+   public function store(Request $request)
+{
+    // Validate the incoming request
+    $request->validate([
+        'name' => 'required|string|max:255',
+    ]);
+
+    try {
+        // Create the permission
+        $permiso = Permission::create([
+            'name' => $request->input('name'),
+            'guard_name' => 'web',
+        ]);
+
+        // Return success response
+        return response()->json([
+            'message' => 'Permission created successfully.',
+            'permiso' => $permiso
+        ], 201);
+
+    } catch (\Exception $e) {
+        // Log the exception for debugging
+        \Log::error('Error creating permission: ' . $e->getMessage());
+
+        // Return an error response
+        return response()->json([
+            'message' => 'Failed to create permission.',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name'=>'required'
+        $request->validate(['name' => 'required']);
+        $permiso = Permission::findOrFail($id);
+        $permiso->update(['name' => $request->input('name')]);
+
+        return response()->json([
+            'message' => 'El permiso ha sido actualizado con éxito',
+            'permiso' => $permiso
         ]);
-        $permiso = Permission::find($id);
-        $permiso->name = $request->input('name');
-        $permiso->save();
-        //$permiso->syncPermissions($request->input('permission'));
-        return redirect()->route('permisos.index')->with('permiso_edited','El permiso ha sido actualizado con éxito');
     }
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        DB::table('permissions')->where('id',$id)->delete();
-        return redirect()->route('permisos.index')->with('permiso_deleted','El permiso ha sido eliminado con éxito');
+        Permission::destroy($id);
+        return response()->json(['message' => 'El permiso ha sido eliminado con éxito']);
     }
 }

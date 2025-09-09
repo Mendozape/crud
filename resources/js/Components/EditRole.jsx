@@ -1,0 +1,94 @@
+import React, { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { MessageContext } from "./MessageContext";
+
+export default function EditRole() {
+  const { id } = useParams();
+  const [name, setName] = useState("");
+  const [permissions, setPermissions] = useState([]);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const { setErrorMessage } = useContext(MessageContext);
+  const navigate = useNavigate();
+  const axiosOptions = { withCredentials: true, headers: { Accept: "application/json" } };
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const resRole = await axios.get(`/api/roles/${id}`, axiosOptions);
+        setName(resRole.data.name);
+        setSelectedPermissions(resRole.data.permissions.map(p => p.id));
+
+        const resPerms = await axios.get("/api/permisos", axiosOptions);
+        setPermissions(resPerms.data);
+      } catch (err) {
+        console.error(err);
+        setErrorMessage("Error al cargar el rol.");
+      }
+    };
+    fetchRole();
+  }, [id, setErrorMessage]);
+
+  const togglePermission = (id) => {
+    setSelectedPermissions(prev =>
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`/api/roles/${id}`, { name, permission: selectedPermissions }, axiosOptions);
+      // Pasamos el mensaje en navigate
+      navigate("/roles", { state: { successMessage: "Rol actualizado exitosamente." } });
+    } catch (err) {
+      console.error(err);
+      setErrorMessage("Error al actualizar el rol.");
+    }
+  };
+
+  return (
+    <div className="row mb-4">
+      <div className="col-md-8 offset-md-2">
+        <div className="border rounded p-4 bg-white shadow-sm">
+          <h2 className="text-center mb-4 text-2xl font-bold">Editar Rol</h2>
+
+          <div className="mb-3">
+            <label className="form-label font-semibold">Nombre del Rol</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="form-control"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label font-semibold">Permisos:</label>
+            {permissions.map(p => (
+              <div key={p.id} className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id={`perm-${p.id}`}
+                  value={p.id}
+                  checked={selectedPermissions.includes(p.id)}
+                  onChange={() => togglePermission(p.id)}
+                />
+                <label className="form-check-label" htmlFor={`perm-${p.id}`}>
+                  {p.name}
+                </label>
+              </div>
+            ))}
+          </div>
+
+          <div className="d-flex justify-content-end">
+            <button className="btn btn-primary text-white" onClick={handleSubmit}>
+              Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

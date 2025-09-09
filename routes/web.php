@@ -43,8 +43,8 @@ Route::middleware([
     // -------------------------
     // API resource routes
     // -------------------------
-    Route::resource('permisos', PermisosController::class);
-    Route::resource('roles', RolesController::class);
+    
+    
     Route::resource('client', ClientController::class);
     Route::resource('usuarios', UsuariosController::class);
     Route::resource('select', SelectController::class);

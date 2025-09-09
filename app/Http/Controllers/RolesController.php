@@ -1,118 +1,126 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
-//agregamos
 use Spatie\Permission\Models\Role;
-use spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
 
 class RolesController extends Controller
 {
-    function __construct()
+    public function __construct()
     {
-        $this->middleware('permission:ver-rol|crear-rol|editar-rol|borrar-rol',['only'=>['index']]);
-        $this->middleware('permission:crear-rol',['only'=>['create','store']]);
-        $this->middleware('permission:editar-rol',['only'=>['edit','update']]);
-        $this->middleware('permission:borrar-rol',['only'=>['destroy']]);
+        // Middleware permissions
+        $this->middleware('permission:ver-rol|crear-rol|editar-rol|borrar-rol', ['only' => ['index', 'show']]);
+        $this->middleware('permission:crear-rol', ['only' => ['store']]);
+        $this->middleware('permission:editar-rol', ['only' => ['update']]);
+        $this->middleware('permission:borrar-rol', ['only' => ['destroy']]);
     }
+
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Display a listing of roles
      */
     public function index()
     {
-        $roles=Role::paginate(5);
-        return view('roles.index',compact('roles'));
+        try {
+            $roles = Role::with('permissions')->get(); // Get all roles with permissions
+            return response()->json($roles);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch roles.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Display a specific role
      */
-    public function create()
+    public function show($id)
     {
-        $permission = Permission::get();
-        return view('roles.crear',compact('permission'));
+        try {
+            $role = Role::with('permissions')->findOrFail($id);
+            return response()->json($role);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Role not found.',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Store a newly created role
      */
     public function store(Request $request)
     {
         $request->validate([
-            'name'=>'required',
-            'permission'=>'required'
+            'name' => 'required|string|max:255',
+            'permission' => 'required|array',
         ]);
-        //$input=$request->all(); 
-        $role= Role::create(['name'=>$request->input('name')]);
-        $role->syncPermissions($request->input('permission'));
-        return redirect()->route('roles.index')->with('role_added','El role ha sido creado con éxito');
+
+        try {
+            $role = Role::create(['name' => $request->input('name')]);
+            $role->syncPermissions($request->input('permission'));
+
+            return response()->json([
+                'message' => 'Role created successfully.',
+                'role' => $role
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create role.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $role = Role::find($id);
-        $permission = Permission::get();
-        $rolePermission = DB::table('role_has_permissions')->where('role_has_permissions.role_id',$id)
-            ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
-            ->all();
-            return view('roles.editar',compact('role','permission','rolePermission'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Update the specified role
      */
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name'=>'required',
-            'permission'=>'required'
+            'name' => 'required|string|max:255',
+            'permission' => 'required|array',
         ]);
-        $role = Role::find($id);
-        $role->name = $request->input('name');
-        $role->save();
-        $role->syncPermissions($request->input('permission'));
-        return redirect()->route('roles.index')->with('role_edited','El role ha sido actualizado con éxito');
+
+        try {
+            $role = Role::findOrFail($id);
+            $role->name = $request->input('name');
+            $role->save();
+            $role->syncPermissions($request->input('permission'));
+
+            return response()->json([
+                'message' => 'Role updated successfully.',
+                'role' => $role
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update role.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Remove the specified role
      */
     public function destroy($id)
     {
-        DB::table('roles')->where('id',$id)->delete();
-        return redirect()->route('roles.index')->with('role_deleted','El role ha sido eliminado con éxito');
+        try {
+            $role = Role::findOrFail($id);
+            $role->delete();
 
+            return response()->json([
+                'message' => 'Role deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete role.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

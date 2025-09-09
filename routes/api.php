@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\ResidentPaymentController;
+use App\Http\Controllers\PermisosController;
 use Illuminate\Support\Facades\Session;
 
 /*
@@ -54,5 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/resident_payments', ResidentPaymentController::class);
     //New route to get already-paid months for a resident and year
     Route::get('/resident_payments/{residentId}/{year}', [ResidentPaymentController::class, 'getPaidMonths']);
+    Route::apiResource('permisos', PermisosController::class);
+    Route::apiResource('roles', RolesController::class);
 });
 
