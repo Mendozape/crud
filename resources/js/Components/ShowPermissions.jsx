@@ -18,11 +18,15 @@ export default function PermisosList() {
   const [filteredPermisos, setFilteredPermisos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [permisoToDelete, setPermisoToDelete] = useState(null);
+
   const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } =
     useContext(MessageContext);
+
   const navigate = useNavigate();
 
-  // Fetch all permisos (no server pagination)
+  // Fetch all permisos
   const fetchPermisos = async () => {
     setLoading(true);
     try {
@@ -49,15 +53,19 @@ export default function PermisosList() {
     setFilteredPermisos(result);
   }, [search, permisos]);
 
-  const deletePermiso = async (id) => {
-    if (!window.confirm("¿Seguro de borrar este permiso?")) return;
+  const deletePermiso = async () => {
+    if (!permisoToDelete) return;
     try {
-      await axios.delete(`${endpoint}/${id}`, axiosOptions);
+      await axios.delete(`${endpoint}/${permisoToDelete}`, axiosOptions);
       setSuccessMessage("Permiso eliminado exitosamente.");
-      fetchPermisos(); // refresh list
+      fetchPermisos();
+      setShowModal(false);
+      setPermisoToDelete(null);
     } catch (error) {
       console.error(error);
       setErrorMessage("Error al eliminar el permiso.");
+      setShowModal(false);
+      setPermisoToDelete(null);
     }
   };
 
@@ -79,7 +87,10 @@ export default function PermisosList() {
           </button>
           <button
             className="btn btn-danger btn-sm"
-            onClick={() => deletePermiso(row.id)}
+            onClick={() => {
+              setPermisoToDelete(row.id);
+              setShowModal(true);
+            }}
           >
             Borrar
           </button>
@@ -126,6 +137,47 @@ export default function PermisosList() {
         selectableRowsHighlight
         striped
       />
+
+      {/* Bootstrap Modal Confirm */}
+      <div
+        className={`modal fade ${showModal ? "show d-block" : "d-none"}`}
+        tabIndex="-1"
+        role="dialog"
+      >
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Confirmar Eliminación</h5>
+              <button
+                type="button"
+                className="close"
+                onClick={() => setShowModal(false)}
+              >
+                <span>&times;</span>
+              </button>
+            </div>
+            <div className="modal-body">
+              ¿Está seguro de que desea eliminar este permiso?
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={deletePermiso}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -59,15 +59,22 @@ class RolesController extends Controller
             'name' => 'required|string|max:255',
             'permission' => 'required|array',
         ]);
-
         try {
-            $role = Role::create(['name' => $request->input('name')]);
-            $role->syncPermissions($request->input('permission'));
+            // Create the role with the same guard as your permissions
+            $role = Role::create([
+                'name' => $request->input('name'),
+                'guard_name' => 'web', // <- important fix
+            ]);
+            // Get the actual permission models to avoid guard mismatch
+            $permissions = Permission::whereIn('id', $request->input('permission'))->get();
+            // Sync the permissions
+            $role->syncPermissions($permissions);
 
             return response()->json([
                 'message' => 'Role created successfully.',
                 'role' => $role
             ], 201);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create role.',
@@ -75,6 +82,7 @@ class RolesController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Update the specified role

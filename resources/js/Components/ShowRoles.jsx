@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import DataTable from "react-data-table-component";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MessageContext } from "./MessageContext";
 
@@ -11,22 +11,16 @@ export default function ShowRoles() {
   const [filteredRoles, setFilteredRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
-  const navigate = useNavigate();
-  const location = useLocation(); // <-- capturamos state del navigate
 
+  const [showModal, setShowModal] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState(null);
+
+  const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } =
+    useContext(MessageContext);
+
+  const navigate = useNavigate();
   const axiosOptions = { withCredentials: true, headers: { Accept: "application/json" } };
 
-  // Mostrar mensaje de éxito enviado por EditRole (si existe)
-  useEffect(() => {
-    if (location.state?.successMessage) {
-      setSuccessMessage(location.state.successMessage);
-      // Limpiamos el state para que no se repita
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.state, setSuccessMessage, navigate, location.pathname]);
-
-  // Fetch roles
   const fetchRoles = async () => {
     setLoading(true);
     try {
@@ -41,15 +35,18 @@ export default function ShowRoles() {
     }
   };
 
-  useEffect(() => { fetchRoles(); }, []);
+  useEffect(() => {
+    fetchRoles();
+  }, []);
 
   useEffect(() => {
-    const result = roles.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
+    const result = roles.filter((r) =>
+      r.name.toLowerCase().includes(search.toLowerCase())
+    );
     setFilteredRoles(result);
   }, [search, roles]);
 
   const deleteRole = async (id) => {
-    if (!window.confirm("¿Seguro de borrar este rol?")) return;
     try {
       await axios.delete(`${endpoint}/${id}`, axiosOptions);
       setSuccessMessage("Rol eliminado exitosamente.");
@@ -61,32 +58,71 @@ export default function ShowRoles() {
   };
 
   const columns = [
-    { name: "Rol", selector: r => r.name, sortable: true },
+    { name: "Rol", selector: (r) => r.name, sortable: true },
     {
       name: "Acciones",
       right: true,
-      cell: r => (
+      cell: (r) => (
         <div className="d-flex gap-2 justify-content-end">
-          <button className="btn btn-primary btn-sm" onClick={() => navigate(`/roles/edit/${r.id}`)}>Editar</button>
-          <button className="btn btn-danger btn-sm" onClick={() => deleteRole(r.id)}>Borrar</button>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => navigate(`/roles/edit/${r.id}`)}
+          >
+            Editar
+          </button>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={() => {
+              setRoleToDelete(r.id);
+              setShowModal(true);
+            }}
+          >
+            Borrar
+          </button>
         </div>
       ),
     },
   ];
 
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => setSuccessMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => setErrorMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMessage]);
+
   return (
     <div className="mb-4 border border-primary rounded p-3">
       <div className="d-flex justify-content-between mb-2">
-        <button className="btn btn-success btn-sm text-white" onClick={() => navigate("/roles/create")}>
-          Nuevo Rol
+        <button
+          className="btn btn-success btn-sm text-white"
+          onClick={() => navigate("/roles/create")}
+        >
+          Nuevo Role
         </button>
         <input
           type="text"
           placeholder="Buscar por nombre"
           className="form-control w-25 form-control-sm"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
+      </div>
+
+      <div className="col-md-12 mt-4">
+        {successMessage && (
+          <div className="alert alert-success text-center">{successMessage}</div>
+        )}
+        {errorMessage && (
+          <div className="alert alert-danger text-center">{errorMessage}</div>
+        )}
       </div>
 
       <DataTable
@@ -98,6 +134,50 @@ export default function ShowRoles() {
         highlightOnHover
         striped
       />
+
+      {/* Bootstrap Modal Confirm */}
+      <div
+        className={`modal fade ${showModal ? "show d-block" : "d-none"}`}
+        tabIndex="-1"
+        role="dialog"
+      >
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Confirmar Eliminación</h5>
+              <button
+                type="button"
+                className="close"
+                onClick={() => setShowModal(false)}
+              >
+                <span>&times;</span>
+              </button>
+            </div>
+            <div className="modal-body">
+              ¿Está seguro de que desea eliminar este rol?
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={() => {
+                  deleteRole(roleToDelete);
+                  setShowModal(false);
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

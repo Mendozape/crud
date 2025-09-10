@@ -9,7 +9,7 @@ export default function PermisoEdit() {
   const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
   const navigate = useNavigate();
 
-  // Opciones globales de axios con credenciales
+  // Global axios options with credentials
   const axiosOptions = {
     withCredentials: true,
     headers: { Accept: "application/json" },
@@ -19,11 +19,11 @@ export default function PermisoEdit() {
     const fetchPermiso = async () => {
       try {
         const res = await axios.get(`/api/permisos/${id}`, axiosOptions);
-        console.log("Permiso API response:", res.data); // <<== mira qué trae
+        console.log("Permiso API response:", res.data); // <<== check what it returns
         setName(res.data.name);
       } catch (error) {
         console.error("Error fetching permiso:", error);
-        setErrorMessage("No se pudo cargar el permiso.");
+        setErrorMessage("Failed to load the permission.");
       }
     };
     fetchPermiso();
@@ -33,11 +33,11 @@ export default function PermisoEdit() {
     e.preventDefault();
     try {
       await axios.put(`/api/permisos/${id}`, { name }, axiosOptions);
-      setSuccessMessage("Permiso actualizado correctamente.");
+      setSuccessMessage("Permission updated successfully.");
       navigate("/permissions");
     } catch (error) {
       console.error("Error updating permiso:", error);
-      setErrorMessage("Error al actualizar el permiso.");
+      setErrorMessage("Error updating the permission.");
     }
   };
 
@@ -45,27 +45,27 @@ export default function PermisoEdit() {
     <div className="row mb-4">
       <div className="col-md-8 offset-md-2">
         <div className="border rounded p-4 bg-white shadow-sm">
-          <h2 className="text-2xl font-bold mb-4 text-center">Editar Permiso</h2>
+          <h2 className="text-2xl font-bold mb-4 text-center">Edit Permission</h2>
 
-          {/** Input para el nombre */}
+          {/** Input for the permission name */}
           <div className="mb-3">
-            <label className="form-label font-semibold">Nombre del Permiso</label>
+            <label className="form-label font-semibold">Permission Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="form-control"
-              placeholder="Ingrese el nombre del permiso"
+              placeholder="Enter the permission name"
             />
           </div>
 
-          {/** Botón actualizar */}
+          {/** Update button */}
           <div className="d-flex justify-content-end">
             <button
               onClick={handleSubmit}
               className="btn btn-primary text-white"
             >
-              Actualizar
+              Update
             </button>
           </div>
         </div>
