@@ -330,7 +330,7 @@ return [
                 ],
                 [
                     'text' => 'Users',
-                    'url'  => 'usuarios/',
+                    'url'  => 'users',
                 ],
                 /*[
                     'text' => 'Select user',

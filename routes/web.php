@@ -46,7 +46,7 @@ Route::middleware([
     
     
     Route::resource('client', ClientController::class);
-    Route::resource('usuarios', UsuariosController::class);
+    //Route::resource('usuarios', UsuariosController::class);
     Route::resource('select', SelectController::class);
 
     // -------------------------

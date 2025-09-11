@@ -4,78 +4,93 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Arr;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
-use Spatie\Permission\Models\Permission;
-use Barryvdh\DomPDF\Facade\PDF;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Notification; // Import Notification facade
-use App\Notifications\DataBase;               // Your custom notification class
-use App\Events\UserRegistered;                // Import your event class
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\DataBase;
+use App\Events\UserRegistered;
 
 class UsuariosController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:ver-usuario|crear-usuario|editar-usuario|borrar-usuario',['only'=>['index']]);
-        $this->middleware('permission:crear-usuario',['only'=>['create','store']]);
-        $this->middleware('permission:editar-usuario',['only'=>['edit','update']]);
+        // Middleware to control permissions on each action
+        $this->middleware('permission:ver-usuario|crear-usuario|editar-usuario|borrar-usuario',['only'=>['index','show']]);
+        $this->middleware('permission:crear-usuario',['only'=>['store']]);
+        $this->middleware('permission:editar-usuario',['only'=>['update']]);
         $this->middleware('permission:borrar-usuario',['only'=>['destroy']]);
     }
 
-    public function index()
+    // GET /api/usuarios
+    // Returns a paginated list of users with roles and permissions
+    public function index(Request $request)
+{
+    try {
+        $usuarios = User::with('roles')->paginate(5);
+
+        // Add permissions to each user
+        $usuarios->getCollection()->transform(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $user->roles, // already loaded
+                'permissions' => $user->getAllPermissions(), // collection of Permission objects
+            ];
+        });
+
+        return response()->json($usuarios);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Unable to fetch users',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+}
+
+    // GET /api/usuarios/{id}
+    // Returns a single user with roles and permissions
+    public function show($id)
     {
-       $usuarios = User::paginate(5);
-       $permisos = Permission::pluck('name','id');
-       return view('usuarios.index', compact('usuarios', 'permisos'));
+        $user = User::with('roles', 'permissions')->find($id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        return response()->json($user);
     }
 
-    public function create()
-    {
-        $roles = Role::pluck('name','name')->all();
-        return view('usuarios.crear', compact('roles'));
-    }
-
+    // POST /api/usuarios
+    // Creates a new user, assigns roles, and sends notification
     public function store(Request $request)
     {
-        $request->validate([ // 1. Validate input
+        $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|same:confirm-password',
+            'password' => 'required|confirmed',
             'roles' => 'required|min:1'
         ]);
 
-        $input = $request->all(); // 2. Prepare data
-        $input['password'] = Hash::make($input['password']); // 3. Hash password
-        $user = User::create($input); // 4. Create user
-        $user->assignRole($request->input('roles')); // 5. Assign roles
+        $input = $request->all();
+        $input['password'] = Hash::make($input['password']); // Hash the password
+        $user = User::create($input);
+        $user->assignRole($request->input('roles')); // Assign selected roles
 
-        $admins = User::role('Admin')->get(); // 6. Get admins
-        Notification::send($admins, new DataBase($user)); // 7. Notify admins
+        $admins = User::role('Admin')->get();
+        Notification::send($admins, new DataBase($user)); // Notify all admins
 
-        //event(new UserRegistered($user)); // 8. Dispatch broadcast event
-        event(new UserRegistered($user->name));
-        return redirect()->route('usuarios.index') // 9. Redirect with message
-            ->with('user_added', 'El usuario ha sido creado con éxito');
+        event(new UserRegistered($user->name)); // Fire registered event
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => $user
+        ], 201);
     }
 
-    public function show($id)
-    {
-        //
-    }
-
-    public function edit($id)
-    {
-        $user = User::find($id);
-        $roles = Role::pluck('name','id');
-        return view('usuarios.editar', compact('user', 'roles'));
-    }
-
+    // PUT /api/usuarios/{id}
+    // Updates user info and roles
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -84,36 +99,42 @@ class UsuariosController extends Controller
             'password'=>'same:confirm-password',
             'roles'=>'required|min:1'
         ]);
+
         $input = $request->all();
         if (!empty($input['password'])) {
-            $input['password'] = Hash::make($input['password']);
+            $input['password'] = Hash::make($input['password']); // Hash if password provided
         } else {
-            $input = Arr::except($input, ['password']);
+            $input = Arr::except($input, ['password']); // Keep existing password
         }
+
         $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
         $user->update($input);
-        DB::table('model_has_roles')->where('model_id', $id)->delete();
-        $user->assignRole($request->input('roles'));
-        return redirect()->route('usuarios.index')->with('user_edited','El usuario ha sido editado con éxito');
+        DB::table('model_has_roles')->where('model_id', $id)->delete(); // Remove old roles
+        $user->assignRole($request->input('roles')); // Assign new roles
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user
+        ]);
     }
 
+    // DELETE /api/usuarios/{id}
+    // Deletes the user
     public function destroy($id)
     {
-        User::find($id)->delete();
-        return redirect()->route('usuarios.index')->with('user_deleted','El registro ha sido eliminado con éxito');
-    }
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
 
-    public function pdfUserListado()
-    {
-        $usuarios = User::all();
-        $pdf = PDF::loadView('usuarios.usersPDF', compact('usuarios'));
-        return $pdf->download('usuarios.pdf');
-    }
+        $user->delete();
 
-    public function invoice()
-    {
-        $user = User::where('id', 4)->first();
-        $pdf = PDF::loadView('usuarios.invoice', compact('user'));
-        return $pdf->download('invoice.pdf');
+        return response()->json([
+            'message' => 'User deleted successfully'
+        ]);
     }
 }

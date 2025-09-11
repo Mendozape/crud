@@ -30,6 +30,11 @@ import ShowRoles from "./components/ShowRoles";
 import CreateRole from "./components/CreateRole";
 import EditRole from "./components/EditRole";
 
+// Users SPA
+import ShowUsers from "./components/ShowUsers";
+import CreateUser from "./components/CreateUser";
+import EditUser from "./components/EditUser";
+
 // Components
 import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 
@@ -74,6 +79,13 @@ const App = () => {
           <Route path="/roles" element={<ShowRoles />} />
           <Route path="/roles/create" element={<CreateRole />} />
           <Route path="/roles/edit/:id" element={<EditRole />} />
+
+          {/* Users SPA routes */}
+          <Route path="/users" element={<ShowUsers user={user} />} />
+          <Route path="/users/create" element={<CreateUser />} />
+          <Route path="/users/edit/:id" element={<EditUser />} />
+
+
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/home" replace />} />
