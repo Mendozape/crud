@@ -46,7 +46,7 @@ export default function CreateResidents() {
 
     return (
         <div>
-            <h2>Create a new fee</h2>
+            <h2>Crear pago</h2>
             <form onSubmit={store} noValidate className={formValidated ? 'was-validated' : ''}>
                 <div className="col-md-12 mt-4">
                     {errorMessage && (
@@ -56,7 +56,7 @@ export default function CreateResidents() {
                     )}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Name</label>
+                    <label className='form-label'>Nombre</label>
                     <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -69,7 +69,7 @@ export default function CreateResidents() {
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Amount</label>
+                    <label className='form-label'>Monto</label>
                     <input
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
@@ -82,7 +82,7 @@ export default function CreateResidents() {
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Description</label>
+                    <label className='form-label'>Descripción</label>
                     <input
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
@@ -94,7 +94,7 @@ export default function CreateResidents() {
                         Please provide a description.
                     </div>
                 </div>
-                <button type='submit' className='btn btn-success'>Save</button>
+                <button type='submit' className='btn btn-success'>Guardar</button>
             </form>
         </div>
     );

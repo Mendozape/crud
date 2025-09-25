@@ -144,13 +144,13 @@ const ShowUsers = () => {
             className="btn btn-info btn-sm"
             onClick={() => navigate(`/users/edit/${u.id}`)}
           >
-            Edit
+            Editar
           </button>
           <button
             className="btn btn-danger btn-sm"
             onClick={() => confirmDelete(u.id)}
           >
-            Delete
+            Eliminar
           </button>
         </div>
       ),
@@ -166,7 +166,7 @@ const ShowUsers = () => {
           className="btn btn-warning btn-sm"
           onClick={() => navigate("/users/create")}
         >
-          New User
+          Crear usuario
         </button>
         <input
           type="text"
@@ -215,7 +215,7 @@ const ShowUsers = () => {
               </button>
             </div>
             <div className="modal-body">
-              Are you sure you want to delete this user?
+              Está seguro de eliminar el usuario?
             </div>
             <div className="modal-footer">
               <button
@@ -223,14 +223,14 @@ const ShowUsers = () => {
                 className="btn btn-secondary"
                 onClick={() => setShowModal(false)}
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 type="button"
                 className="btn btn-danger"
                 onClick={deleteUser}
               >
-                Delete
+                Eliminar
               </button>
             </div>
           </div>

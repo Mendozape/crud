@@ -35,6 +35,7 @@ const PaymentForm = () => {
         return localDate.toISOString().split('T')[0];
     };
 
+    // Fetch resident name
     useEffect(() => {
         const fetchResidentName = async () => {
             try {
@@ -44,24 +45,25 @@ const PaymentForm = () => {
                 console.error('Error fetching resident name:', error);
             }
         };
-
         fetchResidentName();
     }, [residentId]);
 
+    // Fetch fees
     useEffect(() => {
         const fetchFees = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/api/fees', axiosOptions);
-                setFees(response.data);
+                // ⚡ Aquí el cambio importante
+                setFees(response.data.data || []);
             } catch (error) {
                 console.error('Error fetching fees:', error);
             }
         };
-
         fetchFees();
         setPaymentDate(getLocalDate());
     }, []);
 
+    // Fetch paid months
     useEffect(() => {
         const fetchPaidMonths = async () => {
             if (!year || !feeId) return;
@@ -76,11 +78,11 @@ const PaymentForm = () => {
                 setPaidMonths([]);
             }
         };
-
         fetchPaidMonths();
         setSelectedMonths([]);
     }, [year, residentId, feeId]);
 
+    // Handle fee selection
     const handleFeeChange = (e) => {
         const selectedFee = fees.find(fee => fee.id === parseInt(e.target.value));
         setFeeId(e.target.value);
@@ -90,9 +92,13 @@ const PaymentForm = () => {
         if (selectedFee) {
             setAmount(selectedFee.amount);
             setDescription(selectedFee.description);
+        } else {
+            setAmount('');
+            setDescription('');
         }
     };
 
+    // Handle submit
     const handleConfirmSubmit = async () => {
         setErrorMessage('');
         setSuccessMessage('');
@@ -160,7 +166,6 @@ const PaymentForm = () => {
 
     const toggleMonth = (monthValue) => {
         if (paidMonths.includes(Number(monthValue))) return;
-
         setSelectedMonths(prev =>
             prev.includes(monthValue)
                 ? prev.filter(m => m !== monthValue)
@@ -288,7 +293,6 @@ const PaymentForm = () => {
                     <input
                         value={paymentDate}
                         onChange={(e) => setPaymentDate(e.target.value)}
-                        
                         type='date'
                         className='form-control'
                         required
@@ -299,7 +303,7 @@ const PaymentForm = () => {
                 <button type="submit" className="btn btn-primary mt-3">Register Payment</button>
             </form>
 
-            {/* ✅ Confirmation Modal */}
+            {/* Confirmation Modal */}
             <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
@@ -320,7 +324,7 @@ const PaymentForm = () => {
                 </div>
             </div>
 
-            {/*  Validation Warning Modal */}
+            {/* Validation Warning Modal */}
             <div className={`modal ${validationWarning ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">

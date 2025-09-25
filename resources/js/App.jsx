@@ -35,6 +35,9 @@ import ShowUsers from "./components/ShowUsers";
 import CreateUser from "./components/CreateUser";
 import EditUser from "./components/EditUser";
 
+// Reports SPA
+import Reports from "./components/Reports";
+
 // Components
 import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 
@@ -85,7 +88,8 @@ const App = () => {
           <Route path="/users/create" element={<CreateUser />} />
           <Route path="/users/edit/:id" element={<EditUser />} />
 
-
+          {/* Reports SPA routes */}
+          <Route path="/reports" element={<Reports />} />
 
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/home" replace />} />

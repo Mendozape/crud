@@ -72,7 +72,7 @@ export default function CreateResidents() {
 
     return (
         <div>
-            <h2>Create a new resident</h2>
+            <h2>Crear residente</h2>
             <form onSubmit={store} noValidate className={formValidated ? 'was-validated' : ''}>
                 <div className="col-md-12 mt-4">
                     {errorMessage && (
@@ -92,7 +92,7 @@ export default function CreateResidents() {
                     <div className="invalid-feedback">
                         Please provide a photo.
                     </div>
-                    <label htmlFor='fileInput' className='btn btn-primary'>Select Image</label> <br />
+                    <label htmlFor='fileInput' className='btn btn-primary'>Selecciona la imagen</label> <br />
                     {photoPreview && (
                         <div className='position-relative mt-3' style={{ display: 'inline-block' }}>
                             <img

@@ -92,7 +92,7 @@ export default function PermisosList() {
               setShowModal(true);
             }}
           >
-            Borrar
+            Eliminar
           </button>
         </div>
       ),

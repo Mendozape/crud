@@ -85,7 +85,7 @@ export default function EditFees() {
                     )}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Name</label>
+                    <label className='form-label'>Nombre</label>
                     <input 
                         value={name} 
                         onChange={(e) => setName(e.target.value)}
@@ -96,7 +96,7 @@ export default function EditFees() {
                     {errors.name && <div className="invalid-feedback">{errors.name[0]}</div>}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Amount</label>
+                    <label className='form-label'>Monto</label>
                     <input 
                         value={amount} 
                         onChange={(e) => setAmount(e.target.value)}
@@ -107,7 +107,7 @@ export default function EditFees() {
                     {errors.amount && <div className="invalid-feedback">{errors.amount[0]}</div>}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Description</label>
+                    <label className='form-label'>Descripción</label>
                     <input
                         value={description} 
                         onChange={(e) => setDescription(e.target.value)}
@@ -116,7 +116,7 @@ export default function EditFees() {
                     />
                     {errors.description && <div className="invalid-feedback">{errors.description[0]}</div>}
                 </div>
-                <button type='submit' className='btn btn-success'>Update</button>
+                <button type='submit' className='btn btn-success'>Actualizar</button>
             </form>
 
             <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">

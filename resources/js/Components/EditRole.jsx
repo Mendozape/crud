@@ -63,11 +63,11 @@ export default function EditRole() {
     <div className="row mb-4">
       <div className="col-md-8 offset-md-2">
         <div className="border rounded p-4 bg-white shadow-sm">
-          <h2 className="text-center mb-4 text-2xl font-bold">Edit Role</h2>
+          <h2 className="text-center mb-4 text-2xl font-bold">Editar Role</h2>
 
           {/* Role name input */}
           <div className="mb-3">
-            <label className="form-label font-semibold">Role Name</label>
+            <label className="form-label font-semibold">Nombre del Role</label>
             <input
               type="text"
               value={name}
@@ -78,7 +78,7 @@ export default function EditRole() {
 
           {/* Permissions checkboxes */}
           <div className="mb-3">
-            <label className="form-label font-semibold">Permissions:</label>
+            <label className="form-label font-semibold">Permisos:</label>
             {permissions.map(p => (
               <div key={p.id} className="form-check">
                 <input
@@ -99,7 +99,7 @@ export default function EditRole() {
           {/* Submit button */}
           <div className="d-flex justify-content-end">
             <button className="btn btn-primary text-white" onClick={handleSubmit}>
-              Save
+              Guardar
             </button>
           </div>
         </div>

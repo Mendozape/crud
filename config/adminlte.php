@@ -275,7 +275,7 @@ return [
     'enabled_laravel_mix' => false,
     'laravel_mix_css_path' => 'css/app.css',
     'laravel_mix_js_path' => 'js/app.js',
-    
+
 
     /*
     |--------------------------------------------------------------------------
@@ -318,19 +318,22 @@ return [
                 [
                     'text' => 'Profile',
                     'url'  => 'profile',
-                    'icon' => 'fas fa-fw fa-user',
+                    'icon' => 'fas fa-fw fa-id-card',
                 ],
                 [
-                    'text' => 'Permissions',
-                    'url'  => 'permissions',
+                    'text' => 'Usuarios',
+                    'url'  => 'users',
+                    'icon' => 'fas fa-fw fa-users',
                 ],
                 [
                     'text' => 'Roles',
                     'url'  => 'roles',
+                    'icon' => 'fas fa-fw fa-user-tag',
                 ],
                 [
-                    'text' => 'Users',
-                    'url'  => 'users',
+                    'text' => 'Permisos',
+                    'url'  => 'permissions',
+                    'icon' => 'fas fa-fw fa-key',
                 ],
                 /*[
                     'text' => 'Select user',
@@ -348,15 +351,21 @@ return [
             'icon' => 'fas fa-fw fa-user',
         ],*/
         [
-            'text' => 'PAGOS (React)',
-            'url'  => 'fees',
-            'icon' => 'fas fa-fw fa-user',
+            'text' => 'RESIDENTES',
+            'url'  => 'residents',
+            'icon' => 'fas fa-fw fa-users',
         ],
         [
-            'text' => 'RESIDENTES (React)',
-            'url'  => 'residents',
-            'icon' => 'fas fa-fw fa-user',
+            'text' => 'PAGOS',
+            'url'  => 'fees',
+            'icon' => 'fas fa-fw fa-money-bill',
         ],
+        [
+            'text' => 'REPORTES',
+            'url'  => 'reports',
+            'icon' => 'fas fa-fw fa-chart-bar',
+        ],
+        
         /*[
             'text'    => 'CRUD (Livewire)',
             'icon'    => 'fas fa-fw fa-share',

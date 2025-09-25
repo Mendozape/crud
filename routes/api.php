@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\ResidentPaymentController;
 use App\Http\Controllers\PermisosController;
+use App\Http\Controllers\Api\ReportController; 
 use Illuminate\Support\Facades\Session;
 
 /*
@@ -53,11 +54,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/residents', ResidentController::class);
     Route::apiResource('/fees', FeeController::class);
     Route::apiResource('/resident_payments', ResidentPaymentController::class);
-    //New route to get already-paid months for a resident and year
+
+    // Route to get already-paid months for a resident and year
     Route::get('/resident_payments/{residentId}/{year}', [ResidentPaymentController::class, 'getPaidMonths']);
+    
     Route::apiResource('permisos', PermisosController::class);
     Route::apiResource('roles', RolesController::class);
     Route::apiResource('usuarios', UsuariosController::class);
-    
-});
 
+    // REPORTS routes (individual GET routes)
+    Route::get('reports/debtors', [ReportController::class, 'debtors']); // Residents with more than X months overdue
+    Route::get('reports/payments-by-date', [ReportController::class, 'paymentsByDate']); // Payments filtered by date range
+    Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']); // Monthly income report
+});

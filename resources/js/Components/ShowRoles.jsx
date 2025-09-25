@@ -77,7 +77,7 @@ export default function ShowRoles() {
               setShowModal(true);
             }}
           >
-            Borrar
+            Eliminar
           </button>
         </div>
       ),
@@ -154,7 +154,7 @@ export default function ShowRoles() {
               </button>
             </div>
             <div className="modal-body">
-              ¿Está seguro de que desea eliminar este rol?
+              ¿Está seguro de que desea eliminar este role?
             </div>
             <div className="modal-footer">
               <button

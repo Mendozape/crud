@@ -17,17 +17,15 @@ const FeesTable = () => {
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    // Fetch all fees from the backend using session-based cookies
     const fetchFees = async () => {
         try {
             const response = await axios.get(endpoint, {
                 withCredentials: true,
-                headers: {
-                    Accept: 'application/json',
-                },
+                headers: { Accept: 'application/json' },
             });
-            setFees(response.data);
-            setFilteredFees(response.data);
+            // ⚡ Aquí el cambio: response.data.data es el array de fees
+            setFees(response.data.data || []);
+            setFilteredFees(response.data.data || []);
         } catch (error) {
             console.error('Error fetching fees:', error);
             setErrorMessage('Failed to fetch fees. You may not be authenticated.');
@@ -40,20 +38,16 @@ const FeesTable = () => {
         fetchFees();
     }, []);
 
-    // Filter the fee list by search term
     useEffect(() => {
         const result = fees.filter(fee => fee.name.toLowerCase().includes(search.toLowerCase()));
         setFilteredFees(result);
     }, [search, fees]);
 
-    // Delete a fee with session-based request
     const deleteFee = async (id) => {
         try {
             const response = await axios.delete(`${endpoint}/${id}`, {
                 withCredentials: true,
-                headers: {
-                    Accept: 'application/json',
-                },
+                headers: { Accept: 'application/json' },
             });
             if (response.status === 200) {
                 setSuccessMessage('Fee deleted successfully.');
@@ -63,8 +57,7 @@ const FeesTable = () => {
             }
         } catch (error) {
             console.error('Error deleting fee:', error);
-
-            if (error.response && error.response.data && error.response.data.message) {
+            if (error.response?.data?.message) {
                 setErrorMessage(error.response.data.message);
             } else {
                 setErrorMessage('Failed to delete fee.');
@@ -82,37 +75,23 @@ const FeesTable = () => {
         setFeeToDelete(id);
         toggleModal();
     };
-
     const handleDelete = () => deleteFee(feeToDelete);
 
     const columns = [
-        {
-            name: 'Name',
-            selector: row => row.name,
-            sortable: true,
-        },
-        {
-            name: 'Amount',
-            selector: row => row.amount,
-            sortable: true,
-        },
-        {
-            name: 'Description',
-            selector: row => row.description,
-            sortable: true,
-        },
+        { name: 'Name', selector: row => row.name, sortable: true },
+        { name: 'Amount', selector: row => row.amount, sortable: true },
+        { name: 'Description', selector: row => row.description, sortable: true },
         {
             name: 'Actions',
             cell: row => (
                 <div>
-                    <button className="btn btn-info btn-sm" onClick={() => editFee(row.id)}>Edit</button>
+                    <button className="btn btn-info btn-sm" onClick={() => editFee(row.id)}>Editar</button>
                     <button className="btn btn-danger btn-sm" onClick={() => confirmDelete(row.id)} style={{ marginLeft: '10px' }}>Delete</button>
                 </div>
             ),
         },
     ];
 
-    // Auto-hide success and error messages after 5 seconds
     useEffect(() => {
         if (successMessage) {
             const timer = setTimeout(() => setSuccessMessage(null), 5000);
@@ -130,9 +109,7 @@ const FeesTable = () => {
     return (
         <div className="row mb-4 border border-primary rounded p-3">
             <div className="col-md-6">
-                <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createFee}>
-                    Create
-                </button>
+                <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createFee}>Create</button>
             </div>
             <div className="col-md-6 d-flex justify-content-end align-items-center">
                 <input
@@ -174,7 +151,7 @@ const FeesTable = () => {
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <div className="modal-body">Are you sure you want to delete this fee?</div>
+                        <div className="modal-body">Está seguro que desea eliminar este pago?</div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancel</button>
                             <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>

@@ -104,14 +104,14 @@ export default function EditEmployee() {
 
   return (
     <div className="container mt-4">
-      <h2>Edit Resident</h2>
+      <h2>Editar Residente</h2>
 
       {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
 
       <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
         {/* Photo */}
         <div className="form-group">
-          <label>Photo</label><br />
+          <label>Foto</label><br />
           {(photoPreview || (photo && typeof photo === 'string')) && (
             <img
               src={photoPreview || `http://127.0.0.1:8000/storage/${photo}`}
@@ -130,7 +130,7 @@ export default function EditEmployee() {
 
         {/* Name */}
         <div className="form-group">
-          <label>Name</label>
+          <label>Nombre</label>
           <input
             type="text"
             className="form-control"
@@ -143,7 +143,7 @@ export default function EditEmployee() {
 
         {/* Last Name */}
         <div className="form-group">
-          <label>Last Name</label>
+          <label>Apellidos</label>
           <input
             type="text"
             className="form-control"
@@ -169,7 +169,7 @@ export default function EditEmployee() {
 
         {/* Street */}
         <div className="form-group">
-          <label>Street</label>
+          <label>Calle</label>
           <input
             type="text"
             className="form-control"
@@ -180,7 +180,7 @@ export default function EditEmployee() {
 
         {/* Street Number */}
         <div className="form-group">
-          <label>Street Number</label>
+          <label># calle</label>
           <input
             type="text"
             className="form-control"
@@ -191,7 +191,7 @@ export default function EditEmployee() {
 
         {/* Community */}
         <div className="form-group">
-          <label>Community</label>
+          <label>Comunidad</label>
           <input
             type="text"
             className="form-control"
@@ -202,7 +202,7 @@ export default function EditEmployee() {
 
         {/* Comments */}
         <div className="form-group">
-          <label>Comments</label>
+          <label>Comentarios</label>
           <textarea
             className="form-control"
             value={comments}
@@ -210,7 +210,7 @@ export default function EditEmployee() {
           />
         </div>
 
-        <button type="submit" className="btn btn-primary mt-3">Submit</button>
+        <button type="submit" className="btn btn-primary mt-3">Enviar</button>
       </form>
 
       {/* Confirmation Modal */}

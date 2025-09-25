@@ -89,21 +89,21 @@ const ResidentsTable = () => {
             },
             sortable: false,
         },
-        { name: 'Name', selector: row => row.name, sortable: true },
-        { name: 'Last Name', selector: row => row.last_name, sortable: true },
+        { name: 'Nombre', selector: row => row.name, sortable: true },
+        { name: 'Apellidos', selector: row => row.last_name, sortable: true },
         { name: 'Email', selector: row => row.email, sortable: true },
-        { name: 'Street', selector: row => row.street, sortable: true },
-        { name: 'Street Number', selector: row => row.street_number, sortable: true },
-        { name: 'Community', selector: row => row.community, sortable: true },
-        { name: 'Comments', selector: row => row.comments, sortable: true },
+        { name: 'Calle', selector: row => row.street, sortable: true },
+        { name: '# calle', selector: row => row.street_number, sortable: true },
+        { name: 'Comunidad', selector: row => row.community, sortable: true },
+        { name: 'Comentarios', selector: row => row.comments, sortable: true },
         {
-            name: 'Actions',
+            name: 'Acciones',
             cell: row => (
                 <div>
-                    <button className="btn btn-info btn-sm" onClick={() => createPayment(row.id)}>Pays</button>
-                    <button className="btn btn-info btn-sm" onClick={() => editResident(row.id)}>Edit</button>
+                    <button className="btn btn-info btn-sm" onClick={() => createPayment(row.id)}>Pagos</button>
+                    <button className="btn btn-info btn-sm" onClick={() => editResident(row.id)}>Editar</button>
                     <button className="btn btn-danger btn-sm" onClick={() => confirmDelete(row.id)} style={{ marginLeft: '10px' }}>
-                        Delete
+                        Eliminar
                     </button>
                 </div>
             ),
@@ -127,7 +127,7 @@ const ResidentsTable = () => {
     return (
         <div className="row mb-4 border border-primary rounded p-3">
             <div className="col-md-6">
-                <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createResident}>Create</button>
+                <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createResident}>Crear</button>
             </div>
             <div className="col-md-6 d-flex justify-content-end align-items-center">
                 <input
@@ -144,7 +144,7 @@ const ResidentsTable = () => {
             </div>
             <div className="col-md-12 mt-4">
                 <DataTable
-                    title="Residents List"
+                    title="Residentes"
                     columns={columns}
                     data={filteredResidents}
                     progressPending={loading}
@@ -168,11 +168,11 @@ const ResidentsTable = () => {
                             </button>
                         </div>
                         <div className="modal-body">
-                            Are you sure you want to delete this resident?
+                            Está seguro que desea eliminar este residente?
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancel</button>
-                            <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                            <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancelar</button>
+                            <button type="button" className="btn btn-danger" onClick={handleDelete}>Eliminar</button>
                         </div>
                     </div>
                 </div>

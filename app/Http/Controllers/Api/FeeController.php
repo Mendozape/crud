@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Models\Fee;
 use Illuminate\Http\Request;
@@ -12,8 +13,12 @@ class FeeController extends Controller
     public function index()
     {
         $fees = Fee::all();
-        return response()->json($fees);
+        return response()->json([
+            'success' => true,
+            'data' => $fees
+        ]);
     }
+
 
     public function store(Request $request)
     {
@@ -57,7 +62,6 @@ class FeeController extends Controller
                 'message' => 'Resident updated successfully',
                 'data' => $fee
             ], 200);
-
         } catch (ValidationException $e) {
             // Validation errors
             return response()->json([
@@ -76,26 +80,26 @@ class FeeController extends Controller
     }
 
     public function destroy($id)
-{
-    try {
-        $fee = Fee::findOrFail($id);
+    {
+        try {
+            $fee = Fee::findOrFail($id);
 
-        // Supongamos que tienes una relación llamada 'residentPayments' para verificar pagos asociados
-        if ($fee->residentPayments()->count() > 0) {
-            return response()->json([
-                'message' => 'Cannot delete fee because there are payments made with a resident.'
-            ], 400);  // Bad Request o 409 Conflict también sirve
+            // Supongamos que tienes una relación llamada 'residentPayments' para verificar pagos asociados
+            if ($fee->residentPayments()->count() > 0) {
+                return response()->json([
+                    'message' => 'Cannot delete fee because there are payments made with a resident.'
+                ], 400);  // Bad Request o 409 Conflict también sirve
+            }
+
+            $fee->delete();
+
+            return response()->json(['message' => 'Fee deleted successfully.'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Fee not found.'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete fee.'], 500);
         }
-
-        $fee->delete();
-
-        return response()->json(['message' => 'Fee deleted successfully.'], 200);
-    } catch (ModelNotFoundException $e) {
-        return response()->json(['message' => 'Fee not found.'], 404);
-    } catch (\Exception $e) {
-        return response()->json(['message' => 'Failed to delete fee.'], 500);
     }
-}
     public function redire2()
     {
         return view('fees.index');
