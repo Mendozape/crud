@@ -66,6 +66,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/debtors', [ReportController::class, 'debtors']); // Residents with more than X months overdue
     Route::get('reports/payments-by-resident', [ReportController::class, 'paymentsByResident']); // Payments filtered by resident
     Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']); // Monthly income report
+    Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
+
 
     // New route for resident search (autocomplete)
     Route::get('reports/search-residents', [ReportController::class, 'searchResidents']);

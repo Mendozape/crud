@@ -18,6 +18,10 @@ const Reports = () => {
   const [residentResults, setResidentResults] = useState([]);
   const [selectedResident, setSelectedResident] = useState(null);
 
+  const [availableYears, setAvailableYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+
   const resetFilters = () => {
     setMonthsOverdue(1);
     setStartMonth(1);
@@ -29,6 +33,8 @@ const Reports = () => {
     setResidentResults([]);
     setData([]);
     setRangeError(false);
+    setSelectedMonth(null);
+    setSelectedYear(null);
   };
 
   // Load fees
@@ -36,8 +42,30 @@ const Reports = () => {
     fetch("/api/fees")
       .then(res => res.json())
       .then(json => setFees(Array.isArray(json.data) ? json.data : []))
-      .catch(err => setFees([]));
+      .catch(() => setFees([]));
   }, []);
+
+  // Load available years for incomeByMonth
+  useEffect(() => {
+    if (reportType === "incomeByMonth") {
+      fetch("/api/reports/available-years")
+        .then(res => res.json())
+        .then(json => {
+          if (Array.isArray(json.data) && json.data.length > 0) {
+            const years = json.data.map(y => parseInt(y)); 
+            setAvailableYears(years);
+            setSelectedYear(years[0]); 
+          } else {
+            setAvailableYears([]);
+            setSelectedYear(null);
+          }
+        })
+        .catch(() => {
+          setAvailableYears([]);
+          setSelectedYear(null);
+        });
+    }
+  }, [reportType]);
 
   // Validate range
   useEffect(() => {
@@ -59,15 +87,17 @@ const Reports = () => {
       fetch(`/api/reports/search-residents?search=${residentQuery}`)
         .then(res => res.json())
         .then(json => setResidentResults(Array.isArray(json.data) ? json.data : []))
-        .catch(err => setResidentResults([]));
+        .catch(() => setResidentResults([]));
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
   }, [residentQuery]);
 
+  // Fetch report
   const fetchReport = async () => {
     if (!paymentType || !reportType || rangeError) return;
     if (reportType === "paymentsByResident" && !selectedResident) return;
+    if (reportType === "incomeByMonth" && !selectedYear) return;
 
     setLoading(true);
     let url = "";
@@ -80,7 +110,8 @@ const Reports = () => {
         url = `/api/reports/payments-by-resident?payment_type=${paymentType}&resident_id=${selectedResident.id}&start_month=${startMonth}&start_year=${startYear}&end_month=${endMonth}&end_year=${endYear}`;
         break;
       case "incomeByMonth":
-        url = `/api/reports/income-by-month?year=${endYear}&payment_type=${paymentType}`;
+        url = `/api/reports/income-by-month?payment_type=${paymentType}&year=${selectedYear}`;
+        if (selectedMonth) url += `&month=${selectedMonth}`;
         break;
       default:
         break;
@@ -100,27 +131,38 @@ const Reports = () => {
 
   useEffect(() => {
     fetchReport();
-  }, [paymentType, reportType, monthsOverdue, startMonth, startYear, endMonth, endYear, rangeError, selectedResident]);
+  }, [
+    paymentType,
+    reportType,
+    monthsOverdue,
+    startMonth,
+    startYear,
+    endMonth,
+    endYear,
+    rangeError,
+    selectedResident,
+    selectedMonth,
+    selectedYear
+  ]);
 
-  const totalOverdue = Number(
+  const totalAmount = Number(
     data.reduce((sum, item) => sum + Number(item.total || item.amount || 0), 0)
   );
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "-";
-    const d = new Date(dateStr);
-    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-  };
 
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Reports</h1>
 
+      {/* Payment Type */}
       <div className="mb-4">
         <label className="mr-2">Select Payment Type:</label>
         <select
           value={paymentType}
-          onChange={(e) => { setPaymentType(e.target.value); setReportType(""); resetFilters(); }}
+          onChange={(e) => {
+            setPaymentType(e.target.value);
+            setReportType("");
+            resetFilters();
+          }}
           className="border p-1"
         >
           <option value="">-- Choose Payment Type --</option>
@@ -128,12 +170,20 @@ const Reports = () => {
         </select>
       </div>
 
+      {/* Report Type */}
       {paymentType && (
         <div className="mb-4">
           <label className="mr-2">Select Report:</label>
           <select
             value={reportType}
-            onChange={(e) => setReportType(e.target.value)}
+            onChange={(e) => {
+              setReportType(e.target.value);
+              setData([]);
+              if (e.target.value !== "paymentsByResident") {
+                setSelectedResident(null);
+                setResidentQuery("");
+              }
+            }}
             className="border p-1"
           >
             <option value="">-- Choose Report --</option>
@@ -144,14 +194,18 @@ const Reports = () => {
         </div>
       )}
 
-      {/* Autocomplete input */}
+      {/* Resident autocomplete */}
       {reportType === "paymentsByResident" && (
         <div className="mb-4 relative">
           <label>Resident:</label>
           <input
             type="text"
             value={residentQuery}
-            onChange={e => { setResidentQuery(e.target.value); setSelectedResident(null); }}
+            onChange={e => {
+              setResidentQuery(e.target.value);
+              setSelectedResident(null);
+              setData([]);
+            }}
             placeholder="Type to search resident..."
             className="border p-1 w-full"
           />
@@ -161,7 +215,11 @@ const Reports = () => {
                 <li
                   key={res.id}
                   className="p-1 hover:bg-gray-200 cursor-pointer"
-                  onClick={() => { setSelectedResident(res); setResidentQuery(`${res.name} ${res.last_name}`); setResidentResults([]); }}
+                  onClick={() => {
+                    setSelectedResident(res);
+                    setResidentQuery(`${res.name} ${res.last_name}`);
+                    setResidentResults([]);
+                  }}
                 >
                   {res.name} {res.last_name}
                 </li>
@@ -172,7 +230,7 @@ const Reports = () => {
       )}
 
       {/* Date filters */}
-      {(reportType === "debtors" || (reportType === "paymentsByResident" && selectedResident)) && (
+      {(reportType === "debtors" || (reportType === "paymentsByResident" && selectedResident) || reportType === "incomeByMonth") && (
         <div className="mb-4">
           {rangeError && (
             <div className="alert alert-danger text-center" role="alert">
@@ -194,35 +252,62 @@ const Reports = () => {
               </>
             )}
 
-            <label>From Month:</label>
-            <select value={startMonth} onChange={e => setStartMonth(parseInt(e.target.value))} className="border p-1">
-              {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
-              ))}
-            </select>
+            {(reportType === "debtors" || reportType === "paymentsByResident") && (
+              <>
+                <label>From Month:</label>
+                <select value={startMonth} onChange={e => setStartMonth(parseInt(e.target.value))} className="border p-1">
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                  ))}
+                </select>
 
-            <label>From Year:</label>
-            <select value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="border p-1">
-              {Array.from({ length: 11 }, (_, i) => {
-                const year = new Date().getFullYear() - 5 + i;
-                return <option key={year} value={year}>{year}</option>;
-              })}
-            </select>
+                <label>From Year:</label>
+                <select value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="border p-1">
+                  {Array.from({ length: 11 }, (_, i) => {
+                    const year = new Date().getFullYear() - 5 + i;
+                    return <option key={year} value={year}>{year}</option>;
+                  })}
+                </select>
 
-            <label>Until Month:</label>
-            <select value={endMonth} onChange={e => setEndMonth(parseInt(e.target.value))} className="border p-1">
-              {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
-              ))}
-            </select>
+                <label>Until Month:</label>
+                <select value={endMonth} onChange={e => setEndMonth(parseInt(e.target.value))} className="border p-1">
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                  ))}
+                </select>
 
-            <label>Until Year:</label>
-            <select value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="border p-1">
-              {Array.from({ length: 11 }, (_, i) => {
-                const year = new Date().getFullYear() - 5 + i;
-                return <option key={year} value={year}>{year}</option>;
-              })}
-            </select>
+                <label>Until Year:</label>
+                <select value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="border p-1">
+                  {Array.from({ length: 11 }, (_, i) => {
+                    const year = new Date().getFullYear() - 5 + i;
+                    return <option key={year} value={year}>{year}</option>;
+                  })}
+                </select>
+              </>
+            )}
+
+            {/* Income by month */}
+            {reportType === "incomeByMonth" && (
+              <>
+                <label>Month (optional):</label>
+                <select value={selectedMonth || ""} onChange={e => setSelectedMonth(parseInt(e.target.value) || null)} className="border p-1">
+                  <option value="">All months</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                  ))}
+                </select>
+
+                <label>Year:</label>
+                <select
+                  value={selectedYear || ""}
+                  onChange={e => setSelectedYear(parseInt(e.target.value))}
+                  className="border p-1"
+                >
+                  <option value="" disabled>Select year</option>
+                  {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -230,71 +315,62 @@ const Reports = () => {
       {/* Table */}
       {loading ? (
         <p>Loading...</p>
+      ) : data.length === 0 ? (
+        <p>No data available for the selected filters.</p>
       ) : (
-        <table className="border-collapse border w-full">
-          <thead>
-            <tr>
-              {reportType === "debtors" && <>
-                <th className="border p-2">Name</th>
-                <th className="border p-2">Last Name</th>
-                <th className="border p-2">Street & Number</th>
-                <th className="border p-2">Months Owed</th>
-                <th className="border p-2">Payment Date</th>
-                <th className="border p-2">Amount</th>
-              </>}
-              {reportType === "paymentsByResident" && <>
-                <th className="border p-2">Resident</th>
-                <th className="border p-2">Street & Number</th>
-                <th className="border p-2">Payment Type</th>
-                <th className="border p-2">Payment Date</th>
-                <th className="border p-2">Amount</th>
-              </>}
-              {reportType === "incomeByMonth" && <>
-                <th className="border p-2">Month</th>
-                <th className="border p-2">Total Income</th>
-              </>}
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ? (
+        <div className="overflow-x-auto">
+          <table className="table-auto border-collapse border border-gray-400 w-full">
+            <thead>
               <tr>
-                <td colSpan={10} className="text-center p-2">No data available</td>
+                {reportType === "debtors" || reportType === "paymentsByResident"
+                  ? <>
+                      {Object.keys(data[0])
+                        .filter(k => k !== "total" && k !== "last_payment_date")
+                        .map(key => <th key={key} className="border px-2 py-1">{key}</th>)}
+                      <th className="border px-2 py-1">Last Payment Date</th>
+                      <th className="border px-2 py-1">Total</th>
+                    </>
+                  : Object.keys(data[0]).map(key => <th key={key} className="border px-2 py-1">{key}</th>)
+                }
               </tr>
-            ) : (
-              <>
-                {data.map((item, idx) => (
-                  <tr key={idx}>
-                    {reportType === "debtors" && <>
-                      <td className="border p-2">{item.name}</td>
-                      <td className="border p-2">{item.last_name}</td>
-                      <td className="border p-2">{item.street} {item.street_number}</td>
-                      <td className="border p-2">{item.months_overdue}</td>
-                      <td className="border p-2">{formatDate(item.last_payment_date)}</td>
-                      <td className="border p-2">{Number(item.total || 0).toFixed(2)}</td>
-                    </>}
-                    {reportType === "paymentsByResident" && <>
-                      <td className="border p-2">{item.name} {item.last_name}</td>
-                      <td className="border p-2">{item.street} {item.street_number}</td>
-                      <td className="border p-2">{item.fee_name}</td>
-                      <td className="border p-2">{formatDate(item.payment_date)}</td>
-                      <td className="border p-2">{Number(item.amount || 0).toFixed(2)}</td>
-                    </>}
-                    {reportType === "incomeByMonth" && <>
-                      <td className="border p-2">{item.month}</td>
-                      <td className="border p-2">{Number(item.total || 0).toFixed(2)}</td>
-                    </>}
-                  </tr>
-                ))}
-                {(reportType === "debtors" || reportType === "paymentsByResident") && (
-                  <tr className="font-bold bg-gray-100">
-                    <td colSpan={reportType === "debtors" ? 5 : 4} className="border p-2 text-right">Total:</td>
-                    <td className="border p-2">{totalOverdue.toFixed(2)}</td>
-                  </tr>
-                )}
-              </>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((row, i) => (
+                <tr key={i}>
+                  {reportType === "debtors" || reportType === "paymentsByResident"
+                    ? <>
+                        {Object.keys(row)
+                          .filter(k => k !== "total" && k !== "last_payment_date")
+                          .map(key => <td key={key} className="border px-2 py-1">{row[key]}</td>)}
+                        <td className="border px-2 py-1">{row.last_payment_date || ""}</td>
+                        <td className="border px-2 py-1">{row.total || 0}</td>
+                      </>
+                    : Object.values(row).map((val, j) => <td key={j} className="border px-2 py-1">{val}</td>)
+                  }
+                </tr>
+              ))}
+
+              {/* Total row */}
+              <tr className="font-bold bg-gray-100">
+                {reportType === "debtors" || reportType === "paymentsByResident"
+                  ? <>
+                      {Array.from({ length: Object.keys(data[0]).length - 1 }).map((_, idx) => (
+                        <td key={idx} className="border px-2 py-1"></td>
+                      ))}
+                      <td className="border px-2 py-1">Total</td>
+                      <td className="border px-2 py-1">{totalAmount}</td>
+                    </>
+                  : <>
+                      {Array.from({ length: Object.keys(data[0]).length - 1 }).map((_, idx) => (
+                        <td key={idx} className="border px-2 py-1"></td>
+                      ))}
+                      <td className="border px-2 py-1">{totalAmount}</td>
+                    </>
+                }
+              </tr>
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

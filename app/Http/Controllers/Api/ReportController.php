@@ -133,39 +133,7 @@ class ReportController extends Controller
         ]);
     }
 
-    /**
-     * Monthly income report, optionally filtered by fee type.
-     */
-    public function incomeByMonth(Request $request)
-    {
-        $year = $request->get('year', date('Y'));
-        $paymentType = $request->get('payment_type', null);
-
-        $query = ResidentPayment::select(
-            DB::raw('MONTH(payment_date) as month'),
-            DB::raw('SUM(amount) as total')
-        )
-        ->whereYear('payment_date', $year);
-
-        if ($paymentType) {
-            $query->whereHas('fee', fn($q) => $q->where('name', $paymentType));
-        }
-
-        $income = $query->groupBy(DB::raw('MONTH(payment_date)'))
-            ->orderBy('month')
-            ->get()
-            ->map(fn($i) => [
-                'month' => date('F', mktime(0, 0, 0, $i->month, 1)),
-                'total' => $i->total
-            ]);
-
-        return response()->json([
-            'success' => true,
-            'year' => $year,
-            'data' => $income
-        ]);
-    }
-
+   
     /**
      * Search residents by name or last name for autocomplete
      */
@@ -187,4 +155,68 @@ class ReportController extends Controller
             'data' => $residents
         ]);
     }
+
+    public function paymentYears()
+{
+    $years = ResidentPayment::whereNotNull('payment_date')
+        ->select(DB::raw('YEAR(payment_date) as year'))
+        ->distinct()
+        ->orderBy('year', 'desc')
+        ->pluck('year');
+
+    return response()->json([
+        'success' => true,
+        'data' => $years
+    ]);
+}
+
+
+public function incomeByMonth(Request $request)
+{
+    $year = $request->get('year');
+    $month = $request->get('month', null);
+    $paymentType = $request->get('payment_type', null);
+
+    if (!$year) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Year is required'
+        ], 400);
+    }
+
+    $query = ResidentPayment::select(
+        'month',
+        DB::raw('SUM(amount) as total'),
+        'fee_id'
+    )
+    ->with('fee') // Para tener relación con el fee
+    ->where('year', $year);
+
+    if ($month) {
+        $query->where('month', $month);
+    }
+
+    if ($paymentType) {
+        $query->whereHas('fee', fn($q) => $q->where('name', $paymentType));
+    }
+
+    $income = $query->groupBy('month', 'fee_id')
+        ->orderBy('month')
+        ->get()
+        ->map(fn($i) => [
+            'month' => date('F', mktime(0, 0, 0, $i->month, 1)),
+            'total' => $i->total,
+            'payment_type' => $i->fee->name ?? ''
+        ]);
+
+    return response()->json([
+        'success' => true,
+        'year' => $year,
+        'data' => $income
+    ]);
+}
+
+
+
+
 }
