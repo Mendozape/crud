@@ -52,9 +52,9 @@ const Reports = () => {
         .then(res => res.json())
         .then(json => {
           if (Array.isArray(json.data) && json.data.length > 0) {
-            const years = json.data.map(y => parseInt(y)); 
+            const years = json.data.map(y => parseInt(y));
             setAvailableYears(years);
-            setSelectedYear(years[0]); 
+            setSelectedYear(years[0]);
           } else {
             setAvailableYears([]);
             setSelectedYear(null);
@@ -120,7 +120,11 @@ const Reports = () => {
     try {
       const res = await fetch(url, { credentials: "include" });
       const json = await res.json();
-      setData(Array.isArray(json.data) ? json.data : []);
+      // Filtramos posibles filas duplicadas de total del backend
+      const filteredData = Array.isArray(json.data)
+        ? json.data.filter(row => row.name !== "Total" && row.total !== "Total")
+        : [];
+      setData(filteredData);
     } catch (err) {
       console.error("Error fetching report:", err);
       setData([]);
@@ -322,51 +326,108 @@ const Reports = () => {
           <table className="table-auto border-collapse border border-gray-400 w-full">
             <thead>
               <tr>
-                {reportType === "debtors" || reportType === "paymentsByResident"
-                  ? <>
-                      {Object.keys(data[0])
-                        .filter(k => k !== "total" && k !== "last_payment_date")
-                        .map(key => <th key={key} className="border px-2 py-1">{key}</th>)}
-                      <th className="border px-2 py-1">Last Payment Date</th>
-                      <th className="border px-2 py-1">Total</th>
-                    </>
-                  : Object.keys(data[0]).map(key => <th key={key} className="border px-2 py-1">{key}</th>)
-                }
+                {reportType === "debtors" ? (
+                  <>
+                    {Object.keys(data[0])
+                      .filter(k => k !== "total" && k !== "last_payment_date")
+                      .map(key => (
+                        <th key={key} className="border px-2 py-1">{key}</th>
+                      ))}
+                    <th className="border px-2 py-1">Last Payment Date</th>
+                    <th className="border px-2 py-1">Total</th>
+                  </>
+                ) : reportType === "paymentsByResident" ? (
+                  <>
+                    {Object.keys(data[0])
+                      .filter(k => k !== "total" && k !== "last_payment_date" && k !== "amount")
+                      .map(key => (
+                        <th key={key} className="border px-2 py-1">{key}</th>
+                      ))}
+                    <th className="border px-2 py-1">Amount</th>
+                  </>
+                ) : reportType === "incomeByMonth" ? (
+                  <>
+                    <th className="border px-2 py-1">Month</th>
+                    <th className="border px-2 py-1">Payment Type</th>
+                    <th className="border px-2 py-1">Total</th>
+                  </>
+                ) : (
+                  Object.keys(data[0]).map(key => (
+                    <th key={key} className="border px-2 py-1">{key}</th>
+                  ))
+                )}
               </tr>
             </thead>
+
             <tbody>
               {data.map((row, i) => (
                 <tr key={i}>
-                  {reportType === "debtors" || reportType === "paymentsByResident"
-                    ? <>
-                        {Object.keys(row)
-                          .filter(k => k !== "total" && k !== "last_payment_date")
-                          .map(key => <td key={key} className="border px-2 py-1">{row[key]}</td>)}
-                        <td className="border px-2 py-1">{row.last_payment_date || ""}</td>
-                        <td className="border px-2 py-1">{row.total || 0}</td>
-                      </>
-                    : Object.values(row).map((val, j) => <td key={j} className="border px-2 py-1">{val}</td>)
-                  }
+                  {reportType === "debtors" ? (
+                    <>
+                      {Object.keys(row)
+                        .filter(k => k !== "total" && k !== "last_payment_date")
+                        .map(key => (
+                          <td key={key} className="border px-2 py-1">{row[key]}</td>
+                        ))}
+                      <td className="border px-2 py-1">{row.last_payment_date || ""}</td>
+                      <td className="border px-2 py-1">{row.total || 0}</td>
+                    </>
+                  ) : reportType === "paymentsByResident" ? (
+                    <>
+                      {Object.keys(row)
+                        .filter(k => k !== "total" && k !== "last_payment_date" && k !== "amount")
+                        .map(key => (
+                          <td key={key} className="border px-2 py-1">{row[key]}</td>
+                        ))}
+                      <td className="border px-2 py-1">{row.amount}</td>
+                    </>
+                  ) : reportType === "incomeByMonth" ? (
+                    <>
+                      <td className="border px-2 py-1">{row.month}</td>
+                      <td className="border px-2 py-1">{row.payment_type}</td>
+                      <td className="border px-2 py-1">{row.total}</td>
+                    </>
+                  ) : (
+                    Object.values(row).map((val, j) => (
+                      <td key={j} className="border px-2 py-1">{val}</td>
+                    ))
+                  )}
                 </tr>
               ))}
 
               {/* Total row */}
               <tr className="font-bold bg-gray-100">
-                {reportType === "debtors" || reportType === "paymentsByResident"
-                  ? <>
-                      {Array.from({ length: Object.keys(data[0]).length - 1 }).map((_, idx) => (
+                {reportType === "debtors" ? (
+                  <>
+                    {Object.keys(data[0])
+                      .filter(k => k !== "total" && k !== "last_payment_date")
+                      .map((_, idx) => (
                         <td key={idx} className="border px-2 py-1"></td>
                       ))}
-                      <td className="border px-2 py-1">Total</td>
-                      <td className="border px-2 py-1">{totalAmount}</td>
-                    </>
-                  : <>
-                      {Array.from({ length: Object.keys(data[0]).length - 1 }).map((_, idx) => (
-                        <td key={idx} className="border px-2 py-1"></td>
-                      ))}
-                      <td className="border px-2 py-1">{totalAmount}</td>
-                    </>
-                }
+                    <td className="border px-2 py-1">Total</td>
+                    <td className="border px-2 py-1">{totalAmount}</td>
+                  </>
+                ) : reportType === "paymentsByResident" ? (
+                  <>
+                    {Array.from({ length: Object.keys(data[0]).length - 1 }).map((_, idx) => (
+                      <td key={idx} className="border px-2 py-1"></td>
+                    ))}
+                    <td className="border px-2 py-1">{totalAmount}</td>
+                  </>
+                ) : reportType === "incomeByMonth" ? (
+                  <>
+                    <td className="border px-2 py-1"></td>
+                    <td className="border px-2 py-1">Total</td>
+                    <td className="border px-2 py-1">{totalAmount}</td>
+                  </>
+                ) : (
+                  <>
+                    {Array.from({ length: Object.keys(data[0]).length - 1 }).map((_, idx) => (
+                      <td key={idx} className="border px-2 py-1"></td>
+                    ))}
+                    <td className="border px-2 py-1">{totalAmount}</td>
+                  </>
+                )}
               </tr>
             </tbody>
           </table>
