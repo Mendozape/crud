@@ -23,7 +23,7 @@ export default function PermisoEdit() {
         setName(res.data.name);
       } catch (error) {
         console.error("Error fetching permiso:", error);
-        setErrorMessage("Failed to load the permission.");
+        setErrorMessage("Fallo al cargar el permiso.");
       }
     };
     fetchPermiso();
@@ -33,11 +33,11 @@ export default function PermisoEdit() {
     e.preventDefault();
     try {
       await axios.put(`/api/permisos/${id}`, { name }, axiosOptions);
-      setSuccessMessage("Permission updated successfully.");
+      setSuccessMessage("Permiso actualizado exitosamente.");
       navigate("/permissions");
     } catch (error) {
       console.error("Error updating permiso:", error);
-      setErrorMessage("Error updating the permission.");
+      setErrorMessage("Error al actualizar el permiso.");
     }
   };
 
@@ -45,17 +45,17 @@ export default function PermisoEdit() {
     <div className="row mb-4">
       <div className="col-md-8 offset-md-2">
         <div className="border rounded p-4 bg-white shadow-sm">
-          <h2 className="text-2xl font-bold mb-4 text-center">Edit Permission</h2>
+          <h2 className="text-2xl font-bold mb-4 text-center">Editar Permiso</h2>
 
           {/** Input for the permission name */}
           <div className="mb-3">
-            <label className="form-label font-semibold">Permission Name</label>
+            <label className="form-label font-semibold">Nombre del Permiso</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="form-control"
-              placeholder="Enter the permission name"
+              placeholder="Ingrese el nombre del permiso"
             />
           </div>
 
@@ -65,7 +65,7 @@ export default function PermisoEdit() {
               onClick={handleSubmit}
               className="btn btn-primary text-white"
             >
-              Update
+              Actualizar
             </button>
           </div>
         </div>

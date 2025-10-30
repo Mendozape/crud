@@ -4,20 +4,20 @@ import axios from "axios";
 import { MessageContext } from "./MessageContext";
 
 export default function PermisoCreate() {
-  const [name, setName] = useState("");
-  const [permissions, setPermissions] = useState([]);
-  const [nameError, setNameError] = useState(""); // Para validación debajo del input
-  const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } =
+const [name, setName] = useState("");
+const [permissions, setPermissions] = useState([]);
+const [nameError, setNameError] = useState(""); // Para validación debajo del input
+const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } =
     useContext(MessageContext);
-  const navigate = useNavigate();
+const navigate = useNavigate();
 
-  const axiosOptions = {
+const axiosOptions = {
     withCredentials: true,
     headers: { Accept: "application/json" },
-  };
+};
 
-  // Fetch existing permissions
-  useEffect(() => {
+// Fetch existing permissions
+useEffect(() => {
     const fetchPermissions = async () => {
       try {
         const res = await axios.get("/api/permisos", axiosOptions);
@@ -28,9 +28,9 @@ export default function PermisoCreate() {
       }
     };
     fetchPermissions();
-  }, []);
+}, []);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setNameError(""); // Reset local validation error
 
@@ -56,9 +56,9 @@ export default function PermisoCreate() {
       setErrorMessage(error.response?.data?.message || "Error al crear el permiso.");
       setSuccessMessage(null);
     }
-  };
+};
 
-  return (
+return (
     <div className="row mb-4">
       <div className="col-md-8 offset-md-2">
         <div className="border rounded p-4 bg-white shadow-sm">
@@ -110,5 +110,5 @@ export default function PermisoCreate() {
         </div>
       </div>
     </div>
-  );
+);
 }

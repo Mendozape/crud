@@ -31,7 +31,7 @@ const ShowUsers = () => {
       setFilteredUsers(data);
     } catch (err) {
       console.error("Error fetching users:", err);
-      setErrorMessage("Failed to load users");
+      setErrorMessage("Fallo al cargar los usuarios");
     } finally {
       setLoading(false);
     }
@@ -63,10 +63,10 @@ const ShowUsers = () => {
       await axios.delete(`${endpoint}/${userToDelete}`, axiosOptions);
       setShowModal(false);
       fetchUsers();
-      setSuccessMessage("User deleted successfully");
+      setSuccessMessage("Usuario eliminado exitosamente");
     } catch (err) {
       console.error(err);
-      setErrorMessage("Error deleting user");
+      setErrorMessage("Error al eliminar usuario");
     }
   };
 
@@ -170,7 +170,7 @@ const ShowUsers = () => {
         </button>
         <input
           type="text"
-          placeholder="Search by name"
+          placeholder="Buscar por nombre"
           className="form-control w-25 form-control-sm"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -187,7 +187,7 @@ const ShowUsers = () => {
 
       {/* Users DataTable */}
       <DataTable
-        title="Users List"
+        title="Lista de Usuarios"
         columns={columns}
         data={filteredUsers}
         progressPending={loading}
@@ -205,7 +205,7 @@ const ShowUsers = () => {
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">Confirm Deletion</h5>
+              <h5 className="modal-title">Confirmar Eliminación</h5>
               <button
                 type="button"
                 className="close"
@@ -215,7 +215,7 @@ const ShowUsers = () => {
               </button>
             </div>
             <div className="modal-body">
-              Está seguro de eliminar el usuario?
+              ¿Está seguro de eliminar el usuario?
             </div>
             <div className="modal-footer">
               <button

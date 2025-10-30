@@ -24,7 +24,7 @@ export default function EditRole() {
         setPermissions(resPerms.data);
       } catch (err) {
         console.error("Error fetching role:", err);
-        setErrorMessage("Failed to load role.");
+        setErrorMessage("Fallo al cargar el rol.");
       }
     };
     fetchRole();
@@ -49,13 +49,13 @@ export default function EditRole() {
       );
 
       // Save backend success message in context
-      setSuccessMessage(res.data.message);
+      setSuccessMessage(res.data.message || "Rol actualizado exitosamente.");
 
       // Navigate back to roles list
       navigate("/roles");
     } catch (err) {
       console.error("Error updating role:", err);
-      setErrorMessage(err.response?.data?.message || "Failed to update role.");
+      setErrorMessage(err.response?.data?.message || "Fallo al actualizar el rol.");
     }
   };
 
@@ -63,11 +63,11 @@ export default function EditRole() {
     <div className="row mb-4">
       <div className="col-md-8 offset-md-2">
         <div className="border rounded p-4 bg-white shadow-sm">
-          <h2 className="text-center mb-4 text-2xl font-bold">Editar Role</h2>
+          <h2 className="text-center mb-4 text-2xl font-bold">Editar Rol</h2>
 
           {/* Role name input */}
           <div className="mb-3">
-            <label className="form-label font-semibold">Nombre del Role</label>
+            <label className="form-label font-semibold">Nombre del Rol</label>
             <input
               type="text"
               value={name}

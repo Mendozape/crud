@@ -84,7 +84,7 @@ const App = () => {
           <Route path="/roles/edit/:id" element={<EditRole />} />
 
           {/* Users SPA routes */}
-          <Route path="/users" element={<ShowUsers user={user} />} />
+          <Route path="/users" element={<ShowUsers />} />
           <Route path="/users/create" element={<CreateUser />} />
           <Route path="/users/edit/:id" element={<EditUser />} />
 

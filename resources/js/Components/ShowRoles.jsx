@@ -105,7 +105,7 @@ export default function ShowRoles() {
           className="btn btn-success btn-sm text-white"
           onClick={() => navigate("/roles/create")}
         >
-          Nuevo Role
+          Nuevo Rol
         </button>
         <input
           type="text"
@@ -154,7 +154,7 @@ export default function ShowRoles() {
               </button>
             </div>
             <div className="modal-body">
-              ¿Está seguro de que desea eliminar este role?
+              ¿Está seguro de que desea eliminar este rol?
             </div>
             <div className="modal-footer">
               <button

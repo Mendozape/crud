@@ -153,13 +153,18 @@ const Reports = () => {
     data.reduce((sum, item) => sum + Number(item.total || item.amount || 0), 0)
   );
 
+  const monthNames = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Reports</h1>
+      <h1 className="text-xl font-bold mb-4">Reportes</h1>
 
       {/* Payment Type */}
       <div className="mb-4">
-        <label className="mr-2">Select Payment Type:</label>
+        <label className="mr-2">Seleccione Tipo de Pago:</label>
         <select
           value={paymentType}
           onChange={(e) => {
@@ -169,7 +174,7 @@ const Reports = () => {
           }}
           className="border p-1"
         >
-          <option value="">-- Choose Payment Type --</option>
+          <option value="">-- Seleccionar Tipo de Pago --</option>
           {fees.map(fee => <option key={fee.id} value={fee.name}>{fee.name}</option>)}
         </select>
       </div>
@@ -177,7 +182,7 @@ const Reports = () => {
       {/* Report Type */}
       {paymentType && (
         <div className="mb-4">
-          <label className="mr-2">Select Report:</label>
+          <label className="mr-2">Seleccione Reporte:</label>
           <select
             value={reportType}
             onChange={(e) => {
@@ -190,10 +195,10 @@ const Reports = () => {
             }}
             className="border p-1"
           >
-            <option value="">-- Choose Report --</option>
-            <option value="debtors">Residents with overdue payments</option>
-            <option value="paymentsByResident">Payments by resident</option>
-            <option value="incomeByMonth">Income by month</option>
+            <option value="">-- Seleccionar Reporte --</option>
+            <option value="debtors">Residentes con pagos vencidos</option>
+            <option value="paymentsByResident">Pagos por residente</option>
+            <option value="incomeByMonth">Ingresos por mes</option>
           </select>
         </div>
       )}
@@ -201,7 +206,7 @@ const Reports = () => {
       {/* Resident autocomplete */}
       {reportType === "paymentsByResident" && (
         <div className="mb-4 relative">
-          <label>Resident:</label>
+          <label>Residente:</label>
           <input
             type="text"
             value={residentQuery}
@@ -210,7 +215,7 @@ const Reports = () => {
               setSelectedResident(null);
               setData([]);
             }}
-            placeholder="Type to search resident..."
+            placeholder="Escriba para buscar residente..."
             className="border p-1 w-full"
           />
           {residentResults.length > 0 && !selectedResident && (
@@ -238,14 +243,14 @@ const Reports = () => {
         <div className="mb-4">
           {rangeError && (
             <div className="alert alert-danger text-center" role="alert">
-              Invalid range: "From" must be before "Until"
+              Rango inválido: "Desde" debe ser anterior a "Hasta"
             </div>
           )}
 
           <div className="d-flex flex-wrap gap-2 align-items-center">
             {reportType === "debtors" && (
               <>
-                <label>Months overdue (min):</label>
+                <label>Meses vencidos (mín.):</label>
                 <input
                   type="number"
                   min={1}
@@ -258,14 +263,14 @@ const Reports = () => {
 
             {(reportType === "debtors" || reportType === "paymentsByResident") && (
               <>
-                <label>From Month:</label>
+                <label>Mes Desde:</label>
                 <select value={startMonth} onChange={e => setStartMonth(parseInt(e.target.value))} className="border p-1">
                   {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                    <option key={i + 1} value={i + 1}>{monthNames[i]}</option>
                   ))}
                 </select>
 
-                <label>From Year:</label>
+                <label>Año Desde:</label>
                 <select value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="border p-1">
                   {Array.from({ length: 11 }, (_, i) => {
                     const year = new Date().getFullYear() - 5 + i;
@@ -273,14 +278,14 @@ const Reports = () => {
                   })}
                 </select>
 
-                <label>Until Month:</label>
+                <label>Mes Hasta:</label>
                 <select value={endMonth} onChange={e => setEndMonth(parseInt(e.target.value))} className="border p-1">
                   {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                    <option key={i + 1} value={i + 1}>{monthNames[i]}</option>
                   ))}
                 </select>
 
-                <label>Until Year:</label>
+                <label>Año Hasta:</label>
                 <select value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="border p-1">
                   {Array.from({ length: 11 }, (_, i) => {
                     const year = new Date().getFullYear() - 5 + i;
@@ -293,21 +298,21 @@ const Reports = () => {
             {/* Income by month */}
             {reportType === "incomeByMonth" && (
               <>
-                <label>Month (optional):</label>
+                <label>Mes (opcional):</label>
                 <select value={selectedMonth || ""} onChange={e => setSelectedMonth(parseInt(e.target.value) || null)} className="border p-1">
-                  <option value="">All months</option>
+                  <option value="">Todos los meses</option>
                   {Array.from({ length: 12 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                    <option key={i + 1} value={i + 1}>{monthNames[i]}</option>
                   ))}
                 </select>
 
-                <label>Year:</label>
+                <label>Año:</label>
                 <select
                   value={selectedYear || ""}
                   onChange={e => setSelectedYear(parseInt(e.target.value))}
                   className="border p-1"
                 >
-                  <option value="" disabled>Select year</option>
+                  <option value="" disabled>Seleccionar año</option>
                   {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
                 </select>
               </>
@@ -318,9 +323,9 @@ const Reports = () => {
 
       {/* Table */}
       {loading ? (
-        <p>Loading...</p>
+        <p>Cargando...</p>
       ) : data.length === 0 ? (
-        <p>No data available for the selected filters.</p>
+        <p>No hay datos disponibles para los filtros seleccionados.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="table-auto border-collapse border border-gray-400 w-full">
@@ -331,9 +336,9 @@ const Reports = () => {
                     {Object.keys(data[0])
                       .filter(k => k !== "total" && k !== "last_payment_date")
                       .map(key => (
-                        <th key={key} className="border px-2 py-1">{key}</th>
+                        <th key={key} className="border px-2 py-1">{key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</th>
                       ))}
-                    <th className="border px-2 py-1">Last Payment Date</th>
+                    <th className="border px-2 py-1">Última Fecha de Pago</th>
                     <th className="border px-2 py-1">Total</th>
                   </>
                 ) : reportType === "paymentsByResident" ? (
@@ -341,19 +346,19 @@ const Reports = () => {
                     {Object.keys(data[0])
                       .filter(k => k !== "total" && k !== "last_payment_date" && k !== "amount")
                       .map(key => (
-                        <th key={key} className="border px-2 py-1">{key}</th>
+                        <th key={key} className="border px-2 py-1">{key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</th>
                       ))}
-                    <th className="border px-2 py-1">Amount</th>
+                    <th className="border px-2 py-1">Monto</th>
                   </>
                 ) : reportType === "incomeByMonth" ? (
                   <>
-                    <th className="border px-2 py-1">Month</th>
-                    <th className="border px-2 py-1">Payment Type</th>
+                    <th className="border px-2 py-1">Mes</th>
+                    <th className="border px-2 py-1">Tipo de Pago</th>
                     <th className="border px-2 py-1">Total</th>
                   </>
                 ) : (
                   Object.keys(data[0]).map(key => (
-                    <th key={key} className="border px-2 py-1">{key}</th>
+                    <th key={key} className="border px-2 py-1">{key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</th>
                   ))
                 )}
               </tr>
@@ -400,7 +405,7 @@ const Reports = () => {
                 {reportType === "debtors" ? (
                   <>
                     {Object.keys(data[0])
-                      .filter(k => k !== "total" && k !== "last_payment_date")
+                      .filter(k => k !== "total" && k !== "last_payment_date") // Corregido el filtro
                       .map((_, idx) => (
                         <td key={idx} className="border px-2 py-1"></td>
                       ))}

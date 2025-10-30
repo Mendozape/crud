@@ -20,7 +20,7 @@ export default function CreateResidents() {
 
         if (form.checkValidity() === false) {
             e.stopPropagation();
-            setErrorMessage('Please fill out all required fields.');
+            setErrorMessage('Por favor, complete todos los campos obligatorios.');
         } else {
             const formData = new FormData();
             formData.append('name', name);
@@ -33,11 +33,11 @@ export default function CreateResidents() {
                         Accept: 'application/json',
                     },
                 });
-                setSuccessMessage('Fee created successfully.');
+                setSuccessMessage('Pago creado exitosamente.');
                 setErrorMessage('');
                 navigate('/fees');
             } catch (error) {
-                setErrorMessage('Failed to create fee.');
+                setErrorMessage('Fallo al crear el pago.');
                 console.error('Error creating fee:', error);
             }
         }
@@ -65,7 +65,7 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a name.
+                        Por favor, ingrese un nombre.
                     </div>
                 </div>
                 <div className='mb-3'>
@@ -78,7 +78,7 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide the amount.
+                        Por favor, ingrese el monto.
                     </div>
                 </div>
                 <div className='mb-3'>
@@ -91,7 +91,7 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a description.
+                        Por favor, ingrese una descripción.
                     </div>
                 </div>
                 <button type='submit' className='btn btn-success'>Guardar</button>

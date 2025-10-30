@@ -28,7 +28,7 @@ const FeesTable = () => {
             setFilteredFees(response.data.data || []);
         } catch (error) {
             console.error('Error fetching fees:', error);
-            setErrorMessage('Failed to fetch fees. You may not be authenticated.');
+            setErrorMessage('Fallo al cargar las cuotas. Puede que no esté autenticado.');
         } finally {
             setLoading(false);
         }
@@ -50,17 +50,17 @@ const FeesTable = () => {
                 headers: { Accept: 'application/json' },
             });
             if (response.status === 200) {
-                setSuccessMessage('Fee deleted successfully.');
+                setSuccessMessage('Cuota eliminada exitosamente.');
                 fetchFees();
             } else {
-                setErrorMessage('Failed to delete fee.');
+                setErrorMessage('Fallo al eliminar la cuota.');
             }
         } catch (error) {
             console.error('Error deleting fee:', error);
             if (error.response?.data?.message) {
                 setErrorMessage(error.response.data.message);
             } else {
-                setErrorMessage('Failed to delete fee.');
+                setErrorMessage('Fallo al eliminar la cuota.');
             }
         } finally {
             setShowModal(false);
@@ -78,15 +78,15 @@ const FeesTable = () => {
     const handleDelete = () => deleteFee(feeToDelete);
 
     const columns = [
-        { name: 'Name', selector: row => row.name, sortable: true },
-        { name: 'Amount', selector: row => row.amount, sortable: true },
-        { name: 'Description', selector: row => row.description, sortable: true },
+        { name: 'Nombre', selector: row => row.name, sortable: true },
+        { name: 'Monto', selector: row => row.amount, sortable: true },
+        { name: 'Descripción', selector: row => row.description, sortable: true },
         {
-            name: 'Actions',
+            name: 'Acciones',
             cell: row => (
                 <div>
                     <button className="btn btn-info btn-sm" onClick={() => editFee(row.id)}>Editar</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => confirmDelete(row.id)} style={{ marginLeft: '10px' }}>Delete</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => confirmDelete(row.id)} style={{ marginLeft: '10px' }}>Eliminar</button>
                 </div>
             ),
         },
@@ -109,13 +109,13 @@ const FeesTable = () => {
     return (
         <div className="row mb-4 border border-primary rounded p-3">
             <div className="col-md-6">
-                <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createFee}>Create</button>
+                <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createFee}>Crear</button>
             </div>
             <div className="col-md-6 d-flex justify-content-end align-items-center">
                 <input
                     type="text"
                     className="col-md-3 form-control form-control-sm mt-2 mb-2"
-                    placeholder="Search by name"
+                    placeholder="Buscar por nombre"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -128,7 +128,7 @@ const FeesTable = () => {
 
             <div className="col-md-12 mt-4">
                 <DataTable
-                    title="Fees List"
+                    title="Lista de Cuotas"
                     columns={columns}
                     data={filteredFees}
                     progressPending={loading}
@@ -146,15 +146,15 @@ const FeesTable = () => {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title">Confirm Delete</h5>
-                            <button type="button" className="close" aria-label="Close" onClick={toggleModal}>
+                            <h5 className="modal-title">Confirmar Eliminación</h5>
+                            <button type="button" className="close" aria-label="Cerrar" onClick={toggleModal}>
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <div className="modal-body">Está seguro que desea eliminar este pago?</div>
+                        <div className="modal-body">¿Está seguro que desea eliminar este pago?</div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancel</button>
-                            <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                            <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancelar</button>
+                            <button type="button" className="btn btn-danger" onClick={handleDelete}>Eliminar</button>
                         </div>
                     </div>
                 </div>

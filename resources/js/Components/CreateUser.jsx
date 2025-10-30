@@ -28,7 +28,7 @@ const CreateUser = () => {
         const res = await axios.get("/api/roles", axiosOptions);
         setRoles(res.data);
       } catch (err) {
-        setErrorMessage("Error loading roles.");
+        setErrorMessage("Error al cargar los roles.");
       }
     };
     fetchRoles();
@@ -45,23 +45,23 @@ const CreateUser = () => {
 
     // Validations
     if (!name.trim()) {
-      setNameError("Name is required");
+      setNameError("El Nombre es obligatorio");
       return;
     }
     if (!email.trim()) {
-      setEmailError("Email is required");
+      setEmailError("El Correo Electrónico es obligatorio");
       return;
     }
     if (!password) {
-      setPasswordError("Password is required");
+      setPasswordError("La Contraseña es obligatoria");
       return;
     }
     if (password !== confirmPassword) {
-      setPasswordError("Passwords do not match");
+      setPasswordError("Las Contraseñas no coinciden");
       return;
     }
     if (!selectedRole) {
-      setRoleError("Please select a role");
+      setRoleError("Por favor, seleccione un rol");
       return;
     }
 
@@ -78,17 +78,17 @@ const CreateUser = () => {
         axiosOptions
       );
 
-      setSuccessMessage("User created successfully.");
+      setSuccessMessage("Usuario creado exitosamente.");
       navigate("/users");
     } catch (err) {
       console.error(err);
-      setErrorMessage(err.response?.data?.message || "Error creating user.");
+      setErrorMessage(err.response?.data?.message || "Error al crear el usuario.");
     }
   };
 
   return (
     <div className="container mt-4">
-      <h2>Create User</h2>
+      <h2>Crear Usuario</h2>
 
       {successMessage && <div className="alert alert-success">{successMessage}</div>}
       {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
@@ -97,7 +97,7 @@ const CreateUser = () => {
         <div className="mb-2">
           <input
             type="text"
-            placeholder="Name"
+            placeholder="Nombre"
             className={`form-control ${nameError ? "is-invalid" : ""}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -108,7 +108,7 @@ const CreateUser = () => {
         <div className="mb-2">
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Correo Electrónico"
             className={`form-control ${emailError ? "is-invalid" : ""}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -119,7 +119,7 @@ const CreateUser = () => {
         <div className="mb-2">
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Contraseña"
             className={`form-control ${passwordError ? "is-invalid" : ""}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -129,7 +129,7 @@ const CreateUser = () => {
         <div className="mb-2">
           <input
             type="password"
-            placeholder="Confirm Password"
+            placeholder="Confirmar Contraseña"
             className={`form-control ${passwordError ? "is-invalid" : ""}`}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -143,7 +143,7 @@ const CreateUser = () => {
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
           >
-            <option value="">Select a role</option>
+            <option value="">Seleccione un rol</option>
             {roles.map((r) => (
               <option key={r.id} value={r.name}>
                 {r.name}
@@ -154,7 +154,7 @@ const CreateUser = () => {
         </div>
 
         <button type="submit" className="btn btn-success">
-          Save
+          Guardar
         </button>
       </form>
     </div>

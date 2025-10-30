@@ -41,7 +41,7 @@ export default function NotiProfile() {
         }
       } catch (err) {
         console.error('Error fetching notification:', err);
-        setError('Failed to load notification.');
+        setError('Fallo al cargar la notificación.');
         setNotiList([]);
       } finally {
         setIsLoading(false);
@@ -51,9 +51,9 @@ export default function NotiProfile() {
     fetchNotification();
   }, [id]);
 
-  if (isLoading) return <p>Loading notification...</p>;
+  if (isLoading) return <p>Cargando notificación...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  if (!notiList.length) return <p>No notification found.</p>;
+  if (!notiList.length) return <p>No se encontró ninguna notificación.</p>;
 
   return (
     <div>
@@ -69,8 +69,8 @@ export default function NotiProfile() {
           }}
         >
           <p><strong>ID:</strong> {item.id}</p>
-          <p><strong>Name:</strong> {item.data?.name || 'No name'}</p>
-          <p><strong>Created at:</strong> {item.created_at}</p>
+          <p><strong>Nombre:</strong> {item.data?.name || 'Sin nombre'}</p>
+          <p><strong>Creado el:</strong> {item.created_at}</p>
           {/* Add more fields as needed */}
         </div>
       ))}

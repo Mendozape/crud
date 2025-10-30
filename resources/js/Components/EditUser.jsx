@@ -20,7 +20,7 @@ const EditUser = () => {
         // Set selectedRole as the first role's ID (if exists)
         setSelectedRole(res.data.roles?.[0]?.id || "");
       } catch (err) {
-        setErrorMessage("Error loading user data.");
+        setErrorMessage("Error al cargar los datos del usuario.");
       }
     };
 
@@ -29,7 +29,7 @@ const EditUser = () => {
         const res = await axios.get("/api/roles");
         setRoles(res.data);
       } catch {
-        setErrorMessage("Error loading roles.");
+        setErrorMessage("Error al cargar los roles.");
       }
     };
 
@@ -44,27 +44,27 @@ const EditUser = () => {
         ...user,
         roles: [selectedRole], // send role ID
       });
-      setSuccessMessage("User updated successfully.");
+      setSuccessMessage("Usuario actualizado exitosamente.");
       navigate("/users");
     } catch {
-      setErrorMessage("Error updating user.");
+      setErrorMessage("Error al actualizar el usuario.");
     }
   };
 
   return (
     <div className="container mt-4">
-      <h2>Edit User</h2>
+      <h2>Editar Usuario</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Name"
+          placeholder="Nombre"
           className="form-control mb-2"
           value={user.name || ""}
           onChange={(e) => setUser({ ...user, name: e.target.value })}
         />
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Correo Electrónico"
           className="form-control mb-2"
           value={user.email || ""}
           onChange={(e) => setUser({ ...user, email: e.target.value })}
@@ -75,7 +75,7 @@ const EditUser = () => {
           value={selectedRole}
           onChange={(e) => setSelectedRole(e.target.value)}
         >
-          <option value="">Select a role</option>
+          <option value="">Seleccione un rol</option>
           {roles.map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}

@@ -36,18 +36,18 @@ export default function EditFees() {
         try {
             const response = await axios.post(`${endpoint}${id}`, formData, axiosOptions);
             if (response.status === 200) {
-                setSuccessMessage('Fee updated successfully.');
+                setSuccessMessage('Cuota actualizada exitosamente.');
                 setErrorMessage('');
                 navigate('/fees');
             } else {
-                setErrorMessage('Failed to update fee.');
+                setErrorMessage('Fallo al actualizar la cuota.');
             }
         } catch (error) {
             console.error('Error updating fee:', error);
             if (error.response?.data?.errors) {
                 setErrors(error.response.data.errors);
             } else {
-                setErrorMessage('Failed to update fee.');
+                setErrorMessage('Fallo al actualizar la cuota.');
             }
         } finally {
             setShowModal(false);
@@ -68,14 +68,14 @@ export default function EditFees() {
                 setDescription(response.data.description);
             } catch (error) {
                 console.error('Error fetching fee:', error);
-                setErrorMessage('Failed to fetch fee.');
+                setErrorMessage('Fallo al cargar la cuota.');
             }
         };
         getFeeById();
     }, [id, setErrorMessage]);
     return (
         <div>
-            <h2>Edit Fee</h2>
+            <h2>Editar Cuota</h2>
             <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
                 <div className="col-md-12 mt-4">
                     {errorMessage && (
@@ -123,17 +123,17 @@ export default function EditFees() {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title">Confirm Update</h5>
-                            <button type="button" className="close" aria-label="Close" onClick={() => setShowModal(false)}>
+                            <h5 className="modal-title">Confirmar Actualización</h5>
+                            <button type="button" className="close" aria-label="Cerrar" onClick={() => setShowModal(false)}>
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div className="modal-body">
-                            Are you sure you want to update this fee's information?
+                            ¿Está seguro de que desea actualizar la información de esta cuota?
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button type="button" className="btn btn-danger" onClick={handleUpdate}>Update</button>
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
+                            <button type="button" className="btn btn-danger" onClick={handleUpdate}>Actualizar</button>
                         </div>
                     </div>
                 </div>

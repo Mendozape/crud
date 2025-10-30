@@ -34,7 +34,7 @@ export default function CreateResidents() {
 
         if (form.checkValidity() === false) {
             e.stopPropagation();
-            setErrorMessage('Please fill out all required fields.');
+            setErrorMessage('Por favor, complete todos los campos obligatorios.');
         } else {
             const formData = new FormData();
             formData.append('photo', photo);
@@ -48,11 +48,11 @@ export default function CreateResidents() {
 
             try {
                 await axios.post(endpoint, formData, axiosOptions);
-                setSuccessMessage('Resident created successfully.');
+                setSuccessMessage('Residente creado exitosamente.');
                 setErrorMessage('');
                 navigate('/residents');
             } catch (error) {
-                setErrorMessage('Failed to create resident.');
+                setErrorMessage('Fallo al crear el residente.');
                 console.error('Error creating resident:', error);
             }
         }
@@ -82,7 +82,7 @@ export default function CreateResidents() {
                     )}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Photo</label><br />
+                    <label className='form-label'>Foto</label><br />
                     <input
                         onChange={handleFileChange}
                         type='file'
@@ -90,14 +90,14 @@ export default function CreateResidents() {
                         className='form-control d-none'
                     />
                     <div className="invalid-feedback">
-                        Please provide a photo.
+                        Por favor, suba una foto.
                     </div>
                     <label htmlFor='fileInput' className='btn btn-primary'>Selecciona la imagen</label> <br />
                     {photoPreview && (
                         <div className='position-relative mt-3' style={{ display: 'inline-block' }}>
                             <img
                                 src={photoPreview}
-                                alt="New photo"
+                                alt="Nueva foto"
                                 style={{ width: '100px', borderRadius: '50%' }}
                             />
                             <button
@@ -117,7 +117,7 @@ export default function CreateResidents() {
                     )}
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Name</label>
+                    <label className='form-label'>Nombre</label>
                     <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -126,11 +126,11 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a name.
+                        Por favor, ingrese un nombre.
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Last Name</label>
+                    <label className='form-label'>Apellido</label>
                     <input
                         value={last_name}
                         onChange={(e) => setLastName(e.target.value)}
@@ -139,11 +139,11 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a last name.
+                        Por favor, ingrese un apellido.
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Email</label>
+                    <label className='form-label'>Correo Electrónico</label>
                     <input
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -152,11 +152,11 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a valid email.
+                        Por favor, ingrese un correo electrónico válido.
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Street</label>
+                    <label className='form-label'>Calle</label>
                     <input
                         value={street}
                         onChange={(e) => setStreet(e.target.value)}
@@ -165,11 +165,11 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a street.
+                        Por favor, ingrese una calle.
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Street Number</label>
+                    <label className='form-label'>Número de Calle</label>
                     <input
                         value={street_number}
                         onChange={(e) => setStreetNumber(e.target.value)}
@@ -178,11 +178,11 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a street number.
+                        Por favor, ingrese un número de calle.
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Community</label>
+                    <label className='form-label'>Comunidad</label>
                     <input
                         value={community}
                         onChange={(e) => setCommunity(e.target.value)}
@@ -191,11 +191,11 @@ export default function CreateResidents() {
                         required
                     />
                     <div className="invalid-feedback">
-                        Please provide a community.
+                        Por favor, ingrese una comunidad.
                     </div>
                 </div>
                 <div className='mb-3'>
-                    <label className='form-label'>Comments</label>
+                    <label className='form-label'>Comentarios</label>
                     <input
                         value={comments}
                         onChange={(e) => setComments(e.target.value)}
@@ -203,7 +203,7 @@ export default function CreateResidents() {
                         className='form-control'
                     />
                 </div>
-                <button type='submit' className='btn btn-success'>Save</button>
+                <button type='submit' className='btn btn-success'>Guardar</button>
             </form>
         </div>
     );

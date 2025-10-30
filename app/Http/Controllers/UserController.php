@@ -7,7 +7,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ImportUser;
 use App\Exports\ExportUser;
 use App\Models\User;
-use App\Models\Client;
+//use App\Models\Client;
+use App\Models\Resident;
 //use App\Models\notification;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +33,7 @@ class UserController extends Controller
     public function count()
     {
         $userCount = User::count();
-        $clientCount = Client::count();
+        $clientCount = Resident::count();
         $roleCount = Role::count();
         return response()->json(['userCount' => $userCount,
                                  'clientCount' => $clientCount,

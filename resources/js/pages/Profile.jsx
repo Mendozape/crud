@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const Profile = ({ user }) => {
@@ -11,7 +11,7 @@ const Profile = ({ user }) => {
   const [status, setStatus] = useState("");
   const [error, setError] = useState(""); // store error messages
 
-  // If user data was not passed from Blade, fetch it from API
+  // Si los datos de usuario no se pasaron desde Blade, obtenerlos desde la API
   useEffect(() => {
     if (!user) {
       axios
@@ -21,43 +21,43 @@ const Profile = ({ user }) => {
     }
   }, [user]);
 
-  // Handle changes in profile info form
+  // Maneja los cambios en el formulario de información de perfil
   const handleProfileChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  // Handle changes in password form
+  // Maneja los cambios en el formulario de contraseña
   const handlePasswordChange = (e) => {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
   };
 
-  // Submit updated profile info
+  // Envía la información de perfil actualizada
   const updateProfile = async (e) => {
     e.preventDefault();
     setError(""); // reset errors
     try {
       await axios.put("/user/profile-information", profile);
-      setStatus("Profile updated successfully.");
+      setStatus("Perfil actualizado exitosamente.");
     } catch (err) {
       console.error(err);
       setStatus("");
       if (err.response?.data?.errors) {
-        // Laravel validation errors
+        // Errores de validación de Laravel
         const messages = Object.values(err.response.data.errors).flat().join(" ");
         setError(messages);
       } else {
-        setError("Error updating profile.");
+        setError("Error al actualizar el perfil.");
       }
     }
   };
 
-  // Submit updated password
+  // Envía la contraseña actualizada
   const updatePassword = async (e) => {
     e.preventDefault();
     setError(""); // reset errors
     try {
       await axios.put("/user/password", passwords);
-      setStatus("Password updated successfully.");
+      setStatus("Contraseña actualizada exitosamente.");
       setPasswords({ current_password: "", password: "", password_confirmation: "" });
     } catch (err) {
       console.error(err);
@@ -66,29 +66,29 @@ const Profile = ({ user }) => {
         const messages = Object.values(err.response.data.errors).flat().join(" ");
         setError(messages);
       } else {
-        setError("Error updating password.");
+        setError("Error al actualizar la contraseña.");
       }
     }
   };
 
-  if (!profile) return <div>Loading user info...</div>;
+  if (!profile) return <div>Cargando información del usuario...</div>;
 
   return (
     <div className="container mt-3">
-      <h1>My Profile</h1>
+      <h1>Mi Perfil</h1>
 
-      {/* Success Message */}
+      {/* Mensaje de Éxito */}
       {status && <div className="alert alert-success">{status}</div>}
 
-      {/* Error Message */}
+      {/* Mensaje de Error */}
       {error && <div className="alert alert-danger">{error}</div>}
 
-      {/* Profile Information Form */}
+      {/* Formulario de Información de Perfil */}
       <div className="card p-3 mb-3">
-        <h5>Update Profile Information</h5>
+        <h5>Actualizar Información de Perfil</h5>
         <form onSubmit={updateProfile}>
           <div className="form-group">
-            <label>Name</label>
+            <label>Nombre</label>
             <input
               type="text"
               name="name"
@@ -98,7 +98,7 @@ const Profile = ({ user }) => {
             />
           </div>
           <div className="form-group">
-            <label>Email</label>
+            <label>Correo Electrónico</label>
             <input
               type="email"
               name="email"
@@ -108,17 +108,17 @@ const Profile = ({ user }) => {
             />
           </div>
           <button type="submit" className="btn btn-primary mt-2">
-            Update Profile
+            Actualizar Perfil
           </button>
         </form>
       </div>
 
-      {/* Password Update Form */}
+      {/* Formulario de Actualización de Contraseña */}
       <div className="card p-3 mb-3">
-        <h5>Update Password</h5>
+        <h5>Actualizar Contraseña</h5>
         <form onSubmit={updatePassword}>
           <div className="form-group">
-            <label>Current Password</label>
+            <label>Contraseña Actual</label>
             <input
               type="password"
               name="current_password"
@@ -128,7 +128,7 @@ const Profile = ({ user }) => {
             />
           </div>
           <div className="form-group">
-            <label>New Password</label>
+            <label>Nueva Contraseña</label>
             <input
               type="password"
               name="password"
@@ -138,7 +138,7 @@ const Profile = ({ user }) => {
             />
           </div>
           <div className="form-group">
-            <label>Confirm New Password</label>
+            <label>Confirmar Nueva Contraseña</label>
             <input
               type="password"
               name="password_confirmation"
@@ -148,7 +148,7 @@ const Profile = ({ user }) => {
             />
           </div>
           <button type="submit" className="btn btn-primary mt-2">
-            Update Password
+            Actualizar Contraseña
           </button>
         </form>
       </div>

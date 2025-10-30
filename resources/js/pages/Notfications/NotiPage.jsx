@@ -45,12 +45,12 @@ export default function NotiPage() {
         fetchNotiStatus();
     }, []);
 
-    if (loading) return <p>Loading notifications...</p>;
+    if (loading) return <p>Cargando notificaciones...</p>;
 
     return (
         <div>
             <div>
-                <h3>Notifications</h3>
+                <h3>Notificaciones</h3>
             </div>
 
             <div className='d-flex'>
@@ -65,7 +65,7 @@ export default function NotiPage() {
                                         isActive ? 'text-danger' : ''
                                     }
                                 >
-                                    {row.data?.name || 'Unnamed Notification'}
+                                    {row.data?.name || 'Notificación sin nombre'}
                                 </NavLink>
                             </li>
                         ))}

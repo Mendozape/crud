@@ -53,7 +53,6 @@ const PaymentForm = () => {
         const fetchFees = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/api/fees', axiosOptions);
-                // ⚡ Aquí el cambio importante
                 setFees(response.data.data || []);
             } catch (error) {
                 console.error('Error fetching fees:', error);
@@ -108,7 +107,7 @@ const PaymentForm = () => {
         );
 
         if (unpaidSelectedMonths.length === 0) {
-            setErrorMessage('Please select at least one unpaid month.');
+            setErrorMessage('Por favor, seleccione al menos un mes no pagado.');
             setShowModal(false);
             return;
         }
@@ -125,7 +124,7 @@ const PaymentForm = () => {
 
         try {
             await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
-            setSuccessMessage('Payment(s) registered successfully.');
+            setSuccessMessage('Pago(s) registrado(s) exitosamente.');
             setShowModal(false);
             navigate('/residents');
         } catch (error) {
@@ -133,30 +132,30 @@ const PaymentForm = () => {
                 setErrorMessage(error.response.data.message);
             } else {
                 console.error('Error registering payment(s):', error);
-                setErrorMessage('Failed to register payment(s).');
+                setErrorMessage('Fallo al registrar el/los pago(s).');
             }
             setShowModal(false);
         }
     };
 
     const months = [
-        { value: 1, label: 'January' },
-        { value: 2, label: 'February' },
-        { value: 3, label: 'March' },
-        { value: 4, label: 'April' },
-        { value: 5, label: 'May' },
-        { value: 6, label: 'June' },
-        { value: 7, label: 'July' },
-        { value: 8, label: 'August' },
-        { value: 9, label: 'September' },
-        { value: 10, label: 'October' },
-        { value: 11, label: 'November' },
-        { value: 12, label: 'December' },
+        { value: 1, label: 'Enero' },
+        { value: 2, label: 'Febrero' },
+        { value: 3, label: 'Marzo' },
+        { value: 4, label: 'Abril' },
+        { value: 5, label: 'Mayo' },
+        { value: 6, label: 'Junio' },
+        { value: 7, label: 'Julio' },
+        { value: 8, label: 'Agosto' },
+        { value: 9, label: 'Septiembre' },
+        { value: 10, label: 'Octubre' },
+        { value: 11, label: 'Noviembre' },
+        { value: 12, label: 'Diciembre' },
     ];
 
     const currentYear = new Date().getFullYear();
     const years = [
-        { value: '', label: 'Select Year' },
+        { value: '', label: 'Seleccionar Año' },
         { value: currentYear - 2, label: currentYear - 2 },
         { value: currentYear - 1, label: currentYear - 1 },
         { value: currentYear, label: currentYear },
@@ -177,7 +176,7 @@ const PaymentForm = () => {
         if (e.target.checked) {
             const unpaid = months
                 .map(m => m.value)
-                .filter(m => !paidMonths.includes(m));
+                .filter(m => !paidMonths.includes(m.value));
             setSelectedMonths(unpaid);
         } else {
             setSelectedMonths([]);
@@ -186,7 +185,7 @@ const PaymentForm = () => {
 
     return (
         <div className="container mt-5">
-            <h2>Register Payment for {residentName}</h2>
+            <h2>Registrar Pago para {residentName}</h2>
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
@@ -204,33 +203,33 @@ const PaymentForm = () => {
                 className={formValidated ? 'was-validated' : ''}
             >
                 <div className="form-group">
-                    <label>Fee</label>
+                    <label>Cuota</label>
                     <select
                         value={feeId}
                         onChange={handleFeeChange}
                         className="form-control"
                         required
                     >
-                        <option value="">Select Fee</option>
+                        <option value="">Seleccionar Cuota</option>
                         {fees.map(fee => (
                             <option key={fee.id} value={fee.id}>{fee.name}</option>
                         ))}
                     </select>
-                    <div className="invalid-feedback">Please select a fee.</div>
+                    <div className="invalid-feedback">Por favor, seleccione una cuota.</div>
                 </div>
 
                 <div className="form-group d-flex align-items-center">
-                    <label className="mb-0 mr-2" style={{ width: '100px' }}>Amount:</label>
+                    <label className="mb-0 mr-2" style={{ width: '100px' }}>Monto:</label>
                     <span>{amount}</span>
                 </div>
 
                 <div className="form-group d-flex align-items-center">
-                    <label className="mb-0 mr-2" style={{ width: '100px' }}>Description:</label>
+                    <label className="mb-0 mr-2" style={{ width: '100px' }}>Descripción:</label>
                     <span>{description}</span>
                 </div>
 
                 <div className="form-group">
-                    <label>Year</label>
+                    <label>Año</label>
                     <select
                         value={year}
                         onChange={(e) => setYear(e.target.value)}
@@ -241,11 +240,11 @@ const PaymentForm = () => {
                             <option key={year.value} value={year.value}>{year.label}</option>
                         ))}
                     </select>
-                    <div className="invalid-feedback">Please select a year.</div>
+                    <div className="invalid-feedback">Por favor, seleccione un año.</div>
                 </div>
 
                 <div className="form-group">
-                    <label>Months</label>
+                    <label>Meses</label>
                     <div className="form-check mb-2">
                         <input
                             type="checkbox"
@@ -255,7 +254,7 @@ const PaymentForm = () => {
                             onChange={handleSelectAllMonths}
                         />
                         <label className="form-check-label" htmlFor="selectAllMonths">
-                            Select All
+                            Seleccionar Todos
                         </label>
                     </div>
 
@@ -284,12 +283,12 @@ const PaymentForm = () => {
                     </div>
 
                     {formValidated && selectedMonths.filter(m => !paidMonths.includes(m)).length === 0 && (
-                        <div className="text-danger mt-2">Please select at least one unpaid month.</div>
+                        <div className="text-danger mt-2">Por favor, seleccione al menos un mes no pagado.</div>
                     )}
                 </div>
 
                 <div className="form-group mt-3">
-                    <label>Payment Date</label>
+                    <label>Fecha de Pago</label>
                     <input
                         value={paymentDate}
                         onChange={(e) => setPaymentDate(e.target.value)}
@@ -297,10 +296,10 @@ const PaymentForm = () => {
                         className='form-control'
                         required
                     />
-                    <div className="invalid-feedback">Please select a payment date.</div>
+                    <div className="invalid-feedback">Por favor, seleccione una fecha de pago.</div>
                 </div>
 
-                <button type="submit" className="btn btn-primary mt-3">Register Payment</button>
+                <button type="submit" className="btn btn-primary mt-3">Registrar Pago</button>
             </form>
 
             {/* Confirmation Modal */}
@@ -308,17 +307,17 @@ const PaymentForm = () => {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title">Confirm Payment</h5>
+                            <h5 className="modal-title">Confirmar Pago</h5>
                             <button type="button" className="close" onClick={() => setShowModal(false)}>
                                 <span>&times;</span>
                             </button>
                         </div>
                         <div className="modal-body">
-                            Are you sure you want to register this payment?
+                            ¿Está seguro de que desea registrar este pago?
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button type="button" className="btn btn-primary" onClick={handleConfirmSubmit}>Confirm</button>
+                            <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
+                            <button type="button" className="btn btn-primary" onClick={handleConfirmSubmit}>Confirmar</button>
                         </div>
                     </div>
                 </div>
@@ -329,16 +328,16 @@ const PaymentForm = () => {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header bg-warning">
-                            <h5 className="modal-title text-dark">Validation Required</h5>
+                            <h5 className="modal-title text-dark">Validación Requerida</h5>
                             <button type="button" className="close" onClick={() => setValidationWarning(false)}>
                                 <span>&times;</span>
                             </button>
                         </div>
                         <div className="modal-body text-dark">
-                            Please check the form. Some required fields are missing or contain invalid data.
+                            Por favor, revise el formulario. Faltan campos obligatorios o contienen datos no válidos.
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={() => setValidationWarning(false)}>OK</button>
+                            <button type="button" className="btn btn-secondary" onClick={() => setValidationWarning(false)}>Aceptar</button>
                         </div>
                     </div>
                 </div>

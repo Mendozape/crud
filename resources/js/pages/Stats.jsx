@@ -76,7 +76,7 @@ export default function UserCount() {
                                                     <span style={{ float: 'right' }}>{userCount}</span>
                                                 </h2>
                                                 <p className="m-b-0 text-right">
-                                                    <a href="/usuarios" className="text-white">Ver más</a>
+                                                    <a href="/users" className="text-white">Ver más</a>
                                                 </p>
                                             </div>
                                         </div>
@@ -84,13 +84,13 @@ export default function UserCount() {
                                     <div className="col-md-4 col-xl-4">
                                         <div className="card bg-secondary text-white p-2">
                                             <div className="card-subtitle">
-                                                <h5>Personal</h5>
+                                                <h5>Residentes</h5>
                                                 <h2 className="text-left">
                                                     <i className="fa fa-user" />
                                                     <span style={{ float: 'right' }}>{clientCount}</span>
                                                 </h2>
                                                 <p className="m-b-0 text-right">
-                                                    <a href="/client" className="text-white">Ver más</a>
+                                                    <a href="/residents" className="text-white">Ver más</a>
                                                 </p>
                                             </div>
                                         </div>

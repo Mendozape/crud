@@ -51,15 +51,15 @@ const ResidentsTable = () => {
         try {
             const response = await axios.delete(`${endpoint}/${id}`, axiosOptions);
             if (response.status === 200) {
-                setSuccessMessage('Resident deleted successfully.');
+                setSuccessMessage('Residente eliminado exitosamente.');
                 fetchResidents();
             } else {
-                setErrorMessage('Failed to delete resident.');
+                setErrorMessage('Fallo al eliminar el residente.');
             }
             setShowModal(false);
         } catch (error) {
             console.error('Error deleting resident:', error);
-            setErrorMessage('Failed to delete resident.');
+            setErrorMessage('Fallo al eliminar el residente.');
             setShowModal(false);
         }
     };
@@ -76,7 +76,7 @@ const ResidentsTable = () => {
 
     const columns = [
         {
-            name: 'Photo',
+            name: 'Foto',
             selector: row => {
                 // The photo is stored in storage/app/public/images, 
                 // and the 'public' disk in config/filesystems.php points to this folder.
@@ -85,15 +85,15 @@ const ResidentsTable = () => {
                     row.photo && row.photo !== 'undefined' && row.photo !== 'null' && row.photo !== ''
                         ? `http://127.0.0.1:8000/storage/${row.photo}`
                         : `http://127.0.0.1:8000/storage/no_image.png`;
-                return <img src={photoUrl} style={{ width: '50px', borderRadius: '50%' }} />;
+                return <img src={photoUrl} style={{ width: '50px', borderRadius: '50%' }} alt="Foto de residente" />;
             },
             sortable: false,
         },
         { name: 'Nombre', selector: row => row.name, sortable: true },
         { name: 'Apellidos', selector: row => row.last_name, sortable: true },
-        { name: 'Email', selector: row => row.email, sortable: true },
+        { name: 'Correo Electrónico', selector: row => row.email, sortable: true },
         { name: 'Calle', selector: row => row.street, sortable: true },
-        { name: '# calle', selector: row => row.street_number, sortable: true },
+        { name: 'Número de Calle', selector: row => row.street_number, sortable: true },
         { name: 'Comunidad', selector: row => row.community, sortable: true },
         { name: 'Comentarios', selector: row => row.comments, sortable: true },
         {
@@ -101,7 +101,7 @@ const ResidentsTable = () => {
             cell: row => (
                 <div>
                     <button className="btn btn-info btn-sm" onClick={() => createPayment(row.id)}>Pagos</button>
-                    <button className="btn btn-info btn-sm" onClick={() => editResident(row.id)}>Editar</button>
+                    <button className="btn btn-info btn-sm" onClick={() => editResident(row.id)} style={{ marginLeft: '10px' }}>Editar</button>
                     <button className="btn btn-danger btn-sm" onClick={() => confirmDelete(row.id)} style={{ marginLeft: '10px' }}>
                         Eliminar
                     </button>
@@ -133,7 +133,7 @@ const ResidentsTable = () => {
                 <input
                     type="text"
                     className="col-md-3 form-control form-control-sm mt-2 mb-2"
-                    placeholder="Search by name"
+                    placeholder="Buscar por nombre"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -162,13 +162,13 @@ const ResidentsTable = () => {
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h5 className="modal-title">Confirm Delete</h5>
-                            <button type="button" className="close" aria-label="Close" onClick={toggleModal}>
+                            <h5 className="modal-title">Confirmar Eliminación</h5>
+                            <button type="button" className="close" aria-label="Cerrar" onClick={toggleModal}>
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div className="modal-body">
-                            Está seguro que desea eliminar este residente?
+                            ¿Está seguro de que desea eliminar este residente?
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancelar</button>
