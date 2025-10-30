@@ -16,7 +16,7 @@ const getCsrfToken = async () => {
 
 export default function UserCount() {
     const [userCount, setUserCount] = useState(0);
-    const [clientCount, setClientCount] = useState(0);
+    const [residentCount, setResidentCount] = useState(0);
     const [roleCount, setRoleCount] = useState(0);
 
     useEffect(() => {
@@ -36,16 +36,16 @@ export default function UserCount() {
                 if (
                     response.data &&
                     response.data.userCount !== undefined &&
-                    response.data.clientCount !== undefined &&
+                    response.data.residentCount !== undefined &&
                     response.data.roleCount !== undefined
                 ) {
                     setUserCount(response.data.userCount);
-                    setClientCount(response.data.clientCount);
+                    setResidentCount(response.data.residentCount);
                     setRoleCount(response.data.roleCount);
                 } else {
                     // If the response is missing expected values
                     setUserCount(0);
-                    setClientCount(0);
+                    setResidentCount(0);
                     setRoleCount(0);
                 }
             } catch (error) {
@@ -87,7 +87,7 @@ export default function UserCount() {
                                                 <h5>Residentes</h5>
                                                 <h2 className="text-left">
                                                     <i className="fa fa-user" />
-                                                    <span style={{ float: 'right' }}>{clientCount}</span>
+                                                    <span style={{ float: 'right' }}>{residentCount}</span>
                                                 </h2>
                                                 <p className="m-b-0 text-right">
                                                     <a href="/residents" className="text-white">Ver más</a>

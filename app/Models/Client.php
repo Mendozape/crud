@@ -10,11 +10,4 @@ class Client extends Model
     public $timestamps = true;
     protected $table = 'clients';
     protected $fillable = ['name','due','comments','image'];
-	/*
-     protected $dispatchesEvents= [
-        'created'=>SendEmployeesNotification::class,
-        'updated'=>EmployeesUpdated::class,
-        'deleted'=>SendNewUserNotification::class,
-    ];
-    */
 }

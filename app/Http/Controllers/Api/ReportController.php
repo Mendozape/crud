@@ -14,95 +14,112 @@ class ReportController extends Controller
     /**
      * Residents with more than X months overdue.
      */
-   public function debtors(Request $request)
-{
-    $monthsOverdue = (int) $request->get('months', 1);
-    $paymentType = $request->get('payment_type', null);
+    public function debtors(Request $request)
+    {
+        $monthsOverdue = (int) $request->get('months', 1);
+        $paymentType = $request->get('payment_type', null);
 
-    $startMonth = (int) $request->get('start_month', 1);
-    $startYear = (int) $request->get('start_year', date('Y'));
-    $endMonth = (int) $request->get('end_month', date('n'));
-    $endYear = (int) $request->get('end_year', date('Y'));
+        $startMonth = (int) $request->get('start_month', 1);
+        $startYear = (int) $request->get('start_year', date('Y'));
+        $endMonth = (int) $request->get('end_month', date('n'));
+        $endYear = (int) $request->get('end_year', date('Y'));
 
-    try {
-        // Traer residentes
-        $residents = Resident::select('id', 'name', 'last_name', 'street', 'street_number')
-            ->get();
-
-        $rows = $residents->map(function ($resident) use ($startMonth, $startYear, $endMonth, $endYear, $monthsOverdue, $paymentType) {
-
-            // Contar pagos en el rango
-            $paymentsQuery = ResidentPayment::where('resident_id', $resident->id)
-                ->where(function ($q) use ($startMonth, $startYear, $endMonth, $endYear) {
-                    $q->where(function ($q2) use ($startMonth, $startYear) {
-                        $q2->whereYear('payment_date', '>', $startYear)
-                           ->orWhere(function ($q3) use ($startMonth, $startYear) {
-                               $q3->whereYear('payment_date', $startYear)
-                                  ->whereMonth('payment_date', '>=', $startMonth);
-                           });
-                    })->where(function ($q2) use ($endMonth, $endYear) {
-                        $q2->whereYear('payment_date', '<', $endYear)
-                           ->orWhere(function ($q3) use ($endMonth, $endYear) {
-                               $q3->whereYear('payment_date', $endYear)
-                                  ->whereMonth('payment_date', '<=', $endMonth);
-                           });
-                    });
-                });
-
-            if ($paymentType) {
-                $paymentsQuery->whereHas('fee', fn($q) => $q->where('name', $paymentType));
+        try {
+            // Get all fees if "Todos" is selected
+            $fees = [];
+            if ($paymentType === 'Todos') {
+                $fees = \App\Models\Fee::all();
+            } else if ($paymentType) {
+                $fee = \App\Models\Fee::where('name', $paymentType)->first();
+                if ($fee) {
+                    $fees = [$fee];
+                }
             }
 
-            $paidMonths = $paymentsQuery->count();
-            $feeAmount = $paymentsQuery->first()?->fee->amount ?? 0;
-            $expectedMonths = ($endYear - $startYear) * 12 + ($endMonth - $startMonth + 1);
-            $months_overdue = max(0, $expectedMonths - $paidMonths);
-            $total = $months_overdue * $feeAmount;
+            $residents = Resident::select('id', 'name', 'last_name', 'street', 'street_number')
+                ->get();
 
-            $lastPayment = $paymentsQuery->orderByDesc('payment_date')->value('payment_date');
+            $allRows = collect();
 
-            return [
-                'name' => $resident->name,
-                'last_name' => $resident->last_name,
-                'street' => $resident->street,
-                'street_number' => $resident->street_number,
-                'paid_months' => $paidMonths,
-                'fee_amount' => $feeAmount,
-                'months_overdue' => $months_overdue,
-                'last_payment_date' => $lastPayment ? \Carbon\Carbon::parse($lastPayment)->toDateString() : null,
-                'total' => $total,
-            ];
-        })
-        ->filter(fn($r) => $r['months_overdue'] >= $monthsOverdue)
-        ->values();
+            foreach ($fees as $fee) {
+                $feeAmount = $fee->amount ?? 0;
+                $feeName = $fee->name ?? '';
 
-        // Total general
-        $grandTotal = $rows->sum('total');
+                $rows = $residents->map(function ($resident) use ($startMonth, $startYear, $endMonth, $endYear, $monthsOverdue, $feeName, $feeAmount) {
 
-        $rows->push([
-            'name' => 'Total',
-            'last_name' => '',
-            'street' => '',
-            'street_number' => '',
-            'paid_months' => '',
-            'fee_amount' => '',
-            'months_overdue' => '',
-            'last_payment_date' => '',
-            'total' => $grandTotal,
-        ]);
+                    $paymentsQuery = ResidentPayment::where('resident_id', $resident->id)
+                        ->where(function ($q) use ($startMonth, $startYear, $endMonth, $endYear) {
+                            $q->where(function ($q2) use ($startMonth, $startYear) {
+                                $q2->whereYear('payment_date', '>', $startYear)
+                                    ->orWhere(function ($q3) use ($startMonth, $startYear) {
+                                        $q3->whereYear('payment_date', $startYear)
+                                            ->whereMonth('payment_date', '>=', $startMonth);
+                                    });
+                            })->where(function ($q2) use ($endMonth, $endYear) {
+                                $q2->whereYear('payment_date', '<', $endYear)
+                                    ->orWhere(function ($q3) use ($endMonth, $endYear) {
+                                        $q3->whereYear('payment_date', $endYear)
+                                            ->whereMonth('payment_date', '<=', $endMonth);
+                                    });
+                            });
+                        });
 
-        return response()->json([
-            'success' => true,
-            'data' => $rows
-        ]);
-    } catch (\Exception $e) {
-        \Log::error("Error fetching debtors: ".$e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
+                    if ($feeName) {
+                        $paymentsQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
+                    }
+
+                    $paidMonths = $paymentsQuery->count();
+                    $expectedMonths = ($endYear - $startYear) * 12 + ($endMonth - $startMonth + 1);
+                    $months_overdue = max(0, $expectedMonths - $paidMonths);
+                    $total = $months_overdue * $feeAmount;
+
+                    $lastPayment = $paymentsQuery->orderByDesc('payment_date')->value('payment_date');
+
+                    return [
+                        'name' => $resident->name,
+                        'last_name' => $resident->last_name,
+                        'street' => $resident->street,
+                        'street_number' => $resident->street_number,
+                        'paid_months' => $paidMonths,
+                        'fee_amount' => $feeAmount,
+                        'fee_name' => $feeName,
+                        'months_overdue' => $months_overdue,
+                        'last_payment_date' => $lastPayment ? \Carbon\Carbon::parse($lastPayment)->toDateString() : null,
+                        'total' => $total,
+                    ];
+                })
+                ->filter(fn($r) => $r['months_overdue'] >= $monthsOverdue);
+
+                $allRows = $allRows->merge($rows);
+            }
+
+            $allRows = $allRows->values();
+            $grandTotal = $allRows->sum('total');
+
+            $allRows->push([
+                'name' => 'Total',
+                'last_name' => '',
+                'street' => '',
+                'street_number' => '',
+                'paid_months' => '',
+                'fee_amount' => '',
+                'fee_name' => '',
+                'months_overdue' => '',
+                'last_payment_date' => '',
+                'total' => $grandTotal,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $allRows
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-}
 
 
 
@@ -138,7 +155,8 @@ class ReportController extends Controller
                     });
             });
 
-        if ($paymentType) {
+        // Only filter by payment type if not "Todos"
+        if ($paymentType && $paymentType !== 'Todos') {
             $payments->whereHas('fee', fn($q) => $q->where('name', $paymentType));
         }
 
@@ -149,8 +167,10 @@ class ReportController extends Controller
                 'street' => $p->resident->street,
                 'street_number' => $p->resident->street_number,
                 'fee_name' => $p->fee->name ?? '',
+                'fee_amount' => $p->fee->amount ?? 0,
                 'amount' => $p->amount,
-                'payment_date' => $p->payment_date, // <-- agregado
+                'concept' => $p->concept ?? '',
+                'payment_date' => $p->payment_date,
             ]);
 
         return response()->json([
@@ -215,14 +235,15 @@ class ReportController extends Controller
             DB::raw('SUM(amount) as total'),
             'fee_id'
         )
-            ->with('fee') // Para tener relación con el fee
+            ->with('fee')
             ->where('year', $year);
 
         if ($month) {
             $query->where('month', $month);
         }
 
-        if ($paymentType) {
+        // Only filter by payment type if not "Todos"
+        if ($paymentType && $paymentType !== 'Todos') {
             $query->whereHas('fee', fn($q) => $q->where('name', $paymentType));
         }
 

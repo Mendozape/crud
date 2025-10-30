@@ -3,7 +3,6 @@
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\RolesController;
 use Illuminate\Http\Request;
@@ -60,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::apiResource('permisos', PermisosController::class);
     Route::apiResource('roles', RolesController::class);
-    Route::apiResource('usuarios', UsuariosController::class);
+    Route::apiResource('usuarios', UserController::class);
 
     // REPORTS routes (individual GET routes)
     Route::get('reports/debtors', [ReportController::class, 'debtors']); // Residents with more than X months overdue
