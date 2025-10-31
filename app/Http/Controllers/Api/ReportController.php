@@ -93,7 +93,12 @@ class ReportController extends Controller
                 $allRows = $allRows->merge($rows);
             }
 
-            $allRows = $allRows->values();
+            $allRows = $allRows->values()
+            ->sortBy('fee_name')    // 3. Tertiary sort (Tipo de Pago)
+            ->sortBy('name')        // 2. Secondary sort (Nombre)
+            ->sortBy('last_name')   // 1. Primary sort (Apellido)
+            ->values();
+            
             $grandTotal = $allRows->sum('total');
 
             $allRows->push([
@@ -121,7 +126,7 @@ class ReportController extends Controller
         }
     }
 
-
+    // --- SEPARATOR ---
 
     /**
      * Payments filtered by resident.
@@ -136,7 +141,9 @@ class ReportController extends Controller
         $endMonth = (int) $request->get('end_month', date('n'));
         $endYear = (int) $request->get('end_year', date('Y'));
 
-        $payments = ResidentPayment::with('resident', 'fee')
+        // FIX: Ensure 'month' and 'year' columns are selected for the payments period fields in the frontend.
+        $payments = ResidentPayment::select('*', 'month', 'year')
+            ->with('resident', 'fee')
             ->when($residentId, fn($q) => $q->where('resident_id', $residentId))
             ->where(function ($q) use ($startMonth, $startYear, $endMonth, $endYear) {
                 $q->where(function ($q2) use ($startMonth, $startYear) {
@@ -171,6 +178,8 @@ class ReportController extends Controller
                 'amount' => $p->amount,
                 'concept' => $p->concept ?? '',
                 'payment_date' => $p->payment_date,
+                'month' => $p->month, // <--- CAMPO AÑADIDO
+                'year' => $p->year, // <--- CAMPO AÑADIDO
             ]);
 
         return response()->json([
@@ -179,6 +188,7 @@ class ReportController extends Controller
         ]);
     }
 
+    // --- SEPARATOR ---
 
     /**
      * Search residents by name or last name for autocomplete
@@ -202,6 +212,8 @@ class ReportController extends Controller
         ]);
     }
 
+    // --- SEPARATOR ---
+
     public function paymentYears()
     {
         $years = ResidentPayment::whereNotNull('payment_date')
@@ -216,6 +228,7 @@ class ReportController extends Controller
         ]);
     }
 
+    // --- SEPARATOR ---
 
     public function incomeByMonth(Request $request)
     {
