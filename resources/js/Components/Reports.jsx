@@ -711,7 +711,7 @@ const Reports = () => {
                       onClick={generatePdf}
                       disabled={loading}
                   >
-                      ⬇️ Generar PDF (Descargar Reporte Chingón)
+                      ⬇️ Generar PDF
                   </button>
               </div>
           </div>
