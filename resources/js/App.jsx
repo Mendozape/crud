@@ -9,6 +9,9 @@ import NotiPage from "./pages/Notfications/NotiPage";
 import NotiProfile from "./pages/Notfications/NotiProfile";
 import Profile from "./pages/Profile";
 
+// Chat Pages & Components
+import ChatPage from "./pages/Chat/ChatPage"; // NEW CHAT PAGE IMPORT
+
 // Residents SPA
 import ShowResidents from "./components/ShowResidents";
 import CreateResidents from "./components/CreateResidents";
@@ -40,63 +43,68 @@ import Reports from "./components/Reports";
 
 // Components
 import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
+import ChatBadgeUpdater from "./components/ChatBadgeUpdater"; // Uncomment when ready to use
 
 const App = () => {
-  const rootEl = document.getElementById("react-container");
-  const initialData = rootEl ? window.Laravel?.user : null;
-  const [user, setUser] = useState(initialData);
+    const rootEl = document.getElementById("react-container");
+    const initialData = rootEl ? window.Laravel?.user : null;
+    const [user, setUser] = useState(initialData); // State for authenticated user data
 
-  return (
-    <>
-      <NotificationBadgeUpdater />
+    return (
+        <>
+            <NotificationBadgeUpdater />
+            <ChatBadgeUpdater />
 
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<Navigate to="/home" replace />} />
 
-          {/* Main routes */}
-          <Route path="/home" element={<Stats user={user} />} />
-          <Route path="/profile" element={<Profile user={user} />} />
+                    {/* Main routes */}
+                    <Route path="/home" element={<Stats user={user} />} />
+                    <Route path="/profile" element={<Profile user={user} />} />
 
-          <Route path="/notificationsList" element={<NotiPage />}>
-            <Route path=":id" element={<NotiProfile />} />
-          </Route>
+                    {/* CHAT ROUTE: This loads the main chat interface */}
+                    <Route path="/chat" element={<ChatPage user={user} />} />
 
-          {/* Residents SPA routes */}
-          <Route path="/residents" element={<ShowResidents user={user} />} />
-          <Route path="/residents/create" element={<CreateResidents />} />
-          <Route path="/residents/edit/:id" element={<EditResidents />} />
-          <Route path="/residents/payment/:id" element={<CreatePayments />} />
+                    <Route path="/notificationsList" element={<NotiPage />}>
+                        <Route path=":id" element={<NotiProfile />} />
+                    </Route>
 
-          {/* Fees SPA routes */}
-          <Route path="/fees" element={<ShowFees />} />
-          <Route path="/fees/create" element={<CreateFees />} />
-          <Route path="/fees/edit/:id" element={<EditFees />} />
+                    {/* Residents SPA routes */}
+                    <Route path="/residents" element={<ShowResidents user={user} />} />
+                    <Route path="/residents/create" element={<CreateResidents />} />
+                    <Route path="/residents/edit/:id" element={<EditResidents />} />
+                    <Route path="/residents/payment/:id" element={<CreatePayments />} />
 
-          {/* Permissions SPA routes */}
-          <Route path="/permissions" element={<ShowPermissions />} />
-          <Route path="/permissions/create" element={<CreatePermission />} />
-          <Route path="/permissions/edit/:id" element={<EditPermission />} />
+                    {/* Fees SPA routes */}
+                    <Route path="/fees" element={<ShowFees />} />
+                    <Route path="/fees/create" element={<CreateFees />} />
+                    <Route path="/fees/edit/:id" element={<EditFees />} />
 
-          {/* Roles SPA routes */}
-          <Route path="/roles" element={<ShowRoles />} />
-          <Route path="/roles/create" element={<CreateRole />} />
-          <Route path="/roles/edit/:id" element={<EditRole />} />
+                    {/* Permissions SPA routes */}
+                    <Route path="/permissions" element={<ShowPermissions />} />
+                    <Route path="/permissions/create" element={<CreatePermission />} />
+                    <Route path="/permissions/edit/:id" element={<EditPermission />} />
 
-          {/* Users SPA routes */}
-          <Route path="/users" element={<ShowUsers />} />
-          <Route path="/users/create" element={<CreateUser />} />
-          <Route path="/users/edit/:id" element={<EditUser />} />
+                    {/* Roles SPA routes */}
+                    <Route path="/roles" element={<ShowRoles />} />
+                    <Route path="/roles/create" element={<CreateRole />} />
+                    <Route path="/roles/edit/:id" element={<EditRole />} />
 
-          {/* Reports SPA routes */}
-          <Route path="/reports" element={<Reports />} />
+                    {/* Users SPA routes */}
+                    <Route path="/users" element={<ShowUsers />} />
+                    <Route path="/users/create" element={<CreateUser />} />
+                    <Route path="/users/edit/:id" element={<EditUser />} />
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/home" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </>
-  );
+                    {/* Reports SPA routes */}
+                    <Route path="/reports" element={<Reports />} />
+
+                    {/* Catch-all */}
+                    <Route path="*" element={<Navigate to="/home" replace />} />
+                </Routes>
+            </BrowserRouter>
+        </>
+    );
 };
 
 export default App;

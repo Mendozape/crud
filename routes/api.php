@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\ResidentPaymentController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\Api\ReportController; 
+use App\Http\Controllers\Api\MessageController; // NEW: Import the chat controller
 use Illuminate\Support\Facades\Session;
 
 /*
@@ -67,7 +68,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']); // Monthly income report
     Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
 
-
     // New route for resident search (autocomplete)
     Route::get('reports/search-residents', [ReportController::class, 'searchResidents']);
+
+    // --- NEW CHAT API ROUTES ---
+    
+    // Fetch the list of users/contacts along with their unread message counts
+    // Used by ChatPage.jsx to populate the sidebar
+    Route::get('/chat/contacts', [MessageController::class, 'getContacts']);
+    
+    // Fetch the message history for a specific conversation and mark received messages as read
+    // Used by ChatWindow.jsx when a contact is selected
+    Route::get('/chat/messages/{receiverId}', [MessageController::class, 'getMessages']);
+    
+    // Send a new message, save it to DB, and broadcast it in real-time
+    // Used by the ChatWindow form submission
+    Route::post('/chat/send', [MessageController::class, 'sendMessage']);
+    
+    // Get the global total unread chat count (for the top navigation badge)
+    Route::get('/chat/unread-count', [MessageController::class, 'getGlobalUnreadCount']);
 });
