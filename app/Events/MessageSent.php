@@ -14,47 +14,53 @@ class MessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * The Message instance being broadcasted.
-     * @var \App\Models\Message
+    /** 
+     * The message instance being broadcast.
      */
     public $message;
 
     /**
      * Create a new event instance.
+     * 
+     * @param Message $message The message that was just sent.
      */
     public function __construct(Message $message)
     {
-        // Eager load the sender relationship so the frontend receives the sender's name
-        $this->message = $message->load('sender'); 
+        // Load sender relationship to include sender details in the broadcast
+        $this->message = $message->load('sender');
     }
 
     /**
-     * Get the channels the event should broadcast on.
-     * This defines the private channel for the conversation.
-     *
-     * @return array<\Illuminate\Broadcasting\Channel>
+     * Determine which channels the event should broadcast on.
+     * 
+     * This event is broadcast to TWO channels:
+     * 1. The private chat channel between sender and receiver (for real-time chat updates)
+     * 2. The receiver’s personal notification channel (for updating unread message badges)
+     * 
+     * @return array<int, Channel>
      */
     public function broadcastOn(): array
     {
-        // 1. Determine the two user IDs involved
         $senderId = $this->message->sender_id;
         $receiverId = $this->message->receiver_id;
 
-        // 2. Sort the IDs to create a canonical (consistent) channel name.
-        // E.g., for users 5 and 12, the channel is always 'chat.5.12'.
+        // Sort user IDs to generate a consistent chat channel name
         $ids = [$senderId, $receiverId];
         sort($ids);
         
-        // Broadcast to a private channel
         return [
+            // Private channel for the chat conversation between the two users
             new PrivateChannel('chat.' . implode('.', $ids)),
+
+            // Private channel for the receiver's global notifications (e.g., unread badge)
+            new PrivateChannel('App.Models.User.' . $receiverId),
         ];
     }
-    
+
     /**
-     * The name of the event to broadcast.
-     * The React frontend will listen for this exact string.
+     * The event name that will be used on the frontend listener.
+     * 
+     * @return string
      */
     public function broadcastAs(): string
     {
@@ -62,8 +68,9 @@ class MessageSent implements ShouldBroadcast
     }
 
     /**
-     * The data to broadcast. By default it sends public properties,
-     * but we specify it for clarity.
+     * Data that will be sent with the broadcast event.
+     * 
+     * @return array<string, mixed>
      */
     public function broadcastWith(): array
     {

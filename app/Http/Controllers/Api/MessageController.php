@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\DB;
 class MessageController extends Controller
 {
     /**
-     * Get the total count of unread messages for the authenticated user.
-     * Used by the ChatBadgeUpdater component in the top navigation bar.
+     * ✅ Get the total number of unread messages for the logged-in user.
+     * This is used to display the unread badge count in the top navigation.
      */
     public function getGlobalUnreadCount()
     {
@@ -30,30 +30,27 @@ class MessageController extends Controller
     }
 
     /**
-     * Fetch the list of users (contacts) the current user can chat with.
-     * Fetches all users and attaches their specific unread message count.
-     * Used by ChatPage.jsx to populate the sidebar.
+     * ✅ Get all contacts (other users) and show how many unread messages each has.
+     * This helps display a list of users with their unread message count.
      */
     public function getContacts()
     {
         $currentUserId = Auth::id();
 
-        // 1. Fetch all users excluding the currently authenticated one
+        // Get all users except the current logged-in user
         $users = User::where('id', '!=', $currentUserId)
-                     ->select('id', 'name') // Select only necessary fields
+                     ->select('id', 'name')
                      ->get();
 
-        // 2. Calculate the total count of unread messages the current user has received,
-        // grouped by the sender's ID.
+        // Count unread messages per sender
         $unreadCounts = Message::where('receiver_id', $currentUserId)
                                ->whereNull('read_at')
                                ->select('sender_id', DB::raw('count(*) as unread_count'))
                                ->groupBy('sender_id')
                                ->pluck('unread_count', 'sender_id');
 
-        // 3. Map the unread count onto the user objects
+        // Attach unread count to each user
         $users = $users->map(function ($user) use ($unreadCounts) {
-            // Get the unread count for this user (default to 0)
             $user->unread_count = $unreadCounts->get($user->id, 0);
             return $user;
         });
@@ -65,31 +62,27 @@ class MessageController extends Controller
     }
 
     /**
-     * Fetch the message history for a conversation with a specific user.
-     * Also marks all received messages as read.
-     * Used by ChatWindow.jsx when opening a conversation.
-     * @param int $receiverId The ID of the user the authenticated user is chatting with.
+     * ✅ Get all messages exchanged between the logged-in user and a specific receiver.
+     * When loading this chat, mark all messages from the receiver as "read".
      */
     public function getMessages($receiverId)
     {
         $currentUserId = Auth::id();
 
-        // 1. Fetch messages exchanged between the two users
-        $messages = Message::with('sender:id,name') // Eager load sender details
+        // Retrieve all messages (sent and received) between the two users
+        $messages = Message::with('sender:id,name')
                            ->where(function ($query) use ($currentUserId, $receiverId) {
-                               // Messages sent by Auth to Receiver
                                $query->where('sender_id', $currentUserId)
                                      ->where('receiver_id', $receiverId);
                            })
                            ->orWhere(function ($query) use ($currentUserId, $receiverId) {
-                               // Messages sent by Receiver to Auth
                                $query->where('sender_id', $receiverId)
                                      ->where('receiver_id', $currentUserId);
                            })
                            ->orderBy('created_at', 'asc')
                            ->get();
 
-        // 2. Mark received messages as read
+        // ✅ Mark all messages from this contact as "read"
         Message::where('sender_id', $receiverId)
                ->where('receiver_id', $currentUserId)
                ->whereNull('read_at')
@@ -102,18 +95,17 @@ class MessageController extends Controller
     }
 
     /**
-     * Handles sending a new message.
-     * Saves to DB, and broadcasts the event in real-time.
-     * Used by the ChatWindow form submission.
+     * ✅ Send a new message from the logged-in user to another user.
+     * The message is also broadcasted in real-time using Laravel Echo.
      */
     public function sendMessage(Request $request)
     {
-        // 1. Validation
+        // Validate input data
         $data = $request->validate([
             'receiver_id' => [
-                'required', 
-                'integer', 
-                // Ensure the receiver is a valid user and not the sender
+                'required',
+                'integer',
+                // The receiver must exist and must not be the same as the sender
                 Rule::exists('users', 'id')->where(function ($query) {
                     return $query->where('id', '!=', Auth::id());
                 }),
@@ -121,25 +113,44 @@ class MessageController extends Controller
             'content' => 'required|string|max:1000',
         ]);
 
-        // 2. Persistence (Save to Database)
+        // Create the new message record
         $message = Message::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $data['receiver_id'],
             'content' => $data['content'],
         ]);
 
-        // 3. Broadcasting (Send to Pusher/Reverb)
-        // Load the sender relationship before broadcasting so React has the name
-        $message->load('sender'); 
-        
-        // Broadcast the event to the intended receiver
-        // toOthers() prevents the sender from receiving their own message via WebSocket
+        // Load sender relationship for front-end use
+        $message->load('sender');
+
+        // Broadcast message to other users in real-time
         broadcast(new MessageSent($message))->toOthers();
 
-        // 4. Response
         return response()->json([
             'status' => 'success',
             'message' => $message
         ], 201);
+    }
+
+    /**
+     * ✅ Mark all unread messages from a specific sender as "read" for the current user.
+     * This method is called in real-time when the chat window is open or receives new messages.
+     */
+    public function markAsRead(Request $request)
+    {
+        // Validate sender_id parameter
+        $data = $request->validate([
+            'sender_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $receiverId = Auth::id();
+
+        // Update all unread messages from this sender to "read"
+        Message::where('sender_id', $data['sender_id'])
+            ->where('receiver_id', $receiverId)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return response()->json(['status' => 'success']);
     }
 }

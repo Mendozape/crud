@@ -13,10 +13,8 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-// **CAMBIO AQUI:** Modificamos el canal del modelo por defecto a nuestro canal de usuario específico.
-// Este canal se usa para notificaciones o, en nuestro caso, para actualizar el contador (badge) del usuario.
-Broadcast::channel('App.User.{userId}', function ($user, $userId) {
-    // Verifica que el usuario autenticado ($user->id) sea el mismo que el ID en el canal.
+// Canal para notificaciones/badge del usuario
+Broadcast::channel('App.Models.User.{userId}', function ($user, $userId) {
     return (int) $user->id === (int) $userId;
 });
 

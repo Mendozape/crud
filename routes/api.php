@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\ResidentPaymentController;
 use App\Http\Controllers\PermisosController;
-use App\Http\Controllers\Api\ReportController; 
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\MessageController; // NEW: Import the chat controller
 use Illuminate\Support\Facades\Session;
 
@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route to get already-paid months for a resident and year
     Route::get('/resident_payments/{residentId}/{year}', [ResidentPaymentController::class, 'getPaidMonths']);
-    
+
     Route::apiResource('permisos', PermisosController::class);
     Route::apiResource('roles', RolesController::class);
     Route::apiResource('usuarios', UserController::class);
@@ -72,19 +72,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/search-residents', [ReportController::class, 'searchResidents']);
 
     // --- NEW CHAT API ROUTES ---
-    
+
     // Fetch the list of users/contacts along with their unread message counts
     // Used by ChatPage.jsx to populate the sidebar
     Route::get('/chat/contacts', [MessageController::class, 'getContacts']);
-    
+
     // Fetch the message history for a specific conversation and mark received messages as read
     // Used by ChatWindow.jsx when a contact is selected
     Route::get('/chat/messages/{receiverId}', [MessageController::class, 'getMessages']);
-    
+
     // Send a new message, save it to DB, and broadcast it in real-time
     // Used by the ChatWindow form submission
     Route::post('/chat/send', [MessageController::class, 'sendMessage']);
-    
-    // Get the global total unread chat count (for the top navigation badge)
+
+    // ✅ Get the total number of unread chat messages for the logged-in user
+    //    (Used to display the unread count badge in the top navigation)
     Route::get('/chat/unread-count', [MessageController::class, 'getGlobalUnreadCount']);
+
+    // ✅ Mark all messages from a specific sender as read
+    //    (Called automatically when receiving or opening a chat with that sender)
+    Route::post('/chat/mark-as-read', [MessageController::class, 'markAsRead']);
 });

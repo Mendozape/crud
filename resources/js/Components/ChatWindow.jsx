@@ -1,32 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-// window.Echo is assumed to be initialized globally (e.g., in bootstrap.js)
 
 const ChatWindow = ({ currentUserId, receiver }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
-    const messagesEndRef = useRef(null); 
+    const messagesEndRef = useRef(null);
 
-    // Helper function to create the canonical channel name (sorted IDs)
+    // ✅ Generate a private channel name between two users in ascending order
     const getChannelName = (id1, id2) => {
         const ids = [id1, id2];
         ids.sort((a, b) => a - b);
         return `chat.${ids.join('.')}`;
     };
-    
-    // Scroll to the latest message whenever messages state updates
+
+    // ✅ Automatically scroll to the latest message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    // 1. Fetch Historical Messages & 2. Set up Real-Time Listener
     useEffect(() => {
-        // --- 1. Fetch History ---
         const fetchMessages = async () => {
             try {
-                // API endpoint for fetching messages between current user and receiver
+                // ✅ Fetch chat history with the selected receiver
                 const response = await axios.get(`/api/chat/messages/${receiver.id}`);
                 setMessages(response.data.messages);
+
+                // 🔔 Notify other components (like the chat icon) that messages have been read
+                window.dispatchEvent(new CustomEvent('chat-messages-read'));
             } catch (error) {
                 console.error("Error fetching messages:", error);
             }
@@ -34,36 +34,47 @@ const ChatWindow = ({ currentUserId, receiver }) => {
 
         fetchMessages();
 
-        // --- 2. Set up Real-Time Listener (Pusher/Echo) ---
+        // ✅ Check if Laravel Echo is available for real-time updates
         if (!window.Echo) {
             console.error("Laravel Echo is not initialized. Real-time chat disabled.");
             return;
         }
-        
+
         const channelName = getChannelName(currentUserId, receiver.id);
-        
-        // Subscribe to the private channel for this specific conversation
+
+        // ✅ Listen for new messages in real-time using Laravel Echo
         window.Echo.private(channelName)
-            .listen('.MessageSent', (e) => {
-                // Only accept the message if it's from the other person in this chat
-                if (e.message.sender_id === receiver.id) { 
+            .listen('.MessageSent', async (e) => {
+                // Only add the message if it was sent by the current receiver
+                if (e.message.sender_id === receiver.id) {
                     console.log("Real-time message received:", e.message);
                     setMessages(prevMessages => [...prevMessages, e.message]);
+
+                    try {
+                        // 🆕 Mark the received messages as read immediately
+                        await axios.post(`/api/chat/mark-as-read`, {
+                            sender_id: receiver.id
+                        });
+
+                        // 🆕 Update global unread count (e.g., for chat icon)
+                        window.dispatchEvent(new CustomEvent('chat-messages-read'));
+                    } catch (err) {
+                        console.error("Failed to mark message as read:", err);
+                    }
                 }
             })
             .error((error) => {
                 console.error('Pusher channel authorization error:', error);
             });
 
-        // Cleanup function: Unsubscribe when the component unmounts or receiver changes
+        // ✅ Cleanup: leave the channel when unmounting or changing receiver
         return () => {
             window.Echo.leave(channelName);
         };
-        
+
     }, [currentUserId, receiver.id]);
 
-
-    // 3. Handle Message Submission
+    // ✅ Handle message sending
     const handleSend = async (e) => {
         e.preventDefault();
         if (newMessage.trim() === '') return;
@@ -73,84 +84,76 @@ const ChatWindow = ({ currentUserId, receiver }) => {
             receiver_id: receiver.id,
             content: content,
         };
-        
-        // Optimistic UI Update: Show message instantly to the sender
+
+        // ✅ Create a temporary message to show instantly in the UI
         const tempMessage = {
             id: Date.now(),
             sender_id: currentUserId,
             content: content,
             created_at: new Date().toISOString(),
-            // Simulate the sender object as returned by the API/Event
-            sender: { name: 'You' } 
+            sender: { name: 'You' }
         };
+
         setMessages(prevMessages => [...prevMessages, tempMessage]);
         setNewMessage('');
-        
-        try {
-            // Send request to Laravel API
-            await axios.post('/api/chat/send', messageData);
-            
-            // Note: The message will be persisted in the DB and broadcasted 
-            // to the receiver via Pusher by the Laravel controller.
 
+        try {
+            // ✅ Send message to backend
+            await axios.post('/api/chat/send', messageData);
         } catch (error) {
             console.error("Error sending message:", error);
-            // Revert optimistic update if API fails
+            // Remove the temporary message if sending fails
             setMessages(prevMessages => prevMessages.filter(msg => msg.id !== tempMessage.id));
-            // NOTE: Use a custom modal/toast instead of alert() in production apps
-            alert("Failed to send message."); 
+            alert("Failed to send message.");
         }
     };
-    
 
-    // Render the chat window (AdminLTE styling)
     return (
         <div className="card card-primary card-outline direct-chat direct-chat-primary">
+            {/* Chat header */}
             <div className="card-header">
                 <h3 className="card-title">Chat with {receiver.name}</h3>
             </div>
-            
+
+            {/* Chat message area */}
             <div className="card-body">
                 <div className="direct-chat-messages" style={{ height: '50vh', overflowY: 'scroll' }}>
                     {messages.map(msg => {
                         const isSender = msg.sender_id === currentUserId;
-                        // Format time based on current locale
                         const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                         return (
-                            <div 
-                                key={msg.id} 
+                            <div
+                                key={msg.id}
                                 className={`direct-chat-msg ${isSender ? 'right' : ''}`}
                             >
                                 <div className="direct-chat-infos clearfix">
                                     <span className={`direct-chat-name ${isSender ? 'float-right' : 'float-left'}`}>
-                                        {msg.sender?.name || 'Unknown User'} 
+                                        {msg.sender?.name || 'Unknown User'}
                                     </span>
                                     <span className={`direct-chat-timestamp ${isSender ? 'float-left' : 'float-right'}`}>
                                         {time}
                                     </span>
                                 </div>
-                                {/* User Icon Placeholder */}
-                                <i className="direct-chat-img fas fa-user-circle"></i> 
+                                <i className="direct-chat-img fas fa-user-circle"></i>
                                 <div className="direct-chat-text">
                                     {msg.content}
                                 </div>
                             </div>
                         );
                     })}
-                    {/* Reference for auto-scroll */}
+                    {/* Scroll anchor to keep latest message visible */}
                     <div ref={messagesEndRef} />
                 </div>
             </div>
-            
-            {/* Message Input Form */}
+
+            {/* Chat input area */}
             <div className="card-footer">
                 <form onSubmit={handleSend}>
                     <div className="input-group">
-                        <input 
-                            type="text" 
-                            name="message" 
-                            placeholder="Type your message ..." 
+                        <input
+                            type="text"
+                            placeholder="Type your message ..."
                             className="form-control"
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
