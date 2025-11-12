@@ -234,7 +234,7 @@ const Reports = () => {
       
       if (reportType === 'debtors') {
           details.push(`Meses Vencidos (mín.): ${monthsOverdue}`);
-          details.push(`Período Adeudado: ${monthNames[startMonth - 1]} ${startYear} - ${monthNames[endMonth - 1]} ${endYear}`);
+          details.push(`Período del reporte: ${monthNames[startMonth - 1]} ${startYear} - ${monthNames[endMonth - 1]} ${endYear}`);
       } else if (reportType === 'paymentsByResident' && selectedResident) {
           details.push(`Residente: ${selectedResident.name} ${selectedResident.last_name}`);
           details.push(`Período de Búsqueda: ${monthNames[startMonth - 1]} ${startYear} - ${monthNames[endMonth - 1]} ${endYear}`);

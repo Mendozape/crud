@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\DataBase;
 use App\Events\UserRegistered;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {

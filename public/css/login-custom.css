@@ -1,0 +1,8 @@
+.login-page {
+    background-image: url('../images/fondo-login.png'); 
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    /* (Opcional) Ajusta si quieres una capa de color o degradado sobre la imagen */
+    /* background-color: rgba(0, 0, 0, 0.5); */ 
+}

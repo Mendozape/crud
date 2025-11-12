@@ -62,12 +62,14 @@ return [
     |
     */
 
-    'logo' => '<b>MY LARAVEL</b>',
-    'logo_img' => 'vendor/adminlte/dist/img/laravel.png',
+    'logo' => '<b>Prados de la Huerta</b>',
+    //'logo_img' => 'vendor/adminlte/dist/img/laravel.png',
+    'logo_img' => 'vendor/adminlte/dist/img/prados.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Admin Logo',
+    //'logo_img_alt' => 'Admin Logo',
+    'logo_img_alt' => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -83,13 +85,16 @@ return [
     */
 
     'auth_logo' => [
-        'enabled' => false,
+        'enabled' => true,
+        'logo' => '',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/laravel.png',
-            'alt' => 'Auth Logo',
-            'class' => '',
-            'width' => 50,
-            'height' => 50,
+            //'path' => 'vendor/adminlte/dist/img/laravel.png',
+            'path' => null,
+            //'alt' => 'Auth Logo',
+            'alt' => '',
+            //'class' => '',
+            //'width' => 50,
+            //'height' => 50,
         ],
     ],
 

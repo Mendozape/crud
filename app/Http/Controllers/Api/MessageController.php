@@ -20,8 +20,8 @@ class MessageController extends Controller
     public function getGlobalUnreadCount()
     {
         $count = Message::where('receiver_id', Auth::id())
-                        ->whereNull('read_at')
-                        ->count();
+            ->whereNull('read_at')
+            ->count();
 
         return response()->json([
             'status' => 'success',
@@ -33,24 +33,38 @@ class MessageController extends Controller
      * ✅ Get all contacts (other users) and show how many unread messages each has.
      * This helps display a list of users with their unread message count.
      */
-    public function getContacts()
+    // En app/Http/Controllers/Api/MessageController.php
+
+    public function getContacts(Request $request)
     {
         $currentUserId = Auth::id();
+        $searchTerm = $request->input('search', '');
+        $perPage = 10; // You can make this configurable
 
-        // Get all users except the current logged-in user
-        $users = User::where('id', '!=', $currentUserId)
-                     ->select('id', 'name')
-                     ->get();
+        $query = User::where('id', '!=', $currentUserId)
+            ->select('id', 'name');
 
-        // Count unread messages per sender
+        // Apply search filter
+        if (!empty($searchTerm)) {
+            $query->where('name', 'like', '%' . $searchTerm . '%');
+        }
+
+        // Use Laravel pagination
+        $usersPaginator = $query->paginate($perPage);
+        $users = $usersPaginator->items(); // Get only the users of the current page
+
+        // Count unread messages (only for the users on the current page)
+        $userIds = collect($users)->pluck('id');
+
         $unreadCounts = Message::where('receiver_id', $currentUserId)
-                               ->whereNull('read_at')
-                               ->select('sender_id', DB::raw('count(*) as unread_count'))
-                               ->groupBy('sender_id')
-                               ->pluck('unread_count', 'sender_id');
+            ->whereIn('sender_id', $userIds) // Count only for visible users
+            ->whereNull('read_at')
+            ->select('sender_id', DB::raw('count(*) as unread_count'))
+            ->groupBy('sender_id')
+            ->pluck('unread_count', 'sender_id');
 
         // Attach unread count to each user
-        $users = $users->map(function ($user) use ($unreadCounts) {
+        $users = collect($users)->map(function ($user) use ($unreadCounts) {
             $user->unread_count = $unreadCounts->get($user->id, 0);
             return $user;
         });
@@ -58,8 +72,15 @@ class MessageController extends Controller
         return response()->json([
             'status' => 'success',
             'users' => $users,
+            'pagination' => [ // Return pagination metadata
+                'total' => $usersPaginator->total(),
+                'per_page' => $usersPaginator->perPage(),
+                'current_page' => $usersPaginator->currentPage(),
+                'last_page' => $usersPaginator->lastPage(),
+            ]
         ]);
     }
+
 
     /**
      * ✅ Get all messages exchanged between the logged-in user and a specific receiver.
@@ -71,22 +92,22 @@ class MessageController extends Controller
 
         // Retrieve all messages (sent and received) between the two users
         $messages = Message::with('sender:id,name')
-                           ->where(function ($query) use ($currentUserId, $receiverId) {
-                               $query->where('sender_id', $currentUserId)
-                                     ->where('receiver_id', $receiverId);
-                           })
-                           ->orWhere(function ($query) use ($currentUserId, $receiverId) {
-                               $query->where('sender_id', $receiverId)
-                                     ->where('receiver_id', $currentUserId);
-                           })
-                           ->orderBy('created_at', 'asc')
-                           ->get();
+            ->where(function ($query) use ($currentUserId, $receiverId) {
+                $query->where('sender_id', $currentUserId)
+                    ->where('receiver_id', $receiverId);
+            })
+            ->orWhere(function ($query) use ($currentUserId, $receiverId) {
+                $query->where('sender_id', $receiverId)
+                    ->where('receiver_id', $currentUserId);
+            })
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         // ✅ Mark all messages from this contact as "read"
         Message::where('sender_id', $receiverId)
-               ->where('receiver_id', $currentUserId)
-               ->whereNull('read_at')
-               ->update(['read_at' => now()]);
+            ->where('receiver_id', $currentUserId)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
 
         return response()->json([
             'status' => 'success',
@@ -138,19 +159,32 @@ class MessageController extends Controller
      */
     public function markAsRead(Request $request)
     {
-        // Validate sender_id parameter
         $data = $request->validate([
             'sender_id' => 'required|integer|exists:users,id',
         ]);
 
         $receiverId = Auth::id();
 
-        // Update all unread messages from this sender to "read"
         Message::where('sender_id', $data['sender_id'])
             ->where('receiver_id', $receiverId)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
+        // 🔔 Broadcast the "MessageRead" event in real time
+        broadcast(new \App\Events\MessageRead($data['sender_id'], $receiverId))->toOthers();
+
         return response()->json(['status' => 'success']);
+    }
+
+
+    public function typing(Request $request)
+    {
+        $data = $request->validate([
+            'receiver_id' => 'required|integer|exists:users,id',
+        ]);
+
+        broadcast(new \App\Events\UserTyping($data['receiver_id']))->toOthers();
+
+        return response()->json(['status' => 'ok']);
     }
 }

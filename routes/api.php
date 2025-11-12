@@ -92,4 +92,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // ✅ Mark all messages from a specific sender as read
     //    (Called automatically when receiving or opening a chat with that sender)
     Route::post('/chat/mark-as-read', [MessageController::class, 'markAsRead']);
+    // Notify the receiver that the sender is typing (for the "User is typing..." indicator)
+    Route::post('/chat/typing', [MessageController::class, 'typing']);
 });
