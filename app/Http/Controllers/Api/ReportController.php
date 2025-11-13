@@ -13,6 +13,7 @@ class ReportController extends Controller
 {
     /**
      * Residents with more than X months overdue.
+     * Requires filtering out Cancelled payments from the count.
      */
     public function debtors(Request $request)
     {
@@ -48,6 +49,8 @@ class ReportController extends Controller
                 $rows = $residents->map(function ($resident) use ($startMonth, $startYear, $endMonth, $endYear, $monthsOverdue, $feeName, $feeAmount) {
 
                     $paymentsQuery = ResidentPayment::where('resident_id', $resident->id)
+                        // CRUCIAL FILTER: Only count Paid payments to calculate valid debt
+                        ->where('status', 'Pagado') 
                         ->where(function ($q) use ($startMonth, $startYear, $endMonth, $endYear) {
                             $q->where(function ($q2) use ($startMonth, $startYear) {
                                 $q2->whereYear('payment_date', '>', $startYear)
@@ -94,9 +97,9 @@ class ReportController extends Controller
             }
 
             $allRows = $allRows->values()
-            ->sortBy('fee_name')    // 3. Tertiary sort (Tipo de Pago)
-            ->sortBy('name')        // 2. Secondary sort (Nombre)
-            ->sortBy('last_name')   // 1. Primary sort (Apellido)
+            ->sortBy('fee_name')    // 3. Tertiary sort (Payment Type)
+            ->sortBy('name')        // 2. Secondary sort (Name)
+            ->sortBy('last_name')   // 1. Primary sort (Last Name)
             ->values();
             
             $grandTotal = $allRows->sum('total');
@@ -130,7 +133,7 @@ class ReportController extends Controller
 
     /**
      * Payments filtered by resident.
-     * Optional: filter by resident_id for autocomplete selection
+     * Requires filtering out Cancelled payments.
      */
     public function paymentsByResident(Request $request)
     {
@@ -145,6 +148,10 @@ class ReportController extends Controller
         $payments = ResidentPayment::select('*', 'month', 'year')
             ->with('resident', 'fee')
             ->when($residentId, fn($q) => $q->where('resident_id', $residentId))
+            
+            // CRUCIAL FILTER: Only include valid, paid payments in the report
+            ->where('status', 'Pagado') 
+            
             ->where(function ($q) use ($startMonth, $startYear, $endMonth, $endYear) {
                 $q->where(function ($q2) use ($startMonth, $startYear) {
                     $q2->whereYear('payment_date', '>', $startYear)
@@ -178,8 +185,8 @@ class ReportController extends Controller
                 'amount' => $p->amount,
                 'concept' => $p->concept ?? '',
                 'payment_date' => $p->payment_date,
-                'month' => $p->month, // <--- CAMPO AÑADIDO
-                'year' => $p->year, // <--- CAMPO AÑADIDO
+                'month' => $p->month, // <-- Added column for display
+                'year' => $p->year,  // <-- Added column for display
             ]);
 
         return response()->json([
@@ -249,7 +256,9 @@ class ReportController extends Controller
             'fee_id'
         )
             ->with('fee')
-            ->where('year', $year);
+            ->where('year', $year)
+            // CRUCIAL FILTER: Only calculate income from Paid payments
+            ->where('status', 'Pagado'); 
 
         if ($month) {
             $query->where('month', $month);

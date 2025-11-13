@@ -17,6 +17,12 @@ class ResidentPayment extends Model
         'payment_date',
         'month',
         'year',
+        
+        //NEW CANCELLATION FIELDS ADDED
+        'status', 
+        'cancellation_reason',
+        'cancelled_at',
+        'cancelled_by_user_id',
     ];
 
     public function resident()
@@ -26,6 +32,13 @@ class ResidentPayment extends Model
 
     public function fee()
     {
+        // This relationship is crucial for the PaymentHistoryPage React component.
         return $this->belongsTo(Fee::class);
+    }
+    
+    // Optional: Add the relationship to the User who performed the cancellation audit
+    public function canceller()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'cancelled_by_user_id');
     }
 }

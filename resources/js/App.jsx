@@ -10,13 +10,14 @@ import NotiProfile from "./pages/Notfications/NotiProfile";
 import Profile from "./pages/Profile";
 
 // Chat Pages & Components
-import ChatPage from "./pages/Chat/ChatPage"; // NEW CHAT PAGE IMPORT
+import ChatPage from "./pages/Chat/ChatPage";
 
 // Residents SPA
 import ShowResidents from "./components/ShowResidents";
 import CreateResidents from "./components/CreateResidents";
 import EditResidents from "./components/EditResidents";
 import CreatePayments from "./components/CreatePayments";
+import PaymentHistoryPage from "./components/PaymentHistoryPage"; // <-- NEW IMPORT
 
 // Fees SPA
 import ShowFees from "./components/ShowFees";
@@ -43,7 +44,7 @@ import Reports from "./components/Reports";
 
 // Components
 import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
-import ChatBadgeUpdater from "./components/ChatBadgeUpdater"; // Uncomment when ready to use
+import ChatBadgeUpdater from "./components/ChatBadgeUpdater";
 
 const App = () => {
     const rootEl = document.getElementById("react-container");
@@ -75,6 +76,7 @@ const App = () => {
                     <Route path="/residents/create" element={<CreateResidents />} />
                     <Route path="/residents/edit/:id" element={<EditResidents />} />
                     <Route path="/residents/payment/:id" element={<CreatePayments />} />
+                    <Route path="/residents/payments/history/:id" element={<PaymentHistoryPage />} /> 
 
                     {/* Fees SPA routes */}
                     <Route path="/fees" element={<ShowFees />} />

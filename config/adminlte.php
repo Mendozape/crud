@@ -356,12 +356,12 @@ return [
             'icon' => 'fas fa-fw fa-user',
         ],*/
         [
-            'text' => 'RESIDENTES',
+            'text' => 'RESIDENTES  Y PAGOS',
             'url'  => 'residents',
             'icon' => 'fas fa-fw fa-users',
         ],
         [
-            'text' => 'PAGOS',
+            'text' => 'CUOTAS',
             'url'  => 'fees',
             'icon' => 'fas fa-fw fa-money-bill',
         ],

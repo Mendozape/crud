@@ -12,7 +12,7 @@ use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\ResidentPaymentController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\Api\ReportController;
-use App\Http\Controllers\Api\MessageController; // NEW: Import the chat controller
+use App\Http\Controllers\Api\MessageController;
 use Illuminate\Support\Facades\Session;
 
 /*
@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Session;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
+| Here you can register API routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->get('/get-token', function (Request $request)
 
 // Protected API routes (require auth via Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
+    // ... General API Resources ...
     Route::apiResource('/articles', ArticleController::class);
     Route::get('/users', [ApiController::class, 'users']);
     Route::get('/notis/countNotis', [UserController::class, 'countNotis']);
@@ -53,45 +54,54 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/roles/count', [RolesController::class, 'count']);
     Route::apiResource('/residents', ResidentController::class);
     Route::apiResource('/fees', FeeController::class);
-    Route::apiResource('/resident_payments', ResidentPaymentController::class);
 
-    // Route to get already-paid months for a resident and year
+    // ---------------------------------------------------
+    // 1. RESIDENT_PAYMENTS ROUTES (Correct Order for conflict resolution)
+    // ---------------------------------------------------
+    
+    // SPECIFIC HISTORY ROUTE: Must come FIRST because it includes the fixed segment '/history'
+    // This solves the React component receiving the wrong data structure.
+    Route::get('resident_payments/history/{residentId}', [ResidentPaymentController::class, 'paymentHistory']);
+    
+    // CANCELLATION ROUTE: Must be defined here to ensure it's not shadowed.
+    Route::post('resident_payments/cancel/{paymentId}', [ResidentPaymentController::class, 'cancelPayment']);
+
+    // PAID MONTHS ROUTE (More generic two-parameter route)
     Route::get('/resident_payments/{residentId}/{year}', [ResidentPaymentController::class, 'getPaidMonths']);
+
+    // API RESOURCE (General CRUD routes)
+    // This must come LAST to ensure the specific routes above take precedence.
+    Route::apiResource('/resident_payments', ResidentPaymentController::class);
+    // ---------------------------------------------------
 
     Route::apiResource('permisos', PermisosController::class);
     Route::apiResource('roles', RolesController::class);
     Route::apiResource('usuarios', UserController::class);
 
     // REPORTS routes (individual GET routes)
-    Route::get('reports/debtors', [ReportController::class, 'debtors']); // Residents with more than X months overdue
-    Route::get('reports/payments-by-resident', [ReportController::class, 'paymentsByResident']); // Payments filtered by resident
-    Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']); // Monthly income report
+    Route::get('reports/debtors', [ReportController::class, 'debtors']); // Residents with X months overdue
+    Route::get('reports/payments-by-resident', [ReportController::class, 'paymentsByResident']); 
+    Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']); 
     Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
+    Route::get('reports/search-residents', [ReportController::class, 'searchResidents']); // Resident search (autocomplete)
 
-    // New route for resident search (autocomplete)
-    Route::get('reports/search-residents', [ReportController::class, 'searchResidents']);
-
-    // --- NEW CHAT API ROUTES ---
+    // --- CHAT API ROUTES ---
 
     // Fetch the list of users/contacts along with their unread message counts
-    // Used by ChatPage.jsx to populate the sidebar
     Route::get('/chat/contacts', [MessageController::class, 'getContacts']);
-
+    
     // Fetch the message history for a specific conversation and mark received messages as read
-    // Used by ChatWindow.jsx when a contact is selected
     Route::get('/chat/messages/{receiverId}', [MessageController::class, 'getMessages']);
 
     // Send a new message, save it to DB, and broadcast it in real-time
-    // Used by the ChatWindow form submission
     Route::post('/chat/send', [MessageController::class, 'sendMessage']);
 
-    // ✅ Get the total number of unread chat messages for the logged-in user
-    //    (Used to display the unread count badge in the top navigation)
+    // Get the total number of unread chat messages for the logged-in user
     Route::get('/chat/unread-count', [MessageController::class, 'getGlobalUnreadCount']);
 
-    // ✅ Mark all messages from a specific sender as read
-    //    (Called automatically when receiving or opening a chat with that sender)
+    // Mark all messages from a specific sender as read
     Route::post('/chat/mark-as-read', [MessageController::class, 'markAsRead']);
+    
     // Notify the receiver that the sender is typing (for the "User is typing..." indicator)
     Route::post('/chat/typing', [MessageController::class, 'typing']);
 });
