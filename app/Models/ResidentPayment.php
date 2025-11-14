@@ -12,18 +12,35 @@ class ResidentPayment extends Model
     protected $fillable = [
         'resident_id',
         'fee_id',
-        'amount',
-        'description',
         'payment_date',
         'month',
         'year',
-        
-        //NEW CANCELLATION FIELDS ADDED
         'status', 
         'cancellation_reason',
         'cancelled_at',
         'cancelled_by_user_id',
     ];
+
+    /**
+     * ACCESSOR: Gets the amount from the related Fee record.
+     * Required for reports/history where the resident_payments.amount column was removed.
+     */
+    public function getAmountAttribute()
+    {
+        // Fallback to 0 if the fee relationship is somehow not loaded or fee is missing
+        return $this->fee->amount ?? 0; 
+    }
+
+    /**
+     * ACCESSOR: Gets the description from the related Fee record.
+     * Required for reports/history where the resident_payments.description column was removed.
+     */
+    public function getDescriptionAttribute()
+    {
+        return $this->fee->description ?? null;
+    }
+
+    // --- RELATIONSHIPS ---
 
     public function resident()
     {
@@ -32,7 +49,7 @@ class ResidentPayment extends Model
 
     public function fee()
     {
-        // This relationship is crucial for the PaymentHistoryPage React component.
+        // This relationship is crucial for accessing the amount/description via the Accessors.
         return $this->belongsTo(Fee::class);
     }
     

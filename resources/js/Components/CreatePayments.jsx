@@ -35,7 +35,7 @@ const PaymentForm = () => {
         return localDate.toISOString().split('T')[0];
     };
 
-    // Fetch resident name
+    // Fetch resident name (English Code Comments)
     useEffect(() => {
         const fetchResidentName = async () => {
             try {
@@ -48,12 +48,17 @@ const PaymentForm = () => {
         fetchResidentName();
     }, [residentId]);
 
-    // Fetch fees
+    // Fetch fees (English Code Comments)
     useEffect(() => {
         const fetchFees = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/api/fees', axiosOptions);
-                setFees(response.data.data || []);
+                
+                // CRITICAL FIX: Filter out soft-deleted fees (where deleted_at is NOT null)
+                // We only keep fees where fee.deleted_at is falsy (i.e., null or undefined).
+                const activeFees = (response.data.data || []).filter(fee => !fee.deleted_at);
+                
+                setFees(activeFees);
             } catch (error) {
                 console.error('Error fetching fees:', error);
             }
@@ -62,7 +67,7 @@ const PaymentForm = () => {
         setPaymentDate(getLocalDate());
     }, []);
 
-    // Fetch paid months
+    // Fetch paid months (English Code Comments)
     useEffect(() => {
         const fetchPaidMonths = async () => {
             if (!year || !feeId) return;
@@ -81,7 +86,7 @@ const PaymentForm = () => {
         setSelectedMonths([]);
     }, [year, residentId, feeId]);
 
-    // Handle fee selection
+    // Handle fee selection (English Code Comments)
     const handleFeeChange = (e) => {
         const selectedFee = fees.find(fee => fee.id === parseInt(e.target.value));
         setFeeId(e.target.value);
@@ -89,6 +94,7 @@ const PaymentForm = () => {
         setSelectedMonths([]);
         setYear('');
         if (selectedFee) {
+            // Source amount and description from the selected fee data (Normalization)
             setAmount(selectedFee.amount);
             setDescription(selectedFee.description);
         } else {
@@ -97,7 +103,7 @@ const PaymentForm = () => {
         }
     };
 
-    // Handle submit
+    // Handle submit (English Code Comments)
     const handleConfirmSubmit = async () => {
         setErrorMessage('');
         setSuccessMessage('');
@@ -112,11 +118,11 @@ const PaymentForm = () => {
             return;
         }
 
+        // Prepare data for API (excluding redundant amount/description fields)
         const paymentData = {
             resident_id: residentId,
             fee_id: feeId,
-            amount,
-            description,
+            // amount and description are not sent to be saved in resident_payments
             payment_date: paymentDate,
             year,
             months: unpaidSelectedMonths,

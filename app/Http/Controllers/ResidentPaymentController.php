@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\Fee; // Import the Fee model for completeness
 
 class ResidentPaymentController extends Controller
 {
@@ -17,7 +18,10 @@ class ResidentPaymentController extends Controller
         return response()->json($residentPayments);
     }
 
-    // NEW METHOD: Get Payment History for a specific Resident
+    /**
+     * Get Payment History for a specific Resident.
+     * Accessors in the model will handle dynamic fields (amount, description).
+     */
     public function paymentHistory($residentId)
     {
         // 1. Check if the resident exists
@@ -30,19 +34,23 @@ class ResidentPaymentController extends Controller
             ], 404);
         }
 
-        // 2. Fetch all payments for History view (Paid and Cancelled)
+        // 2. Fetch all payments, eager loading the 'fee' relationship (CRITICAL for Accessors)
         $payments = ResidentPayment::where('resident_id', $residentId)
-            ->with('fee') // Eager load fee relationship for display
+            ->with('fee') 
             ->orderBy('payment_date', 'desc')
             ->get();
-
+        
+        // No mapping needed; Accessors handle 'amount' and 'description' when converting to JSON.
+        
         return response()->json([
             'success' => true,
             'data' => $payments
         ]);
     }
 
-    // NEW METHOD: Cancel (Anular) a specific payment
+    /**
+     * Cancel (Anular) a specific payment.
+     */
     public function cancelPayment($paymentId, Request $request)
     {
         try {
@@ -94,24 +102,25 @@ class ResidentPaymentController extends Controller
     }
 
 
+    /**
+     * Store a new payment, using only fee_id (normalization enforced).
+     */
     public function store(Request $request)
     {
+        // 1. FIX: Removed redundant 'amount' and 'description' from validation
         $validated = $request->validate([
             'resident_id' => 'required|exists:residents,id',
             'fee_id' => 'required|exists:fees,id',
-            'amount' => 'required|numeric',
             'months' => 'required|array|min:1',
             'months.*' => 'integer|between:1,12',
             'year' => 'required|integer',
-            'description' => 'nullable|string|max:255',
             'payment_date' => 'required|date',
         ]);
 
-        // Get months that are already registered in the DB
+        // Get months that are already registered as paid (status = Pagado)
         $existingMonths = ResidentPayment::where('resident_id', $validated['resident_id'])
             ->where('fee_id', $validated['fee_id'])
             ->where('year', $validated['year'])
-            // CRITICAL CHECK: Only count months that are 'Pagado' (Paid) as existing.
             ->where('status', 'Pagado') 
             ->whereIn('month', $validated['months'])
             ->pluck('month')
@@ -130,11 +139,10 @@ class ResidentPaymentController extends Controller
         // Register payments only for the new months
         $payments = [];
         foreach ($newMonths as $month) {
+            // NOTE: 'amount' and 'description' are intentionally omitted here.
             $payments[] = ResidentPayment::create([
                 'resident_id' => $validated['resident_id'],
                 'fee_id' => $validated['fee_id'],
-                'amount' => $validated['amount'],
-                'description' => $validated['description'],
                 'payment_date' => $validated['payment_date'],
                 'month' => $month,
                 'year' => $validated['year'],
@@ -151,14 +159,15 @@ class ResidentPaymentController extends Controller
         return response()->json($residentPayment);
     }
 
-    // METHOD UPDATE: Added security check to prevent modification of cancelled payments.
+    /**
+     * Update payment metadata, enforcing normalization and security.
+     */
     public function update(Request $request, $id)
     {
+        // FIX: Remove redundant 'amount' and 'description' from validation
         $validated = $request->validate([
             'resident_id' => 'required|exists:residents,id',
             'fee_id' => 'required|exists:fees,id',
-            'amount' => 'required|numeric',
-            'description' => 'nullable|string',
             'payment_date' => 'required|date',
         ]);
 
@@ -172,22 +181,27 @@ class ResidentPaymentController extends Controller
             ], 403); // HTTP 403 Forbidden
         }
 
-        $residentPayment->update($validated);
+        // CRITICAL FIX: Use only essential metadata keys, excluding fee data.
+        $updateData = $request->only([
+            'resident_id',
+            'fee_id',
+            'payment_date',
+        ]);
+
+        $residentPayment->update($updateData);
 
         return response()->json($residentPayment);
     }
 
     // METHOD DESTROY: Implemented security check to forbid permanent deletion.
-    // Deletion must be handled via the 'cancelPayment' method for audit purposes.
     public function destroy($id)
     {
-        // Find the record (needed for the error response)
         ResidentPayment::findOrFail($id);
         
         // SECURITY CHECK: Forbid hard delete for transactional integrity.
         return response()->json([
             'success' => false,
-            'message' => 'La eliminación física de pagos no está permitida. Por favor, utilice la función "Anular Pago" para revertir la transacción.' // Hard deletion of payments is not allowed. Please use "Annul Payment" function.
+            'message' => 'La eliminación física de pagos no está permitida. Por favor, utilice la función "Anular Pago" para revertir la transacción.' // Hard deletion of payments is not allowed. Use "Annul Payment" function.
         ], 403); // HTTP 403 Forbidden
     }
 

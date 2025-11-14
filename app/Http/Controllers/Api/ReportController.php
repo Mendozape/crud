@@ -13,7 +13,7 @@ class ReportController extends Controller
 {
     /**
      * Residents with more than X months overdue.
-     * Requires filtering out Cancelled payments from the count.
+     * Source of amount: Fee model (Current Fee amount).
      */
     public function debtors(Request $request)
     {
@@ -29,7 +29,8 @@ class ReportController extends Controller
             // Get all fees if "Todos" is selected
             $fees = [];
             if ($paymentType === 'Todos') {
-                $fees = \App\Models\Fee::all();
+                // Ensure we get only active fees for current debtors report
+                $fees = \App\Models\Fee::all(); 
             } else if ($paymentType) {
                 $fee = \App\Models\Fee::where('name', $paymentType)->first();
                 if ($fee) {
@@ -43,6 +44,7 @@ class ReportController extends Controller
             $allRows = collect();
 
             foreach ($fees as $fee) {
+                // Get current fee amount and name from the Fee object
                 $feeAmount = $fee->amount ?? 0;
                 $feeName = $fee->name ?? '';
 
@@ -74,7 +76,7 @@ class ReportController extends Controller
                     $paidMonths = $paymentsQuery->count();
                     $expectedMonths = ($endYear - $startYear) * 12 + ($endMonth - $startMonth + 1);
                     $months_overdue = max(0, $expectedMonths - $paidMonths);
-                    $total = $months_overdue * $feeAmount;
+                    $total = $months_overdue * $feeAmount; // Calculation uses Fee amount
 
                     $lastPayment = $paymentsQuery->orderByDesc('payment_date')->value('payment_date');
 
@@ -84,7 +86,8 @@ class ReportController extends Controller
                         'street' => $resident->street,
                         'street_number' => $resident->street_number,
                         'paid_months' => $paidMonths,
-                        'fee_amount' => $feeAmount,
+                        // Output uses Fee data
+                        'fee_amount' => $feeAmount, 
                         'fee_name' => $feeName,
                         'months_overdue' => $months_overdue,
                         'last_payment_date' => $lastPayment ? \Carbon\Carbon::parse($lastPayment)->toDateString() : null,
@@ -133,7 +136,7 @@ class ReportController extends Controller
 
     /**
      * Payments filtered by resident.
-     * Requires filtering out Cancelled payments.
+     * Source of amount/description: Fee model (Current Fee amount/description).
      */
     public function paymentsByResident(Request $request)
     {
@@ -144,9 +147,9 @@ class ReportController extends Controller
         $endMonth = (int) $request->get('end_month', date('n'));
         $endYear = (int) $request->get('end_year', date('Y'));
 
-        // FIX: Ensure 'month' and 'year' columns are selected for the payments period fields in the frontend.
-        $payments = ResidentPayment::select('*', 'month', 'year')
-            ->with('resident', 'fee')
+        // Select all columns from resident_payments and eager load Fee relationship
+        $payments = ResidentPayment::select('*') 
+            ->with('resident', 'fee') // Load Fee relationship
             ->when($residentId, fn($q) => $q->where('resident_id', $residentId))
             
             // CRUCIAL FILTER: Only include valid, paid payments in the report
@@ -180,13 +183,19 @@ class ReportController extends Controller
                 'last_name' => $p->resident->last_name,
                 'street' => $p->resident->street,
                 'street_number' => $p->resident->street_number,
+                
+                // SOURCE FIX: Get amount and description from the Fee relationship
                 'fee_name' => $p->fee->name ?? '',
                 'fee_amount' => $p->fee->amount ?? 0,
-                'amount' => $p->amount,
+                'fee_description' => $p->fee->description ?? '', // Include description from Fee
+                
+                // 'amount' key is used for the display value in the frontend
+                'amount' => $p->fee->amount ?? 0, 
+                
                 'concept' => $p->concept ?? '',
                 'payment_date' => $p->payment_date,
-                'month' => $p->month, // <-- Added column for display
-                'year' => $p->year,  // <-- Added column for display
+                'month' => $p->month, 
+                'year' => $p->year,  
             ]);
 
         return response()->json([
@@ -237,6 +246,10 @@ class ReportController extends Controller
 
     // --- SEPARATOR ---
 
+    /**
+     * Calculates total valid income grouped by month.
+     * CRITICAL FIX: Joins 'fees' table to sum the current fee amount.
+     */
     public function incomeByMonth(Request $request)
     {
         $year = $request->get('year');
@@ -250,27 +263,34 @@ class ReportController extends Controller
             ], 400);
         }
 
-        $query = ResidentPayment::select(
-            'month',
-            DB::raw('SUM(amount) as total'),
-            'fee_id'
-        )
-            ->with('fee')
-            ->where('year', $year)
+        $query = ResidentPayment::query()
+            // 1. Explicitly Join ResidentPayment with Fees
+            ->join('fees', 'resident_payments.fee_id', '=', 'fees.id')
+            
+            // 2. Select grouping fields and sum the fee amount
+            ->select(
+                'resident_payments.month',
+                DB::raw('SUM(fees.amount) as total'), // CRUCIAL FIX: Sum the amount from the FEES table
+                'resident_payments.fee_id'
+            )
+            ->with('fee') // Eager load the fee relationship
+            
+            ->where('resident_payments.year', $year)
             // CRUCIAL FILTER: Only calculate income from Paid payments
-            ->where('status', 'Pagado'); 
+            ->where('resident_payments.status', 'Pagado'); 
 
         if ($month) {
-            $query->where('month', $month);
+            $query->where('resident_payments.month', $month);
         }
 
         // Only filter by payment type if not "Todos"
         if ($paymentType && $paymentType !== 'Todos') {
+            // Apply filter on the fee relationship
             $query->whereHas('fee', fn($q) => $q->where('name', $paymentType));
         }
 
-        $income = $query->groupBy('month', 'fee_id')
-            ->orderBy('month')
+        $income = $query->groupBy('resident_payments.month', 'resident_payments.fee_id')
+            ->orderBy('resident_payments.month')
             ->get()
             ->map(fn($i) => [
                 'month' => date('F', mktime(0, 0, 0, $i->month, 1)),
