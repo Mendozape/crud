@@ -45,17 +45,17 @@ Route::middleware([
     // -------------------------
     
     
-    Route::resource('client', ClientController::class);
+    //Route::resource('client', ClientController::class);
     //Route::resource('usuarios', UsuariosController::class);
     Route::resource('select', SelectController::class);
 
     // -------------------------
     // File export / import
     // -------------------------
-    Route::get('/pdfUserList', [UsuariosController::class, 'pdfUserListado'])->name('pdfList');
-    Route::get('/excel/importFile', [UserController::class,'importView'])->name('import-view');
+    //Route::get('/pdfUserList', [UsuariosController::class, 'pdfUserListado'])->name('pdfList');
+    /*Route::get('/excel/importFile', [UserController::class,'importView'])->name('import-view');
     Route::post('/import', [UserController::class,'import'])->name('import');
-    Route::get('/export-users', [UserController::class,'exportUsers'])->name('export-users');
+    Route::get('/export-users', [UserController::class,'exportUsers'])->name('export-users');*/
 
     // -------------------------
     // Notifications

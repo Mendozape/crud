@@ -24,6 +24,11 @@ import ShowFees from "./components/ShowFees";
 import CreateFees from "./components/CreateFees";
 import EditFees from "./components/EditFees";
 
+// Addresses SPA (Catalog)
+import ShowAddresses from "./components/ShowAddresses";
+import CreateAddresses from "./components/CreateAddresses";
+import EditAddresses from "./components/EditAddresses";
+
 // Permissions SPA
 import ShowPermissions from "./components/ShowPermissions";
 import CreatePermission from "./components/CreatePermission";
@@ -76,12 +81,17 @@ const App = () => {
                     <Route path="/residents/create" element={<CreateResidents />} />
                     <Route path="/residents/edit/:id" element={<EditResidents />} />
                     <Route path="/residents/payment/:id" element={<CreatePayments />} />
-                    <Route path="/residents/payments/history/:id" element={<PaymentHistoryPage />} /> 
+                    <Route path="/residents/payments/history/:id" element={<PaymentHistoryPage />} />
 
                     {/* Fees SPA routes */}
                     <Route path="/fees" element={<ShowFees />} />
                     <Route path="/fees/create" element={<CreateFees />} />
                     <Route path="/fees/edit/:id" element={<EditFees />} />
+
+                    {/* Addresses SPA routes (Catalog) */}
+                    <Route path="/addresses" element={<ShowAddresses />} />
+                    <Route path="/addresses/create" element={<CreateAddresses />} />
+                    <Route path="/addresses/edit/:id" element={<EditAddresses />} />
 
                     {/* Permissions SPA routes */}
                     <Route path="/permissions" element={<ShowPermissions />} />

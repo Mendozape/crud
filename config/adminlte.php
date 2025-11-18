@@ -356,6 +356,11 @@ return [
             'icon' => 'fas fa-fw fa-user',
         ],*/
         [
+            'text' => 'DIRECCIONES',
+            'url'  => 'addresses',
+            'icon' => 'fas fa-fw fa-users',
+        ],
+        [
             'text' => 'RESIDENTES  Y PAGOS',
             'url'  => 'residents',
             'icon' => 'fas fa-fw fa-users',

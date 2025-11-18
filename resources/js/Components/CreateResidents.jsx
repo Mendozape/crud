@@ -1,9 +1,10 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents';
+const addressEndpoint = 'http://localhost:8000/api/addresses/active'; // Endpoint to fetch active catalog addresses
 
 // Axios options with credentials
 const axiosOptions = {
@@ -14,24 +15,45 @@ const axiosOptions = {
 };
 
 export default function CreateResidents() {
+    // Standard resident state
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    const [street, setStreet] = useState('');
-    const [street_number, setStreetNumber] = useState('');
-    const [community, setCommunity] = useState('');
-    const [comments, setComments] = useState('');
+    
+    // NORMALIZED STATE: Stores the ID selected from the address catalog
+    const [addressCatalogId, setAddressCatalogId] = useState(''); 
+    
+    // Retaining 'comments' state (now resident-specific comments)
+    const [comments, setComments] = useState(''); 
     const [formValidated, setFormValidated] = useState(false);
+
+    // NEW STATE: To store the list of addresses fetched from the catalog API
+    const [addressList, setAddressList] = useState([]); 
 
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
+
+    // Effect to fetch the list of active addresses from the catalog on component mount
+    useEffect(() => {
+        const fetchAddresses = async () => {
+            try {
+                const response = await axios.get(addressEndpoint, axiosOptions);
+                setAddressList(response.data.data);
+            } catch (error) {
+                console.error('Error fetching address catalog:', error);
+                setErrorMessage('Fallo al cargar el catálogo de direcciones. No se podrá crear el residente.');
+            }
+        };
+        fetchAddresses();
+    }, []);
 
     const store = async (e) => {
         e.preventDefault();
         const form = e.currentTarget;
 
+        // Validation check for required fields
         if (form.checkValidity() === false) {
             e.stopPropagation();
             setErrorMessage('Por favor, complete todos los campos obligatorios.');
@@ -41,18 +63,23 @@ export default function CreateResidents() {
             formData.append('name', name);
             formData.append('last_name', last_name);
             formData.append('email', email);
-            formData.append('street', street);
-            formData.append('street_number', street_number);
-            formData.append('community', community);
+            
+            // ADJUSTED: Send only the address ID to the backend
+            formData.append('address_catalog_id', addressCatalogId); 
+            
+            // Send resident-specific comments
             formData.append('comments', comments);
 
             try {
+                // API POST request to store the new resident
                 await axios.post(endpoint, formData, axiosOptions);
                 setSuccessMessage('Residente creado exitosamente.');
                 setErrorMessage('');
                 navigate('/residents');
             } catch (error) {
-                setErrorMessage('Fallo al crear el residente.');
+                // Check if the error is a validation failure (422) from the server
+                const serverErrorMsg = error.response?.data?.message || 'Fallo al crear el residente.';
+                setErrorMessage(serverErrorMsg);
                 console.error('Error creating resident:', error);
             }
         }
@@ -62,6 +89,7 @@ export default function CreateResidents() {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         setPhoto(file);
+        // Create a URL for image preview
         setPhotoPreview(URL.createObjectURL(file));
     };
 
@@ -81,8 +109,10 @@ export default function CreateResidents() {
                         </div>
                     )}
                 </div>
+                
+                {/* PHOTO FIELDS */}
                 <div className='mb-3'>
-                    <label className='form-label'>Foto</label><br />
+                    <label className='form-label'>Foto (Opcional)</label><br />
                     <input
                         onChange={handleFileChange}
                         type='file'
@@ -116,6 +146,8 @@ export default function CreateResidents() {
                         </div>
                     )}
                 </div>
+
+                {/* NAME FIELD */}
                 <div className='mb-3'>
                     <label className='form-label'>Nombre</label>
                     <input
@@ -129,6 +161,7 @@ export default function CreateResidents() {
                         Por favor, ingrese un nombre.
                     </div>
                 </div>
+                {/* LAST NAME FIELD */}
                 <div className='mb-3'>
                     <label className='form-label'>Apellido</label>
                     <input
@@ -142,6 +175,7 @@ export default function CreateResidents() {
                         Por favor, ingrese un apellido.
                     </div>
                 </div>
+                {/* EMAIL FIELD */}
                 <div className='mb-3'>
                     <label className='form-label'>Correo Electrónico</label>
                     <input
@@ -155,54 +189,40 @@ export default function CreateResidents() {
                         Por favor, ingrese un correo electrónico válido.
                     </div>
                 </div>
+                
+                {/* ADDRESS FIELD: CATALOG SELECT (NORMALIZED) */}
                 <div className='mb-3'>
-                    <label className='form-label'>Calle</label>
-                    <input
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                        type='text'
+                    <label className='form-label'>Dirección (Catálogo)</label>
+                    <select
+                        value={addressCatalogId}
+                        onChange={(e) => setAddressCatalogId(e.target.value)}
                         className='form-control'
                         required
-                    />
+                    >
+                        {/* Placeholder option */}
+                        <option value="" disabled>Seleccione una dirección del catálogo</option>
+                        {/* Map over the fetched addresses */}
+                        {addressList.map((addr) => (
+                            <option key={addr.id} value={addr.id}>
+                                {addr.full_address}
+                            </option>
+                        ))}
+                    </select>
                     <div className="invalid-feedback">
-                        Por favor, ingrese una calle.
+                        Por favor, seleccione una dirección.
                     </div>
                 </div>
+
+                {/* COMMENTS FIELD (Now resident-specific comments) */}
                 <div className='mb-3'>
-                    <label className='form-label'>Número de Calle</label>
-                    <input
-                        value={street_number}
-                        onChange={(e) => setStreetNumber(e.target.value)}
-                        type='text'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Por favor, ingrese un número de calle.
-                    </div>
-                </div>
-                <div className='mb-3'>
-                    <label className='form-label'>Comunidad</label>
-                    <input
-                        value={community}
-                        onChange={(e) => setCommunity(e.target.value)}
-                        type='text'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Por favor, ingrese una comunidad.
-                    </div>
-                </div>
-                <div className='mb-3'>
-                    <label className='form-label'>Comentarios</label>
-                    <input
+                    <label className='form-label'>Comentarios (Residente)</label>
+                    <textarea
                         value={comments}
                         onChange={(e) => setComments(e.target.value)}
-                        type='text'
                         className='form-control'
                     />
                 </div>
+                
                 <button type='submit' className='btn btn-success'>Guardar</button>
             </form>
         </div>

@@ -4,6 +4,7 @@ import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents/';
+const addressEndpoint = 'http://localhost:8000/api/addresses/active'; // Endpoint to fetch active catalog addresses
 
 const axiosOptions = {
     withCredentials: true,
@@ -13,17 +14,22 @@ const axiosOptions = {
     },
 };
 
-export default function EditEmployee() {
+export default function EditResidents() { 
     // Form fields state
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    const [street, setStreet] = useState('');
-    const [street_number, setStreetNumber] = useState('');
-    const [community, setCommunity] = useState('');
+    
+    // NORMALIZED STATE: Stores the FK ID
+    const [addressCatalogId, setAddressCatalogId] = useState('');
+    
+    // Resident-specific comments
     const [comments, setComments] = useState('');
+
+    // NEW STATE: To store the list of addresses fetched from the catalog API
+    const [addressList, setAddressList] = useState([]); 
 
     // Validation & UI
     const [formValidated, setFormValidated] = useState(false);
@@ -34,26 +40,70 @@ export default function EditEmployee() {
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
+    // Effect 1: Fetch the list of active addresses (catalog)
     useEffect(() => {
-        const getEmployeeById = async () => {
+        // ENGLISH CODE COMMENTS
+        const fetchAddresses = async () => {
             try {
-                const response = await axios.get(`${endpoint}${id}`, axiosOptions);
-                setPhoto(response.data.photo);
-                setName(response.data.name);
-                setLastName(response.data.last_name);
-                setEmail(response.data.email);
-                setStreet(response.data.street);
-                setStreetNumber(response.data.street_number);
-                setCommunity(response.data.community);
-                setComments(response.data.comments);
+                const response = await axios.get(addressEndpoint, { withCredentials: true, headers: { Accept: 'application/json' } });
+                
+                // ADJUSTMENT: The AddressController's listActive method must be updated 
+                // to return the correct 'full_address' format: Calle #Número, Comunidad.
+                // Assuming the backend is adjusted, we just set the list here.
+                setAddressList(response.data.data); 
             } catch (error) {
-                setErrorMessage('Fallo al cargar el residente.');
+                console.error('Error fetching address catalog:', error);
+                setErrorMessage('Fallo al cargar el catálogo de direcciones. La edición no es posible.');
             }
         };
-        getEmployeeById();
+        fetchAddresses();
+    }, [setErrorMessage]);
+    
+    /*
+    ** NOTE on listActive endpoint adjustment:
+    * The 'listActive' method in AddressController must be modified to use this format in the backend:
+    * 'full_address' => "Calle {$address->street} #{$address->street_number}, {$address->community}"
+    * This ensures consistency between the creation/edit dropdown and the resident listing table.
+    */
+
+    // Effect 2: Fetch the resident's data (including the current address ID)
+    useEffect(() => {
+        // ENGLISH CODE COMMENTS
+        const getResidentById = async () => {
+            try {
+                // Fetch resident data. The controller now returns addressCatalogId directly.
+                const response = await axios.get(`${endpoint}${id}`, axiosOptions);
+                const resident = response.data; 
+                
+                // Set primary data
+                setPhoto(resident.photo);
+                setName(resident.name);
+                setLastName(resident.last_name);
+                setEmail(resident.email);
+                
+                // Set normalized address ID.
+                setAddressCatalogId(resident.address_catalog_id || ''); 
+                
+                // Set comments (resident-specific comments)
+                setComments(resident.comments || '');
+                
+                // Set initial photo preview if an image path exists
+                if (resident.photo) {
+                    // FIX: Reverting to the URL structure from your working version
+                    const fullUrl = `http://127.0.0.1:8000/storage/${resident.photo}`;
+                    setPhotoPreview(fullUrl); 
+                } else {
+                    setPhotoPreview(null);
+                }
+            } catch (error) {
+                setErrorMessage('Fallo al cargar los datos del residente para editar.');
+            }
+        };
+        getResidentById();
     }, [id, setErrorMessage]);
 
     const handleFileChange = (e) => {
+        // ENGLISH CODE COMMENTS
         const file = e.target.files[0];
         setPhoto(file);
         if (file) {
@@ -62,16 +112,21 @@ export default function EditEmployee() {
     };
 
     const handleUpdate = async () => {
+        // ENGLISH CODE COMMENTS
         const formData = new FormData();
+        // Check if photo is a newly selected File object, otherwise, photo remains the existing path (string)
         if (photo instanceof File) formData.append('photo', photo);
+        
         formData.append('name', name);
         formData.append('last_name', last_name);
         formData.append('email', email);
-        formData.append('street', street);
-        formData.append('street_number', street_number);
-        formData.append('community', community);
+        
+        // ADJUSTED: Send only the address ID
+        formData.append('address_catalog_id', addressCatalogId); 
+        
+        // Send resident-specific comments
         formData.append('comments', comments || '');
-        formData.append('_method', 'PUT');
+        formData.append('_method', 'PUT'); // Required for Laravel PUT spoofing
 
         try {
             const response = await axios.post(`${endpoint}${id}`, formData, axiosOptions);
@@ -81,24 +136,29 @@ export default function EditEmployee() {
                 navigate('/residents');
             }
         } catch (error) {
-            setErrorMessage('Fallo al actualizar el residente.');
+            // User-facing error message in Spanish
+            const serverErrorMsg = error.response?.data?.message || 'Fallo al actualizar el residente.';
+            setErrorMessage(serverErrorMsg);
         } finally {
             setShowModal(false);
         }
     };
 
     const update = (e) => {
+        // ENGLISH CODE COMMENTS
         e.preventDefault();
 
         setFormValidated(true);
         setErrorMessage('');
         setValidationWarning(false);
 
+        // Client-side validation check
         if (!e.target.checkValidity()) {
             setValidationWarning(true);
             return;
         }
 
+        // Show confirmation modal before calling handleUpdate
         setShowModal(true);
     };
 
@@ -111,11 +171,13 @@ export default function EditEmployee() {
             <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
                 {/* Photo */}
                 <div className="form-group">
-                    <label>Foto</label><br />
-                    {(photoPreview || (photo && typeof photo === 'string')) && (
+                    <label>Foto (Opcional)</label><br />
+                    {/* Display photo if photoPreview is set (either new file or old URL) */}
+                    {(photoPreview) && ( 
                         <img
-                            src={photoPreview || `http://127.0.0.1:8000/storage/${photo}`}
-                            alt="Resident"
+                            // Use photoPreview state directly
+                            src={photoPreview} 
+                            alt="Residente"
                             style={{ width: '100px', borderRadius: '50%', marginBottom: '10px' }}
                         />
                     )}
@@ -125,6 +187,7 @@ export default function EditEmployee() {
                         onChange={handleFileChange}
                         accept="image/*"
                     />
+                     <div className="invalid-feedback">Por favor, suba una foto.</div>
                 </div>
 
                 {/* Name */}
@@ -166,40 +229,31 @@ export default function EditEmployee() {
                     <div className="invalid-feedback">Por favor, ingrese un correo electrónico válido.</div>
                 </div>
 
-                {/* Street */}
-                <div className="form-group">
-                    <label>Calle</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                    />
+                {/* ADDRESS FIELD: CATALOG SELECT (NORMALIZED) */}
+                <div className='mb-3'>
+                    <label className='form-label'>Dirección (Catálogo)</label>
+                    <select
+                        value={addressCatalogId}
+                        onChange={(e) => setAddressCatalogId(e.target.value)}
+                        className='form-control'
+                        required
+                    >
+                        {/* Placeholder option */}
+                        <option value="" disabled>Seleccione una dirección del catálogo</option>
+                        {/* Map over the fetched addresses */}
+                        {addressList.map((addr) => (
+                            <option key={addr.id} value={addr.id}>
+                                {/* Display in the corrected order: Calle #Número, Comunidad */}
+                                {addr.full_address} 
+                            </option>
+                        ))}
+                    </select>
+                    <div className="invalid-feedback">
+                        Por favor, seleccione una dirección.
+                    </div>
                 </div>
-
-                {/* Street Number */}
-                <div className="form-group">
-                    <label>Número de Calle</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={street_number}
-                        onChange={(e) => setStreetNumber(e.target.value)}
-                    />
-                </div>
-
-                {/* Community */}
-                <div className="form-group">
-                    <label>Comunidad</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={community}
-                        onChange={(e) => setCommunity(e.target.value)}
-                    />
-                </div>
-
-                {/* Comments */}
+                
+                {/* Comments (Resident-specific) */}
                 <div className="form-group">
                     <label>Comentarios</label>
                     <textarea
@@ -232,6 +286,7 @@ export default function EditEmployee() {
                     </div>
                 </div>
             </div>
+            {showModal && <div className="modal-backdrop fade show"></div>}
 
             {/* Validation Warning Modal */}
             <div className={`modal ${validationWarning ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog" aria-modal="true">
@@ -252,6 +307,7 @@ export default function EditEmployee() {
                     </div>
                 </div>
             </div>
+            {validationWarning && <div className="modal-backdrop fade show"></div>}
         </div>
     );
 }

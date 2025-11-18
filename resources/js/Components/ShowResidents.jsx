@@ -30,6 +30,8 @@ const ResidentsTable = () => {
     // Function to fetch all residents from the API
     const fetchResidents = async () => {
         try {
+            // ENGLISH CODE COMMENTS
+            // The controller must return the 'addressCatalog' relationship data (eager loaded)
             const response = await axios.get(endpoint, axiosOptions);
             setResidents(response.data);
             setFilteredResidents(response.data);
@@ -46,16 +48,26 @@ const ResidentsTable = () => {
         fetchResidents();
     }, []);
 
-    // Filter residents based on search input (by name)
+    // Filter residents based on search input (by name OR by address)
     useEffect(() => {
-        const result = residents.filter(resident =>
-            resident.name.toLowerCase().includes(search.toLowerCase())
-        );
+        // ENGLISH CODE COMMENTS
+        const result = residents.filter(resident => {
+            const nameMatch = resident.name.toLowerCase().includes(search.toLowerCase());
+            
+            // Search logic now includes the full address (from the relation)
+            const address = resident.address_catalog ? 
+                `${resident.address_catalog.community} ${resident.address_catalog.street} ${resident.address_catalog.street_number}` : 
+                '';
+            const addressMatch = address.toLowerCase().includes(search.toLowerCase());
+
+            return nameMatch || addressMatch;
+        });
         setFilteredResidents(result);
     }, [search, residents]);
 
     // Delete confirmation and API call logic
     const deleteResident = async (id) => {
+        // ENGLISH CODE COMMENTS
         try {
             const response = await axios.delete(`${endpoint}/${id}`, axiosOptions);
             if (response.status === 200) {
@@ -108,9 +120,19 @@ const ResidentsTable = () => {
         { name: 'Nombre', selector: row => row.name, sortable: true },
         { name: 'Apellidos', selector: row => row.last_name, sortable: true },
         { name: 'Correo Electrónico', selector: row => row.email, sortable: true },
-        { name: 'Calle', selector: row => row.street, sortable: true },
-        { name: 'Número de Calle', selector: row => row.street_number, sortable: true },
-        { name: 'Comunidad', selector: row => row.community, sortable: true },
+        
+        // NEW NORMALIZED ADDRESS COLUMN (ORDER ADJUSTED)
+        { 
+            name: 'Dirección Completa', 
+            // Now displays: Calle #Número, Comunidad
+            selector: row => 
+                row.address_catalog ? 
+                `Calle ${row.address_catalog.street} #${row.address_catalog.street_number}, ${row.address_catalog.community}` : 
+                'No Asignada', 
+            sortable: true,
+            minWidth: '250px',
+        },
+        
         { name: 'Comentarios', selector: row => row.comments, sortable: true },
         
         // Column for Payment History
@@ -170,7 +192,7 @@ const ResidentsTable = () => {
                 <input
                     type="text"
                     className="col-md-3 form-control form-control-sm mt-2 mb-2"
-                    placeholder="Buscar por nombre" 
+                    placeholder="Buscar por nombre o dirección" // Updated search placeholder
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />

@@ -13,6 +13,9 @@ use App\Http\Controllers\ResidentPaymentController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\MessageController;
+// --- NEW CONTROLLER IMPORT ---
+use App\Http\Controllers\Api\AddressController; // Import the Address Catalog Controller
+// ------------------------------
 use Illuminate\Support\Facades\Session;
 
 /*
@@ -38,7 +41,7 @@ Route::post('/login', [ApiController::class, 'login']);
 Route::middleware('auth:sanctum')->get('/get-token', function (Request $request) {
     return response()->json([
         'token' => Session::get('api_token'), // Get the token from session
-        'user' => $request->user(),           // Return the authenticated user
+        'user' => $request->user(),  // Return the authenticated user
     ]);
 });
 
@@ -52,17 +55,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/count', [UserController::class, 'count']);
     Route::get('/clients/count', [ClientController::class, 'count']);
     Route::get('/roles/count', [RolesController::class, 'count']);
+
+    // Residents and Fees Resources
     Route::apiResource('/residents', ResidentController::class);
     Route::apiResource('/fees', FeeController::class);
+
+    // --- ADDRESSES CATALOG ROUTES ---
+    Route::get('/addresses/active', [AddressController::class, 'listActive']);
+    
+    // API Resource for the Address Catalog (CRUD operations and soft deletion)
+    Route::apiResource('/addresses', AddressController::class);
+    // Addresses Catalog Routes (List Active)
+
+    
 
     // ---------------------------------------------------
     // 1. RESIDENT_PAYMENTS ROUTES (Correct Order for conflict resolution)
     // ---------------------------------------------------
-    
+
     // SPECIFIC HISTORY ROUTE: Must come FIRST because it includes the fixed segment '/history'
     // This solves the React component receiving the wrong data structure.
     Route::get('resident_payments/history/{residentId}', [ResidentPaymentController::class, 'paymentHistory']);
-    
+
     // CANCELLATION ROUTE: Must be defined here to ensure it's not shadowed.
     Route::post('resident_payments/cancel/{paymentId}', [ResidentPaymentController::class, 'cancelPayment']);
 
@@ -80,8 +94,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // REPORTS routes (individual GET routes)
     Route::get('reports/debtors', [ReportController::class, 'debtors']); // Residents with X months overdue
-    Route::get('reports/payments-by-resident', [ReportController::class, 'paymentsByResident']); 
-    Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']); 
+    Route::get('reports/payments-by-resident', [ReportController::class, 'paymentsByResident']);
+    Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']);
     Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
     Route::get('reports/search-residents', [ReportController::class, 'searchResidents']); // Resident search (autocomplete)
 
@@ -89,7 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Fetch the list of users/contacts along with their unread message counts
     Route::get('/chat/contacts', [MessageController::class, 'getContacts']);
-    
+
     // Fetch the message history for a specific conversation and mark received messages as read
     Route::get('/chat/messages/{receiverId}', [MessageController::class, 'getMessages']);
 
@@ -101,7 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Mark all messages from a specific sender as read
     Route::post('/chat/mark-as-read', [MessageController::class, 'markAsRead']);
-    
+
     // Notify the receiver that the sender is typing (for the "User is typing..." indicator)
     Route::post('/chat/typing', [MessageController::class, 'typing']);
 });

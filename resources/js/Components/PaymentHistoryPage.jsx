@@ -195,7 +195,7 @@ const PaymentHistoryPage = () => {
                 {/* MESSAGE AREA */}
                 <div className="row mb-2">
                     <div className="col-12"> 
-                        <h1 className="text-center">Historial de Pagos de {residentName}</h1>
+                        
                         {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
                         {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
                     </div>
