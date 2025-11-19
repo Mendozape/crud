@@ -38,7 +38,7 @@ class ReportController extends Controller
                 }
             }
 
-            $residents = Resident::select('id', 'name', 'last_name', 'street', 'street_number')
+            $residents = Resident::select('id', 'name', 'last_name')
                 ->get();
 
             $allRows = collect();
@@ -74,7 +74,7 @@ class ReportController extends Controller
                     }
 
                     $paidMonths = $paymentsQuery->count();
-                    $expectedMonths = ($endYear - $startYear) * 12 + ($endMonth - $startMonth + 1);
+                    $expectedMonths = ($endYear - $startYear) * 12 + ($endMonth - $startMonth );
                     $months_overdue = max(0, $expectedMonths - $paidMonths);
                     $total = $months_overdue * $feeAmount; // Calculation uses Fee amount
 
@@ -83,10 +83,7 @@ class ReportController extends Controller
                     return [
                         'name' => $resident->name,
                         'last_name' => $resident->last_name,
-                        'street' => $resident->street,
-                        'street_number' => $resident->street_number,
                         'paid_months' => $paidMonths,
-                        // Output uses Fee data
                         'fee_amount' => $feeAmount, 
                         'fee_name' => $feeName,
                         'months_overdue' => $months_overdue,

@@ -119,15 +119,15 @@ const ResidentsTable = () => {
         },
         { name: 'Nombre', selector: row => row.name, sortable: true },
         { name: 'Apellidos', selector: row => row.last_name, sortable: true },
-        { name: 'Correo Electrónico', selector: row => row.email, sortable: true },
+        { name: 'email', selector: row => row.email, sortable: true },
         
         // NEW NORMALIZED ADDRESS COLUMN (ORDER ADJUSTED)
         { 
-            name: 'Dirección Completa', 
+            name: 'Dirección', 
             // Now displays: Calle #Número, Comunidad
             selector: row => 
                 row.address_catalog ? 
-                `Calle ${row.address_catalog.street} #${row.address_catalog.street_number}, ${row.address_catalog.community}` : 
+                `${row.address_catalog.street} #${row.address_catalog.street_number}` : 
                 'No Asignada', 
             sortable: true,
             minWidth: '250px',

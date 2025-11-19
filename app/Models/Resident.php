@@ -12,7 +12,6 @@ class Resident extends Model
 
     /**
      * The attributes that are mass assignable.
-     * Only fields that exist in the normalized database schema are included.
      *
      * @var array
      */
@@ -21,19 +20,21 @@ class Resident extends Model
         'name',
         'last_name',
         'email',
-        'address_catalog_id', // NEW: Foreign key to the addresses catalog
+        // 'address_catalog_id' is removed from here because the FK is now on the 'addresses' table
         'comments',           // Original field name for resident-specific comments
     ];
 
     /**
-     * Define the inverse one-to-many relationship with the Address Catalog.
-     * A Resident belongs to one specific Address catalog entry.
+     * Define the ONE-TO-ONE relationship with the Address model.
+     * A Resident HAS ONE Address. The foreign key (resident_id) is located on the Address model.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function addressCatalog()
+    public function address()
     {
-        return $this->belongsTo(Address::class, 'address_catalog_id');
+        // ENGLISH CODE COMMENTS
+        // The second parameter specifies the foreign key on the Address model.
+        return $this->hasOne(Address::class, 'resident_id'); 
     }
     
     /**
@@ -43,6 +44,7 @@ class Resident extends Model
      */
     public function residentPayments()
     {
+        // ENGLISH CODE COMMENTS
         // Assuming the foreign key in the resident_payments table is 'resident_id'
         return $this->hasMany(ResidentPayment::class);
     }

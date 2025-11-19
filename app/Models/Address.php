@@ -23,6 +23,8 @@ class Address extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        // NEW: Foreign key added to this table
+        'resident_id',
         'type',
         'street',
         'street_number',
@@ -31,13 +33,18 @@ class Address extends Model
     ];
 
     /**
-     * Get the residents that belong to this catalog address.
+     * Define the inverse relationship.
+     * An Address belongs to ONE Resident. This is the 'belongsTo' side of the 1:1 relationship.
+     * Since resident_id is unique and nullable in the addresses table, it's 1:1 Optional.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function residents()
+    public function resident()
     {
-        // Assuming the foreign key in the 'residents' table is named 'address_catalog_id'
-        return $this->hasMany(Resident::class, 'address_catalog_id');
+        // This relationship uses the 'resident_id' column on the current 'addresses' table
+        return $this->belongsTo(Resident::class, 'resident_id');
     }
+    
+    // NOTE: The old residents() method (HasMany) was removed because the table no longer acts as a general catalog 
+    // where many residents point to it. Instead, this address points to one resident (resident()).
 }

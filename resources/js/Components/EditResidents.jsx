@@ -218,7 +218,7 @@ export default function EditResidents() {
 
                 {/* Email */}
                 <div className="form-group">
-                    <label>Correo Electrónico</label>
+                    <label>email</label>
                     <input
                         type="email"
                         className="form-control"

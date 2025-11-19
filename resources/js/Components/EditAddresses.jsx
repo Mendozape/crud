@@ -98,7 +98,7 @@ export default function EditAddresses() {
     return (
         <div>
             {/* Title in Spanish */}
-            <h2>Editar Entrada de Catálogo de Direcciones</h2>
+            <h2>Editar Dirección</h2>
             <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
                 <div className="col-md-12 mt-4">
                     {errorMessage && (
@@ -138,8 +138,8 @@ export default function EditAddresses() {
                         {/* Default disabled option. Empty value triggers the required flag. */}
                         <option value="" disabled>Seleccione una calle</option>
                         {/* Fixed options */}
-                        <option value="A">A</option>
-                        <option value="B">B</option>
+                        <option value="Circuito prados del Rio">Circuito prados del Rio</option>
+                        <option value="Camelina">Camelina</option>
                         <option value="C">C</option>
                     </select>
                     <div className="invalid-feedback">

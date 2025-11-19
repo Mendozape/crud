@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Residents and Fees Resources
     Route::apiResource('/residents', ResidentController::class);
+    Route::get('/residents/unassigned/search', [ResidentController::class, 'searchUnassigned']);
     Route::apiResource('/fees', FeeController::class);
 
     // --- ADDRESSES CATALOG ROUTES ---
@@ -66,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // API Resource for the Address Catalog (CRUD operations and soft deletion)
     Route::apiResource('/addresses', AddressController::class);
     // Addresses Catalog Routes (List Active)
+    
 
     
 

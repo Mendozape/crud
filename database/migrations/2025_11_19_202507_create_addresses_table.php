@@ -15,8 +15,20 @@ return new class extends Migration
             // Primary Key
             $table->id();
 
+            // --- AJUSTE CRUCIAL: Clave Foránea 1:1 Opcional (Nullable y Set Null) ---
+            // 1. nullable(): Permite que no haya un residente asignado.
+            // 2. unique(): Asegura que a lo sumo un residente esté asignado a esta dirección.
+            // 3. onDelete('set null'): Si el residente asociado es eliminado, su ID se pone en NULL en esta tabla, preservando la dirección.
+            $table->foreignId('resident_id')
+                  ->nullable() 
+                  ->unique() 
+                  ->constrained('residents')
+                  ->onDelete('set null')
+                  ->comment('ID del residente asignado a esta dirección. Es único (1:1) y puede ser NULL.');
+            // -----------------------------------------------------------------------
+
             // Address fields for the standardized catalog entry
-            $table->text('type')->nullable()->comment('Type of community (e.g., Residential, Commercial)'); 
+            $table->text('type')->nullable()->comment('Type of property (e.g., CASA, TERRENO)'); 
             $table->text('street')->comment('Standardized street name of the location'); 
             $table->text('street_number')->comment('House or lot number that is part of the unique address'); 
             $table->text('community')->comment('Standardized name of the Neighborhood or Subdivision'); 

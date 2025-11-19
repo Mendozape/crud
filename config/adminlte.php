@@ -356,7 +356,7 @@ return [
             'icon' => 'fas fa-fw fa-user',
         ],*/
         [
-            'text' => 'DIRECCIONES',
+            'text' => 'PREDIOS Y PAGOS',
             'url'  => 'addresses',
             'icon' => 'fas fa-fw fa-users',
         ],

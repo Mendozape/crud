@@ -26,7 +26,8 @@ const ShowAddresses = () => {
     // Function to fetch all addresses (including soft-deleted ones)
     const fetchAddresses = async () => {
         try {
-            // Controller uses withTrashed() to fetch all addresses
+            // ENGLISH CODE COMMENTS
+            // Controller now uses with('resident') to fetch the assigned resident
             const response = await axios.get(endpoint, {
                 withCredentials: true,
                 headers: { Accept: 'application/json' },
@@ -48,18 +49,24 @@ const ShowAddresses = () => {
         fetchAddresses();
     }, []);
 
-    // Filter addresses based on search input (by community or street)
+    // Filter addresses based on search input (by community, street, or resident name)
     useEffect(() => {
-        const result = addresses.filter(addr => 
-            addr.community.toLowerCase().includes(search.toLowerCase()) ||
-            addr.street.toLowerCase().includes(search.toLowerCase())
-        );
+        // ENGLISH CODE COMMENTS
+        const result = addresses.filter(addr => {
+            const addressText = `${addr.community} ${addr.street} ${addr.street_number} ${addr.type}`;
+            const residentName = addr.resident ? `${addr.resident.name} ${addr.resident.last_name}` : '';
+            const searchText = search.toLowerCase();
+            
+            return addressText.toLowerCase().includes(searchText) ||
+                   residentName.toLowerCase().includes(searchText);
+        });
         setFilteredAddresses(result);
     }, [search, addresses]);
 
 
     // Function to perform soft deletion (Dar de Baja)
     const deactivateAddress = async (id, reason) => {
+        // ENGLISH CODE COMMENTS
         try {
             // Use axios.delete, passing 'reason' in the data object for the audit trail
             const response = await axios.delete(`${endpoint}/${id}`, {
@@ -103,17 +110,42 @@ const ShowAddresses = () => {
 
     // DataTable column definitions
     const columns = [
-        { name: 'Comunidad', selector: row => row.community, sortable: true },
-        { name: 'Calle', selector: row => row.street, sortable: true },
-        { name: 'Número', selector: row => row.street_number, sortable: true },
         
-        // NEW COLUMN: TYPE
-        { name: 'Tipo', selector: row => row.type, sortable: true },
         
-        // STATUS column
+        // NEW: Combined Address Column
+        { 
+            name: 'Dirección (Calle, Número, Tipo)', 
+            selector: row => row.street, // Use 'street' for initial sorting
+            sortable: true,
+            cell: row => (
+                // Combine street, street_number, and type into a single display string
+                <div style={{ lineHeight: '1.2' }}>
+                    {/* Calle #Número, Comunidad */}
+                    <span className="d-block">{`${row.street} #${row.street_number}`}</span>
+                    {/* Tipo */}
+                    <span className="badge bg-secondary">{row.type}</span>
+                </div>
+            ),
+            minWidth: '280px',
+        },
+        // NEW: Resident Column (Name + Last Name combined)
+        { 
+            name: 'Residente Asignado', 
+            selector: row => row.resident,
+            sortable: true,
+            cell: row => (
+                // Display name and last name, or 'Vacante' if resident is null
+                <span className={row.resident ? 'fw-bold' : 'text-muted'}>
+                    {row.resident ? `${row.resident.name} ${row.resident.last_name}` : 'Vacante'}
+                </span>
+            ),
+            minWidth: '180px',
+        },
+
+        { name: 'Comentarios', selector: row => row.comments, sortable: true },
+
         { 
             name: 'Estado', // Status label in Spanish
-            // Check if deleted_at timestamp exists to determine status
             selector: row => row.deleted_at ? 'Inactivo' : 'Activo', 
             sortable: true,
             cell: row => (
@@ -170,7 +202,7 @@ const ShowAddresses = () => {
                     type="text"
                     className="col-md-3 form-control form-control-sm mt-2 mb-2"
                     // Placeholder in Spanish
-                    placeholder="Buscar por Comunidad/Calle"
+                    placeholder="Buscar por dirección o residente"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -184,7 +216,7 @@ const ShowAddresses = () => {
             <div className="col-md-12 mt-4">
                 <DataTable
                     // Title in Spanish
-                    title="Lista de Catálogo de Direcciones"
+                    title="Lista de direcciones"
                     columns={columns}
                     data={filteredAddresses}
                     progressPending={loading}

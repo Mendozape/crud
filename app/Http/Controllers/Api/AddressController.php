@@ -17,11 +17,11 @@ class AddressController extends Controller
     public function index()
     {
         // ENGLISH CODE COMMENTS
-        // Use withTrashed() to include soft-deleted records (required for the CRUD table status display)
-        $addresses = Address::withTrashed()->get();
+        // Use withTrashed() to include soft-deleted records. Eager load the 'resident' relationship.
+        $addresses = Address::withTrashed()->with('resident')->get();
         return response()->json(['data' => $addresses]);
     }
-    
+
     /**
      * Get a list of active addresses for selection in forms.
      */
@@ -33,12 +33,12 @@ class AddressController extends Controller
             ->whereNull('deleted_at') // Only active addresses
             ->orderBy('community')
             ->get();
-            
+
         // Format the address for display in the frontend select/dropdown
         $formattedAddresses = $addresses->map(function ($address) {
             return [
                 'id' => $address->id,
-                'full_address' => "{$address->community}, Calle {$address->street} #{$address->street_number}"
+                'full_address' => "{$address->street} #{$address->street_number}"
             ];
         });
 
@@ -63,7 +63,7 @@ class AddressController extends Controller
                 // Unique check against the combination of the three key fields
                 Rule::unique('addresses')->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                                 ->where('street', $request->street);
+                        ->where('street', $request->street);
                 }),
             ],
             'type' => 'required|string|max:255', // CHANGED TO REQUIRED
@@ -83,7 +83,7 @@ class AddressController extends Controller
 
         // Create the new catalog entry
         $address = Address::create($request->all());
-        
+
         return response()->json(['message' => 'Address catalog entry created successfully.', 'data' => $address], 201);
     }
 
@@ -117,7 +117,7 @@ class AddressController extends Controller
                 // Unique check, ignoring the current record ID ($address->id)
                 Rule::unique('addresses')->ignore($address->id)->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                                 ->where('street', $request->street);
+                        ->where('street', $request->street);
                 }),
             ],
             'type' => 'required|string|max:255', // CHANGED TO REQUIRED
@@ -136,7 +136,7 @@ class AddressController extends Controller
 
         // Update the catalog entry
         $address->update($request->all());
-        
+
         return response()->json(['message' => 'Address catalog entry updated successfully.', 'data' => $address], 200);
     }
 
@@ -153,7 +153,7 @@ class AddressController extends Controller
 
         // Perform the soft delete (sets the 'deleted_at' timestamp)
         $address->delete();
-        
+
         return response()->json(['message' => 'Address catalog entry deactivated successfully.'], 200);
     }
 }
