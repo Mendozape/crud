@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         // ENGLISH CODE COMMENTS
+        // 1. CREATE THE TABLE WITH ONLY RESIDENT DATA
         Schema::create('residents', function (Blueprint $table) {
+            // ENGLISH CODE COMMENTS
             $table->id();
             
             // Standard resident information
@@ -21,28 +23,28 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('email')->unique();
             
-            // --- NORMALIZED ADDRESS LINK ---
-            // Foreign Key linking the resident to the standardized entry in the 'addresses' catalog.
-            $table->foreignId('address_catalog_id')
-                  ->constrained('addresses') // Ensures the ID exists in the addresses table
-                  ->onDelete('restrict'); // Prevents deleting an address if a resident is linked
-
-            // Field for comments specific to the resident (keeping the original name: 'comments')
-            $table->text('comments')->nullable()->comment('General comments related to the resident (e.g., specific needs, private notes, etc.).');
+            // --- CRUCIAL FIX: address_catalog_id IS REMOVED ---
+            // The FK is now solely on the 'addresses' table, referencing this ID.
+            
+            // Field for comments specific to the resident
+            $table->text('comments')->nullable()->comment('General comments related to the resident.');
             
             // Timestamps and Soft Deletes
             $table->softDeletes();
             $table->timestamps();
         });
+        
+        // NOTE: The Schema::table block for adding the FK constraint is removed entirely.
+        // The foreign key is now defined in the addresses migration, pointing here.
     }
 
     /**
-     * Reverse the migrations (Drops the new table).
+     * Reverse the migrations (Drops the table).
      */
     public function down(): void
     {
         // ENGLISH CODE COMMENTS
-        // Drops the entire new residents table
+        // Drops the entire table
         Schema::dropIfExists('residents');
     }
 };

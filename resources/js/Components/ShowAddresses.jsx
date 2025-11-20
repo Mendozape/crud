@@ -94,6 +94,10 @@ const ShowAddresses = () => {
     // Navigation handlers
     const editAddress = (id) => navigate(`/addresses/edit/${id}`);
     const createAddress = () => navigate('/addresses/create');
+    
+    // NEW HANDLERS: Payments linked to ADDRESS ID
+    const createPayment = (id) => navigate(`/addresses/payment/${id}`);
+    const viewPaymentHistory = (id) => navigate(`/addresses/payments/history/${id}`); 
 
     // Modal handlers
     const toggleModal = () => setShowModal(!showModal);
@@ -111,7 +115,6 @@ const ShowAddresses = () => {
     // DataTable column definitions
     const columns = [
         
-        
         // NEW: Combined Address Column
         { 
             name: 'Dirección (Calle, Número, Tipo)', 
@@ -121,7 +124,7 @@ const ShowAddresses = () => {
                 // Combine street, street_number, and type into a single display string
                 <div style={{ lineHeight: '1.2' }}>
                     {/* Calle #Número, Comunidad */}
-                    <span className="d-block">{`${row.street} #${row.street_number}`}</span>
+                    <span className="d-block">{`${row.street} #${row.street_number}, ${row.community}`}</span>
                     {/* Tipo */}
                     <span className="badge bg-secondary">{row.type}</span>
                 </div>
@@ -131,7 +134,7 @@ const ShowAddresses = () => {
         // NEW: Resident Column (Name + Last Name combined)
         { 
             name: 'Residente Asignado', 
-            selector: row => row.resident,
+            selector: row => row.resident ? `${row.resident.name} ${row.resident.last_name}` : 'Vacante',
             sortable: true,
             cell: row => (
                 // Display name and last name, or 'Vacante' if resident is null
@@ -161,6 +164,26 @@ const ShowAddresses = () => {
             cell: row => (
                 // Actions depend on the address status
                 <div style={{ display: 'flex', gap: '5px' }}>
+                    
+                    {/* NEW ACTIONS: Payment and History (Available only if ACTIVE) */}
+                    {!row.deleted_at && (
+                        <>
+                            <button 
+                                className="btn btn-primary btn-sm" 
+                                onClick={() => createPayment(row.id)}
+                            >
+                                Pagar
+                            </button>
+                            <button 
+                                className="btn btn-warning btn-sm" 
+                                onClick={() => viewPaymentHistory(row.id)}
+                            >
+                                <i className="fas fa-history"></i> Historial
+                            </button>
+                        </>
+                    )}
+                    
+                    {/* Edit and Delete Actions */}
                     <button className="btn btn-info btn-sm" onClick={() => editAddress(row.id)} disabled={!!row.deleted_at}>Editar</button>
                     
                     {row.deleted_at ? (
@@ -172,7 +195,7 @@ const ShowAddresses = () => {
                     )}
                 </div>
             ),
-            minWidth: '200px',
+            minWidth: '320px', // Increased width to fit 4 buttons
         },
     ];
 

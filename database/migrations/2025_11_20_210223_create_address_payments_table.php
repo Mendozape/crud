@@ -12,12 +12,13 @@ return new class extends Migration
     public function up()
     {
         // 1. CREATE THE TABLE WITHOUT FOREIGN KEYS FIRST
-        Schema::create('resident_payments', function (Blueprint $table) {
+        Schema::create('address_payments', function (Blueprint $table) {
             $table->id();
 
             // --- BASE TRANSACTIONAL FIELDS ---
-            // Define the columns, but NOT the constraint yet
-            $table->unsignedBigInteger('resident_id'); // Defined as basic column type (like foreignId does)
+            // CRITICAL CHANGE: Use address_id instead of resident_id
+            $table->unsignedBigInteger('address_id'); 
+            
             $table->unsignedBigInteger('fee_id');
             $table->unsignedTinyInteger('month');
             $table->year('year');
@@ -30,18 +31,17 @@ return new class extends Migration
             // AUDIT (WHEN): Timestamp indicating when the cancellation occurred.
             $table->timestamp('cancelled_at')->nullable();
 
-            // AUDIT (WHO): Define the column, but NOT the constraint yet
+            // AUDIT (WHO): Define the column for the user who cancelled the payment
             $table->unsignedBigInteger('cancelled_by_user_id')->nullable();
 
             $table->timestamps();
         });
 
         // 2. ADD FOREIGN KEYS AFTER ALL PARENT TABLES ARE ASSUMED TO BE CREATED
-        Schema::table('resident_payments', function (Blueprint $table) {
-            // Add the constraints now that the columns exist
-
-            $table->foreign('resident_id')
-                ->references('id')->on('residents')
+        Schema::table('address_payments', function (Blueprint $table) {
+            // CRITICAL CHANGE: Foreign key references the 'addresses' table
+            $table->foreign('address_id')
+                ->references('id')->on('addresses')
                 ->onDelete('cascade');
 
             $table->foreign('fee_id')
@@ -59,6 +59,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('resident_payments');
+        Schema::dropIfExists('address_payments');
     }
 };

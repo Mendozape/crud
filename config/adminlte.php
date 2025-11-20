@@ -361,7 +361,7 @@ return [
             'icon' => 'fas fa-fw fa-users',
         ],
         [
-            'text' => 'RESIDENTES  Y PAGOS',
+            'text' => 'RESIDENTES',
             'url'  => 'residents',
             'icon' => 'fas fa-fw fa-users',
         ],

@@ -17,23 +17,24 @@ class ResidentController extends Controller
      */
     public function index()
     {
-        // Eager load the address catalog relationship for efficiency
-        $Residents = Resident::with('addressCatalog')->get();
+        // Eager load the addresses relationship
+        $Residents = Resident::with('addresses')->get();
         return $Residents;
     }
+
     public function searchResidents(Request $request)
     {
-        $search = $request->get('search', ''); // Use 'search' parameter as per route definition
+        $search = $request->get('search', ''); 
 
         if (!$search) {
             return response()->json(['success' => true, 'data' => []]);
         }
 
-        // CRUCIAL: EAGER LOAD the 'address' relationship (hasOne) to check for existence in React
-        $residents = Resident::with('address') 
+        // EAGER LOAD the 'addresses' relationship (hasMany)
+        $residents = Resident::with('addresses') 
             ->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%");
             })
             ->limit(10)
             ->get(['id', 'name', 'last_name', 'email']); 
@@ -50,42 +51,40 @@ class ResidentController extends Controller
     public function store(Request $request)
     {
         try {
-            // --- ADJUSTED VALIDATION FOR NORMALIZED FIELDS ---
-            $request->validate([
+            // Base validation for non-file fields
+            $rules = [
                 'name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
-                'email' => 'required|email|unique:residents,email|max:255',
-
-                // NEW: Validate the existence of the address ID in the catalog table
-                'address_catalog_id' => 'required|exists:addresses,id',
-
-                // OLD fields removed: 'street', 'street_number', 'community'
+                'email' => 'required|email|unique:residents,email|max:255', // Unique validation
                 'comments' => 'nullable|string|max:255',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
-            // ----------------------------------------------------
+            ];
+            
+            // Custom messages to translate specific errors (like email.unique)
+            $messages = [
+                'email.unique' => 'El correo electrónico ya se encuentra registrado.',
+            ];
+
+            // Validate with custom messages
+            $request->validate($rules, $messages);
 
             $input = $request->all();
+            $photoFileName = null;
 
             // Handle the photo upload
             if ($request->hasFile('photo')) {
                 // Store photo and get filename
-                $photo = Carbon::now()->timestamp . '.' . $request->photo->extension();
-                $request->photo->storeAs('/public/images', $photo);
-                $input['photo'] = $photo;
-            } else {
-                // If no photo is uploaded, set photo to null
-                $input['photo'] = null;
-            }
+                $photoFileName = Carbon::now()->timestamp . '.' . $request->photo->extension();
+                $request->photo->storeAs('/public/images', $photoFileName);
+            } 
 
-            // Create resident with normalized fields
+            // Create resident with clean fields (no address FK)
             $resident = Resident::create([
-                'photo' => $input['photo'],
+                'photo' => $photoFileName, // Use the generated filename or null
                 'name' => $input['name'],
                 'last_name' => $input['last_name'],
                 'email' => $input['email'],
-                'address_catalog_id' => $input['address_catalog_id'], // NEW FIELD
-                'comments' => $input['comments'] ?? null, // Renamed field is now just 'comments'
+                'comments' => $input['comments'] ?? null, 
             ]);
 
             return response()->json([
@@ -94,6 +93,7 @@ class ResidentController extends Controller
                 'data' => $resident
             ], 201);
         } catch (ValidationException $e) {
+            // If ValidationException occurs, return the errors object
             return response()->json([
                 'success' => false,
                 'message' => 'Error de Validación',
@@ -113,8 +113,8 @@ class ResidentController extends Controller
      */
     public function show(string $id)
     {
-        // Eager load the address catalog relationship
-        $resident = Resident::with('addressCatalog')->find($id);
+        // Eager load the addresses relationship
+        $resident = Resident::with('addresses')->find($id);
         return $resident;
     }
 
@@ -124,47 +124,51 @@ class ResidentController extends Controller
     public function update(Request $request, Resident $resident)
     {
         try {
-            // --- ADJUSTED VALIDATION FOR NORMALIZED FIELDS ---
-            $request->validate([
+            // BASE VALIDATION RULES (Photo rule excluded here)
+            $rules = [
                 'name' => 'bail|required|string|max:255',
                 'last_name' => 'bail|required|string|max:255',
                 'email' => 'bail|required|email|max:255|unique:residents,email,' . $resident->id,
-
-                // NEW: Validate the address ID
-                'address_catalog_id' => 'required|exists:addresses,id',
-
-                // OLD fields removed: 'street', 'street_number', 'community'
                 'comments' => 'nullable|string|max:255',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
-            // ----------------------------------------------------
+            ];
+            
+            // Custom messages for update validation
+            $messages = [
+                'email.unique' => 'El correo electrónico ya se encuentra registrado.',
+            ];
 
-            // If this is only a validation request, return success here without saving
-            if ($request->header('X-Validate-Only') === 'true') {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Validation passed (no update performed)'
-                ], 200);
+            // CRITICAL FIX: Conditionally add the 'photo' rule ONLY if a file is actually present.
+            // This prevents validation failure when the 'photo' field is omitted or contains the 'DELETE' string.
+            if ($request->hasFile('photo')) {
+                $rules['photo'] = 'image|mimes:jpeg,png,jpg,gif|max:2048';
             }
 
-            // Handle photo upload
+            // Validate the request
+            $request->validate($rules, $messages);
+
+            // Handle photo upload and deletion
             if ($request->hasFile('photo')) {
+                // CASE A: NEW FILE UPLOADED.
+                // Delete old photo and save new one
                 if ($resident->photo) {
                     Storage::delete('public/images/' . $resident->photo);
                 }
                 $photo = Carbon::now()->timestamp . '.' . $request->file('photo')->extension();
                 $request->file('photo')->storeAs('/public/images', $photo);
-                $resident->photo = $photo;
-            }
+                $resident->photo = $photo; // Update the resident model field
+            } else if ($request->input('photo') === 'DELETE') {
+                // CASE B: PHOTO DELETED BY USER ('DELETE' flag sent from frontend)
+                if ($resident->photo) {
+                    Storage::delete('public/images/' . $resident->photo);
+                }
+                $resident->photo = null; // Set field to null in the database
+            } 
+            // CASE C: If the 'photo' key is not present, the existing photo remains untouched.
 
             // Update resident info
             $resident->name = $request->name;
             $resident->last_name = $request->last_name;
             $resident->email = $request->email;
-
-            // ADJUSTED: Update the FK
-            $resident->address_catalog_id = $request->address_catalog_id;
-
             $resident->comments = $request->comments;
             $resident->save();
 

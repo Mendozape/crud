@@ -6,7 +6,6 @@ import axios from 'axios';
 
 const endpoint = 'http://localhost:8000/api/residents';
 
-// Global axios options with credentials
 const axiosOptions = {
     withCredentials: true,
     headers: {
@@ -15,7 +14,6 @@ const axiosOptions = {
 };
 
 const ResidentsTable = () => {
-    // State variables
     const [residents, setResidents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -23,18 +21,14 @@ const ResidentsTable = () => {
     const [showModal, setShowModal] = useState(false);
     const [residentToDelete, setResidentToDelete] = useState(null);
     
-    // Context hook for global messages
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    // Function to fetch all residents from the API
     const fetchResidents = async () => {
         try {
-            // ENGLISH CODE COMMENTS
-            // The controller must return the 'addressCatalog' relationship data (eager loaded)
             const response = await axios.get(endpoint, axiosOptions);
-            setResidents(response.data);
-            setFilteredResidents(response.data);
+            setResidents(response.data || []);
+            setFilteredResidents(response.data || []);
             setLoading(false);
         } catch (error) {
             console.error('Error fetching residents:', error);
@@ -43,58 +37,41 @@ const ResidentsTable = () => {
         }
     };
 
-    // Initial data load on component mount
     useEffect(() => {
         fetchResidents();
     }, []);
 
-    // Filter residents based on search input (by name OR by address)
     useEffect(() => {
-        // ENGLISH CODE COMMENTS
         const result = residents.filter(resident => {
-            const nameMatch = resident.name.toLowerCase().includes(search.toLowerCase());
+            const fullName = `${resident.name} ${resident.last_name}`.toLowerCase();
+            const email = resident.email.toLowerCase();
+            const searchText = search.toLowerCase();
             
-            // Search logic now includes the full address (from the relation)
-            const address = resident.address_catalog ? 
-                `${resident.address_catalog.community} ${resident.address_catalog.street} ${resident.address_catalog.street_number}` : 
-                '';
-            const addressMatch = address.toLowerCase().includes(search.toLowerCase());
-
-            return nameMatch || addressMatch;
+            return fullName.includes(searchText) || email.includes(searchText);
         });
         setFilteredResidents(result);
     }, [search, residents]);
 
-    // Delete confirmation and API call logic
     const deleteResident = async (id) => {
-        // ENGLISH CODE COMMENTS
         try {
             const response = await axios.delete(`${endpoint}/${id}`, axiosOptions);
             if (response.status === 200) {
                 setSuccessMessage('Residente eliminado con éxito.');
-                fetchResidents(); // Refresh the list
+                fetchResidents();
             } else {
                 setErrorMessage('Error al eliminar el residente.');
             }
             setShowModal(false);
         } catch (error) {
             console.error('Error deleting resident:', error);
-            
-            // KEY FIX: Extract the specific error message from the Laravel 409 Conflict response
             const detailedMessage = error.response?.data?.message || 'Error al eliminar el residente.';
-            
             setErrorMessage(detailedMessage);
             setShowModal(false);
         }
     };
 
-    // Navigation and Modal handlers
     const editResident = (id) => navigate(`/residents/edit/${id}`);
     const createResident = () => navigate('/residents/create');
-    const createPayment = (id) => navigate(`/residents/payment/${id}`);
-    
-    // Function to navigate to Payment History
-    const viewPaymentHistory = (id) => navigate(`/residents/payments/history/${id}`); 
     
     const toggleModal = () => setShowModal(!showModal);
     const confirmDelete = (id) => {
@@ -103,12 +80,10 @@ const ResidentsTable = () => {
     };
     const handleDelete = () => deleteResident(residentToDelete);
 
-    // DataTable column definitions (Translated names)
     const columns = [
         {
             name: 'Foto', 
             selector: row => {
-                // Determine photo URL path
                 const photoUrl =
                     row.photo && row.photo !== 'undefined' && row.photo !== 'null' && row.photo !== ''
                         ? `http://127.0.0.1:8000/storage/${row.photo}`
@@ -117,57 +92,37 @@ const ResidentsTable = () => {
             },
             sortable: false,
         },
-        { name: 'Nombre', selector: row => row.name, sortable: true },
-        { name: 'Apellidos', selector: row => row.last_name, sortable: true },
-        { name: 'email', selector: row => row.email, sortable: true },
-        
-        // NEW NORMALIZED ADDRESS COLUMN (ORDER ADJUSTED)
         { 
-            name: 'Dirección', 
-            // Now displays: Calle #Número, Comunidad
-            selector: row => 
-                row.address_catalog ? 
-                `${row.address_catalog.street} #${row.address_catalog.street_number}` : 
-                'No Asignada', 
+            name: 'Nombre Completo', 
+            selector: row => `${row.name} ${row.last_name}`,
             sortable: true,
-            minWidth: '250px',
+            cell: row => `${row.name} ${row.last_name}`,
+            minWidth: '200px',
         },
-        
-        { name: 'Comentarios', selector: row => row.comments, sortable: true },
-        
-        // Column for Payment History
-        {
-            name: 'Historial de pagos', 
-            cell: row => (
-                <button 
-                    className="btn btn-warning btn-sm" 
-                    onClick={() => viewPaymentHistory(row.id)}
-                >
-                    <i className="fas fa-history"></i> Ver Historial
-                </button>
-            ),
-            sortable: false,
-            minWidth: '160px',
+        { 
+            name: 'Correo Electrónico', 
+            selector: row => row.email, 
+            sortable: true 
         },
-
+        { 
+            name: 'Comentarios', 
+            selector: row => row.comments, 
+            sortable: true 
+        },
         {
             name: 'Acciones', 
             cell: row => (
-                // Use Bootstrap classes for spacing and preventing line wraps
                 <div className="d-flex gap-1 justify-content-end" style={{ whiteSpace: 'nowrap' }}>
-                    <button className="btn btn-primary btn-sm" onClick={() => createPayment(row.id)}>Pagar</button>
                     <button className="btn btn-info btn-sm" onClick={() => editResident(row.id)}>Editar</button>
                     <button className="btn btn-danger btn-sm" onClick={() => confirmDelete(row.id)}>
                         Eliminar
                     </button>
                 </div>
             ),
-            // Ensure sufficient width
-            minWidth: '200px',
+            minWidth: '150px',
         },
     ];
 
-    // Effect to clear success message after 5 seconds
     useEffect(() => {
         if (successMessage) {
             const timer = setTimeout(() => setSuccessMessage(null), 5000);
@@ -175,7 +130,6 @@ const ResidentsTable = () => {
         }
     }, [successMessage]);
 
-    // Effect to clear error message after 5 seconds
     useEffect(() => {
         if (errorMessage) {
             const timer = setTimeout(() => setErrorMessage(null), 5000);
@@ -192,7 +146,7 @@ const ResidentsTable = () => {
                 <input
                     type="text"
                     className="col-md-3 form-control form-control-sm mt-2 mb-2"
-                    placeholder="Buscar por nombre o dirección" // Updated search placeholder
+                    placeholder="Buscar por nombre o correo"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -217,7 +171,7 @@ const ResidentsTable = () => {
                 />
             </div>
 
-            {/* Delete confirmation Modal (Spanish translation) */}
+            {/* Delete confirmation Modal */}
             <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
@@ -237,6 +191,7 @@ const ResidentsTable = () => {
                     </div>
                 </div>
             </div>
+            {showModal && <div className="modal-backdrop fade show"></div>}
         </div>
     );
 };

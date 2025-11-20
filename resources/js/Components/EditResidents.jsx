@@ -4,7 +4,6 @@ import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents/';
-const addressEndpoint = 'http://localhost:8000/api/addresses/active'; // Endpoint to fetch active catalog addresses
 
 const axiosOptions = {
     withCredentials: true,
@@ -21,15 +20,7 @@ export default function EditResidents() {
     const [name, setName] = useState('');
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    
-    // NORMALIZED STATE: Stores the FK ID
-    const [addressCatalogId, setAddressCatalogId] = useState('');
-    
-    // Resident-specific comments
     const [comments, setComments] = useState('');
-
-    // NEW STATE: To store the list of addresses fetched from the catalog API
-    const [addressList, setAddressList] = useState([]); 
 
     // Validation & UI
     const [formValidated, setFormValidated] = useState(false);
@@ -40,56 +31,20 @@ export default function EditResidents() {
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    // Effect 1: Fetch the list of active addresses (catalog)
+    // Effect to fetch the resident's data
     useEffect(() => {
-        // ENGLISH CODE COMMENTS
-        const fetchAddresses = async () => {
-            try {
-                const response = await axios.get(addressEndpoint, { withCredentials: true, headers: { Accept: 'application/json' } });
-                
-                // ADJUSTMENT: The AddressController's listActive method must be updated 
-                // to return the correct 'full_address' format: Calle #Número, Comunidad.
-                // Assuming the backend is adjusted, we just set the list here.
-                setAddressList(response.data.data); 
-            } catch (error) {
-                console.error('Error fetching address catalog:', error);
-                setErrorMessage('Fallo al cargar el catálogo de direcciones. La edición no es posible.');
-            }
-        };
-        fetchAddresses();
-    }, [setErrorMessage]);
-    
-    /*
-    ** NOTE on listActive endpoint adjustment:
-    * The 'listActive' method in AddressController must be modified to use this format in the backend:
-    * 'full_address' => "Calle {$address->street} #{$address->street_number}, {$address->community}"
-    * This ensures consistency between the creation/edit dropdown and the resident listing table.
-    */
-
-    // Effect 2: Fetch the resident's data (including the current address ID)
-    useEffect(() => {
-        // ENGLISH CODE COMMENTS
         const getResidentById = async () => {
             try {
-                // Fetch resident data. The controller now returns addressCatalogId directly.
                 const response = await axios.get(`${endpoint}${id}`, axiosOptions);
                 const resident = response.data; 
                 
-                // Set primary data
                 setPhoto(resident.photo);
                 setName(resident.name);
                 setLastName(resident.last_name);
                 setEmail(resident.email);
-                
-                // Set normalized address ID.
-                setAddressCatalogId(resident.address_catalog_id || ''); 
-                
-                // Set comments (resident-specific comments)
                 setComments(resident.comments || '');
                 
-                // Set initial photo preview if an image path exists
                 if (resident.photo) {
-                    // FIX: Reverting to the URL structure from your working version
                     const fullUrl = `http://127.0.0.1:8000/storage/${resident.photo}`;
                     setPhotoPreview(fullUrl); 
                 } else {
@@ -103,30 +58,36 @@ export default function EditResidents() {
     }, [id, setErrorMessage]);
 
     const handleFileChange = (e) => {
-        // ENGLISH CODE COMMENTS
         const file = e.target.files[0];
         setPhoto(file);
         if (file) {
             setPhotoPreview(URL.createObjectURL(file));
         }
     };
+    
+    const handleRemoveImage = () => {
+        setPhoto('DELETE_PHOTO_FLAG'); 
+        setPhotoPreview(null);
+        const fileInput = document.getElementById('fileInputEdit');
+        if (fileInput) fileInput.value = '';
+    };
 
     const handleUpdate = async () => {
-        // ENGLISH CODE COMMENTS
         const formData = new FormData();
-        // Check if photo is a newly selected File object, otherwise, photo remains the existing path (string)
-        if (photo instanceof File) formData.append('photo', photo);
         
+        // CONDITIONAL PHOTO HANDLING
+        if (photo instanceof File) {
+            formData.append('photo', photo);
+        } else if (photo === 'DELETE_PHOTO_FLAG') {
+            formData.append('photo', 'DELETE'); 
+        }
+        
+        // Standard fields
         formData.append('name', name);
         formData.append('last_name', last_name);
         formData.append('email', email);
-        
-        // ADJUSTED: Send only the address ID
-        formData.append('address_catalog_id', addressCatalogId); 
-        
-        // Send resident-specific comments
         formData.append('comments', comments || '');
-        formData.append('_method', 'PUT'); // Required for Laravel PUT spoofing
+        formData.append('_method', 'PUT');
 
         try {
             const response = await axios.post(`${endpoint}${id}`, formData, axiosOptions);
@@ -136,7 +97,6 @@ export default function EditResidents() {
                 navigate('/residents');
             }
         } catch (error) {
-            // User-facing error message in Spanish
             const serverErrorMsg = error.response?.data?.message || 'Fallo al actualizar el residente.';
             setErrorMessage(serverErrorMsg);
         } finally {
@@ -145,20 +105,17 @@ export default function EditResidents() {
     };
 
     const update = (e) => {
-        // ENGLISH CODE COMMENTS
         e.preventDefault();
 
         setFormValidated(true);
         setErrorMessage('');
         setValidationWarning(false);
 
-        // Client-side validation check
         if (!e.target.checkValidity()) {
             setValidationWarning(true);
             return;
         }
 
-        // Show confirmation modal before calling handleUpdate
         setShowModal(true);
     };
 
@@ -170,29 +127,47 @@ export default function EditResidents() {
 
             <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
                 {/* Photo */}
-                <div className="form-group">
-                    <label>Foto (Opcional)</label><br />
-                    {/* Display photo if photoPreview is set (either new file or old URL) */}
-                    {(photoPreview) && ( 
-                        <img
-                            // Use photoPreview state directly
-                            src={photoPreview} 
-                            alt="Residente"
-                            style={{ width: '100px', borderRadius: '50%', marginBottom: '10px' }}
-                        />
+                <div className="form-group mb-3">
+                    <label className="form-label">Foto (Opcional)</label><br />
+                    
+                    {/* Display current/preview photo */}
+                    {photoPreview && ( 
+                        <div className='position-relative mt-3' style={{ display: 'inline-block' }}>
+                            <img
+                                src={photoPreview} 
+                                alt="Residente"
+                                style={{ width: '100px', borderRadius: '50%' }}
+                            />
+                            {/* REMOVE BUTTON */}
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-danger position-absolute top-0 end-0 border-0 bg-transparent text-dark"
+                                style={{
+                                    transform: 'translate(50%, -50%)',
+                                    borderRadius: '50%',
+                                    fontSize: '1.5rem',
+                                    color: '#000'
+                                }}
+                                onClick={handleRemoveImage}
+                            >
+                                &times;
+                            </button>
+                        </div>
                     )}
+                    
+                    {/* File Input */}
                     <input
                         type="file"
                         className="form-control"
+                        id="fileInputEdit"
                         onChange={handleFileChange}
                         accept="image/*"
                     />
-                     <div className="invalid-feedback">Por favor, suba una foto.</div>
                 </div>
 
                 {/* Name */}
-                <div className="form-group">
-                    <label>Nombre</label>
+                <div className="form-group mb-3">
+                    <label className="form-label">Nombre</label>
                     <input
                         type="text"
                         className="form-control"
@@ -204,8 +179,8 @@ export default function EditResidents() {
                 </div>
 
                 {/* Last Name */}
-                <div className="form-group">
-                    <label>Apellidos</label>
+                <div className="form-group mb-3">
+                    <label className="form-label">Apellidos</label>
                     <input
                         type="text"
                         className="form-control"
@@ -217,8 +192,8 @@ export default function EditResidents() {
                 </div>
 
                 {/* Email */}
-                <div className="form-group">
-                    <label>email</label>
+                <div className="form-group mb-3">
+                    <label className="form-label">Correo Electrónico</label>
                     <input
                         type="email"
                         className="form-control"
@@ -229,41 +204,25 @@ export default function EditResidents() {
                     <div className="invalid-feedback">Por favor, ingrese un correo electrónico válido.</div>
                 </div>
 
-                {/* ADDRESS FIELD: CATALOG SELECT (NORMALIZED) */}
-                <div className='mb-3'>
-                    <label className='form-label'>Dirección (Catálogo)</label>
-                    <select
-                        value={addressCatalogId}
-                        onChange={(e) => setAddressCatalogId(e.target.value)}
-                        className='form-control'
-                        required
-                    >
-                        {/* Placeholder option */}
-                        <option value="" disabled>Seleccione una dirección del catálogo</option>
-                        {/* Map over the fetched addresses */}
-                        {addressList.map((addr) => (
-                            <option key={addr.id} value={addr.id}>
-                                {/* Display in the corrected order: Calle #Número, Comunidad */}
-                                {addr.full_address} 
-                            </option>
-                        ))}
-                    </select>
-                    <div className="invalid-feedback">
-                        Por favor, seleccione una dirección.
-                    </div>
-                </div>
-                
-                {/* Comments (Resident-specific) */}
-                <div className="form-group">
-                    <label>Comentarios</label>
+                {/* Comments */}
+                <div className="form-group mb-3">
+                    <label className="form-label">Comentarios</label>
                     <textarea
                         className="form-control"
                         value={comments}
                         onChange={(e) => setComments(e.target.value)}
+                        rows="3"
                     />
                 </div>
 
                 <button type="submit" className="btn btn-primary mt-3">Actualizar</button>
+                <button 
+                    type="button" 
+                    className="btn btn-secondary mt-3 ms-2"
+                    onClick={() => navigate('/residents')}
+                >
+                    Cancelar
+                </button>
             </form>
 
             {/* Confirmation Modal */}
@@ -281,7 +240,7 @@ export default function EditResidents() {
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
-                            <button type="button" className="btn btn-danger" onClick={handleUpdate}>Actualizar</button>
+                            <button type="button" className="btn btn-primary" onClick={handleUpdate}>Actualizar</button>
                         </div>
                     </div>
                 </div>

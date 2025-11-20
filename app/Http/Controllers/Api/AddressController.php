@@ -12,7 +12,7 @@ class AddressController extends Controller
 {
     /**
      * Display a listing of the resource (Index).
-     * Fetches all address catalog entries, including soft-deleted ones (withTrashed).
+     * Fetches all address records, including soft-deleted ones (withTrashed).
      */
     public function index()
     {
@@ -33,12 +33,12 @@ class AddressController extends Controller
             ->whereNull('deleted_at') // Only active addresses
             ->orderBy('community')
             ->get();
-
+            
         // Format the address for display in the frontend select/dropdown
         $formattedAddresses = $addresses->map(function ($address) {
             return [
                 'id' => $address->id,
-                'full_address' => "{$address->street} #{$address->street_number}"
+                'full_address' => "Calle {$address->street} #{$address->street_number}, {$address->community}"
             ];
         });
 
@@ -51,50 +51,73 @@ class AddressController extends Controller
     public function store(Request $request)
     {
         // ENGLISH CODE COMMENTS
-        // Validation rules. The combination of the three key fields must be unique.
+        // Validation rules.
         $validator = Validator::make($request->all(), [
+            'resident_id' => [
+                'required',
+                'integer',
+                'exists:residents,id',
+            ],
+            
+            // Address data validation
             'community' => 'required|string|max:255',
             'street' => 'required|string|max:255',
             'street_number' => [
                 'required',
                 'string',
                 'max:255',
-                'numeric', // Added numeric validation consistent with frontend
-                // Unique check against the combination of the three key fields
+                'numeric', 
+                // CRITICAL FIX: The validation check must be robust and ignore soft-deleted records.
                 Rule::unique('addresses')->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                        ->where('street', $request->street);
+                                 ->where('street', $request->street)
+                                 ->where('street_number', $request->street_number)
+                                 ->whereNull('deleted_at'); // This makes the validation pass/fail check robust.
                 }),
             ],
-            'type' => 'required|string|max:255', // CHANGED TO REQUIRED
+            'type' => 'required|string|max:255',
             'comments' => 'nullable|string',
         ], [
-            // Custom message for the unique constraint violation
-            'street_number.unique' => 'A catalog entry with the exact Community, Street, and Number already exists.',
-            'street_number.numeric' => 'The street number must contain only numbers.',
+            // --- CUSTOM ERROR MESSAGES IN SPANISH ---
+            // This message will now be used because the validation logic is correct
+            'street_number.unique' => 'La combinación de Comunidad, Calle y Número ya existe (Dirección duplicada).',
+            'street_number.numeric' => 'El número de calle debe contener solo dígitos.',
+            'resident_id.required' => 'Debe seleccionar un residente para asignar la dirección.',
+            // ----------------------------------------
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation Failed',
+                'message' => 'Error de Validación: ' . $validator->errors()->first(),
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        // Create the new catalog entry
-        $address = Address::create($request->all());
-
-        return response()->json(['message' => 'Address catalog entry created successfully.', 'data' => $address], 201);
+        // Create the new entry. If the validation above passed, the DB insertion *should* succeed.
+        try {
+            $address = Address::create($request->all());
+        } catch (\Illuminate\Database\QueryException $e) {
+            // FIX: If, despite the validation, a DB constraint violation occurs (usually unique keys or FKs),
+            // we catch it and return our Spanish message.
+            if ($e->getCode() === '23000') { // 23000 is the SQLSTATE for Integrity Constraint Violation
+                return response()->json([
+                    'message' => 'La dirección física ya existe o el residente es inválido.',
+                    'errors' => ['general' => 'Violación de restricción de base de datos.']
+                ], 422);
+            }
+            throw $e; // Re-throw other exceptions
+        }
+        
+        return response()->json(['message' => 'Dirección creada exitosamente.', 'data' => $address], 201);
     }
 
     /**
      * Display the specified resource (Show).
-     * Used typically to fetch data before the Edit form loads.
      */
     public function show(Address $address)
     {
         // ENGLISH CODE COMMENTS
-        // Returns the data for the specific catalog entry
+        // Returns the data for the specific address record
         return response()->json(['data' => $address]);
     }
 
@@ -104,40 +127,49 @@ class AddressController extends Controller
     public function update(Request $request, Address $address)
     {
         // ENGLISH CODE COMMENTS
-        // Validation rules. The combination of the three fields must be unique,
-        // but ignoring the current address record ID during the unique check.
+        // Validation rules.
         $validator = Validator::make($request->all(), [
+            'resident_id' => [
+                'required',
+                'integer',
+                'exists:residents,id',
+            ],
             'community' => 'required|string|max:255',
             'street' => 'required|string|max:255',
             'street_number' => [
                 'required',
                 'string',
                 'max:255',
-                'numeric', // Added numeric validation consistent with frontend
-                // Unique check, ignoring the current record ID ($address->id)
+                'numeric',
+                // FIX: Ignore current ID AND exclude soft-deleted records
                 Rule::unique('addresses')->ignore($address->id)->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                        ->where('street', $request->street);
+                                 ->where('street', $request->street)
+                                 ->where('street_number', $request->street_number)
+                                 ->whereNull('deleted_at'); // Key fix for Soft Deletes
                 }),
             ],
-            'type' => 'required|string|max:255', // CHANGED TO REQUIRED
+            'type' => 'required|string|max:255',
             'comments' => 'nullable|string',
         ], [
-            'street_number.unique' => 'A catalog entry with the exact Community, Street, and Number already exists.',
-            'street_number.numeric' => 'The street number must contain only numbers.',
+            // --- CUSTOM ERROR MESSAGES IN SPANISH ---
+            'street_number.unique' => 'La combinación de Comunidad, Calle y Número ya existe (Dirección duplicada).',
+            'street_number.numeric' => 'El número de calle debe contener solo dígitos.',
+            'resident_id.required' => 'Debe seleccionar un residente para asignar la dirección.',
+            // ----------------------------------------
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation Failed',
+                'message' => 'Error de Validación: ' . $validator->errors()->first(),
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        // Update the catalog entry
+        // Update the entry
         $address->update($request->all());
 
-        return response()->json(['message' => 'Address catalog entry updated successfully.', 'data' => $address], 200);
+        return response()->json(['message' => 'Dirección actualizada exitosamente.', 'data' => $address], 200);
     }
 
     /**
@@ -146,7 +178,7 @@ class AddressController extends Controller
     public function destroy(Request $request, Address $address)
     {
         // ENGLISH CODE COMMENTS
-        // Validation to ensure a reason for deactivation is provided, matching the frontend logic
+        // Validation to ensure a reason for deactivation is provided
         $request->validate([
             'reason' => 'required|string|min:5',
         ]);

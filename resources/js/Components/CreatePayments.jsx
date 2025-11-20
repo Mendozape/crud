@@ -4,8 +4,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { MessageContext } from './MessageContext';
 
 const PaymentForm = () => {
-    const { id: residentId } = useParams();
-    const [residentName, setResidentName] = useState('');
+    // 1. URL parameter now extracts addressId
+    const { id: addressId } = useParams();
+    
+    // addressDetails replaces residentName
+    const [addressDetails, setAddressDetails] = useState(null); 
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [paymentDate, setPaymentDate] = useState('');
@@ -35,29 +38,27 @@ const PaymentForm = () => {
         return localDate.toISOString().split('T')[0];
     };
 
-    // Fetch resident name (English Code Comments)
+    // 2. Fetch address details (Endpoint updated)
     useEffect(() => {
-        const fetchResidentName = async () => {
+        const fetchAddressDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/api/residents/${residentId}`, axiosOptions);
-                setResidentName(response.data.name);
+                // ENDPOINT: /addresses/{id}
+                const response = await axios.get(`http://localhost:8000/api/addresses/${addressId}`, axiosOptions);
+                setAddressDetails(response.data.data);
             } catch (error) {
-                console.error('Error fetching resident name:', error);
+                console.error('Error fetching address details:', error);
+                setErrorMessage('Fallo al cargar la dirección para el pago.');
             }
         };
-        fetchResidentName();
-    }, [residentId]);
+        fetchAddressDetails();
+    }, [addressId]);
 
-    // Fetch fees (English Code Comments)
+    // Fetch fees (No change needed)
     useEffect(() => {
         const fetchFees = async () => {
             try {
                 const response = await axios.get('http://localhost:8000/api/fees', axiosOptions);
-                
-                // CRITICAL FIX: Filter out soft-deleted fees (where deleted_at is NOT null)
-                // We only keep fees where fee.deleted_at is falsy (i.e., null or undefined).
                 const activeFees = (response.data.data || []).filter(fee => !fee.deleted_at);
-                
                 setFees(activeFees);
             } catch (error) {
                 console.error('Error fetching fees:', error);
@@ -67,13 +68,14 @@ const PaymentForm = () => {
         setPaymentDate(getLocalDate());
     }, []);
 
-    // Fetch paid months (English Code Comments)
+    // 3. Fetch paid months (Endpoint updated to address_payments)
     useEffect(() => {
         const fetchPaidMonths = async () => {
             if (!year || !feeId) return;
             try {
+                // ENDPOINT: /address_payments/{addressId}/{year}?fee_id={feeId}
                 const response = await axios.get(
-                    `http://localhost:8000/api/resident_payments/${residentId}/${year}?fee_id=${feeId}`,
+                    `http://localhost:8000/api/address_payments/${addressId}/${year}?fee_id=${feeId}`,
                     axiosOptions
                 );
                 setPaidMonths(response.data.months.map(m => parseInt(m)));
@@ -84,9 +86,8 @@ const PaymentForm = () => {
         };
         fetchPaidMonths();
         setSelectedMonths([]);
-    }, [year, residentId, feeId]);
+    }, [year, addressId, feeId]);
 
-    // Handle fee selection (English Code Comments)
     const handleFeeChange = (e) => {
         const selectedFee = fees.find(fee => fee.id === parseInt(e.target.value));
         setFeeId(e.target.value);
@@ -94,7 +95,6 @@ const PaymentForm = () => {
         setSelectedMonths([]);
         setYear('');
         if (selectedFee) {
-            // Source amount and description from the selected fee data (Normalization)
             setAmount(selectedFee.amount);
             setDescription(selectedFee.description);
         } else {
@@ -103,7 +103,7 @@ const PaymentForm = () => {
         }
     };
 
-    // Handle submit (English Code Comments)
+    // 4. Handle submit (Endpoint and payload updated, Error handling improved)
     const handleConfirmSubmit = async () => {
         setErrorMessage('');
         setSuccessMessage('');
@@ -118,29 +118,36 @@ const PaymentForm = () => {
             return;
         }
 
-        // Prepare data for API (excluding redundant amount/description fields)
         const paymentData = {
-            resident_id: residentId,
+            address_id: addressId, // PAYLOAD: using address_id
             fee_id: feeId,
-            // amount and description are not sent to be saved in resident_payments
             payment_date: paymentDate,
             year,
             months: unpaidSelectedMonths,
         };
 
         try {
-            await axios.post('http://localhost:8000/api/resident_payments', paymentData, axiosOptions);
+            // ENDPOINT: /address_payments
+            await axios.post('http://localhost:8000/api/address_payments', paymentData, axiosOptions);
             setSuccessMessage('Pago(s) registrado(s) exitosamente.');
             setShowModal(false);
-            navigate('/residents');
+            
+            navigate('/addresses', { replace: true });
         } catch (error) {
-            if (error.response?.status === 422 && error.response.data.message) {
-                setErrorMessage(error.response.data.message);
+            // --- ENHANCED ERROR HANDLING ---
+            console.error('Payment Submission Error:', error); 
+
+            if (error.response) {
+                const msg = error.response.data.message || 
+                            `Error ${error.response.status}: El servidor no pudo procesar el pago. Revise la consola.`;
+                setErrorMessage(msg);
+            } else if (error.request) {
+                setErrorMessage('Error de red: No se pudo conectar con el servidor API.');
             } else {
-                console.error('Error registering payment(s):', error);
-                setErrorMessage('Fallo al registrar el/los pago(s).');
+                setErrorMessage('Ocurrió un error inesperado al preparar el pago.');
             }
-            setShowModal(false);
+            
+            setShowModal(false); 
         }
     };
 
@@ -189,9 +196,21 @@ const PaymentForm = () => {
         }
     };
 
+    // Helper to format address for display
+    const getFormattedAddress = () => {
+        if (!addressDetails) return 'Cargando Dirección...';
+        const { street, street_number, community, type } = addressDetails;
+        return `${street} #${street_number}, ${community} (${type})`;
+    };
+    
+    // Resident helper function removed
+
     return (
         <div className="container mt-5">
-            <h2>Registrar Pago para {residentName}</h2>
+            {/* Header shows only Address details */}
+            <h2>Registrar Pago para Dirección: **{getFormattedAddress()}**</h2>
+            {/* The alert box showing "Residente Asignado" is REMOVED */}
+            
             <form
                 onSubmit={(e) => {
                     e.preventDefault();

@@ -20,21 +20,21 @@ class Resident extends Model
         'name',
         'last_name',
         'email',
-        // 'address_catalog_id' is removed from here because the FK is now on the 'addresses' table
-        'comments',           // Original field name for resident-specific comments
+        // 'comments' is kept as resident-specific data
+        'comments',           
     ];
 
     /**
-     * Define the ONE-TO-ONE relationship with the Address model.
-     * A Resident HAS ONE Address. The foreign key (resident_id) is located on the Address model.
+     * Define the ONE-TO-MANY relationship with the Address model.
+     * A Resident HAS MANY Addresses. The foreign key (resident_id) is located on the Address model.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function address()
+    public function addresses() // Renamed from address() to plural 'addresses'
     {
         // ENGLISH CODE COMMENTS
-        // The second parameter specifies the foreign key on the Address model.
-        return $this->hasOne(Address::class, 'resident_id'); 
+        // The foreign key 'resident_id' exists on the related table (addresses)
+        return $this->hasMany(Address::class, 'resident_id'); 
     }
     
     /**
@@ -48,4 +48,6 @@ class Resident extends Model
         // Assuming the foreign key in the resident_payments table is 'resident_id'
         return $this->hasMany(ResidentPayment::class);
     }
+    
+    // NOTE: The previous address() method was removed to avoid conflicting relationships.
 }

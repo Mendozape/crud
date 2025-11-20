@@ -1,10 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/residents';
-const addressEndpoint = 'http://localhost:8000/api/addresses/active'; // Endpoint to fetch active catalog addresses
 
 // Axios options with credentials
 const axiosOptions = {
@@ -22,32 +21,28 @@ export default function CreateResidents() {
     const [last_name, setLastName] = useState('');
     const [email, setEmail] = useState('');
     
-    // NORMALIZED STATE: Stores the ID selected from the address catalog
-    const [addressCatalogId, setAddressCatalogId] = useState(''); 
-    
     // Retaining 'comments' state (now resident-specific comments)
     const [comments, setComments] = useState(''); 
     const [formValidated, setFormValidated] = useState(false);
 
-    // NEW STATE: To store the list of addresses fetched from the catalog API
-    const [addressList, setAddressList] = useState([]); 
-
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    // Effect to fetch the list of active addresses from the catalog on component mount
-    useEffect(() => {
-        const fetchAddresses = async () => {
-            try {
-                const response = await axios.get(addressEndpoint, axiosOptions);
-                setAddressList(response.data.data);
-            } catch (error) {
-                console.error('Error fetching address catalog:', error);
-                setErrorMessage('Fallo al cargar el catálogo de direcciones. No se podrá crear el residente.');
-            }
-        };
-        fetchAddresses();
-    }, []);
+    // Handler to handle file change logic
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setPhoto(file);
+        // Create a URL for image preview
+        if (file) {
+            setPhotoPreview(URL.createObjectURL(file));
+        }
+    };
+
+    // Handler to remove selected image
+    const handleRemoveImage = () => {
+        setPhoto(null);
+        setPhotoPreview(null);
+    };
 
     const store = async (e) => {
         e.preventDefault();
@@ -59,13 +54,15 @@ export default function CreateResidents() {
             setErrorMessage('Por favor, complete todos los campos obligatorios.');
         } else {
             const formData = new FormData();
-            formData.append('photo', photo);
+            // Append file only if it exists (for optional fields)
+            if (photo instanceof File) {
+                 formData.append('photo', photo);
+            }
+            // If photo state is a string (existing path), don't append it as a File
+            
             formData.append('name', name);
             formData.append('last_name', last_name);
             formData.append('email', email);
-            
-            // ADJUSTED: Send only the address ID to the backend
-            formData.append('address_catalog_id', addressCatalogId); 
             
             // Send resident-specific comments
             formData.append('comments', comments);
@@ -77,25 +74,27 @@ export default function CreateResidents() {
                 setErrorMessage('');
                 navigate('/residents');
             } catch (error) {
+                // ENGLISH CODE COMMENTS
                 // Check if the error is a validation failure (422) from the server
-                const serverErrorMsg = error.response?.data?.message || 'Fallo al crear el residente.';
-                setErrorMessage(serverErrorMsg);
+                if (error.response && error.response.status === 422 && error.response.data.errors) {
+                    const validationErrors = error.response.data.errors;
+                    let detailedMessage = "Error de Validación: ";
+                    
+                    // Iterate through the errors object and append the first message for each field
+                    Object.keys(validationErrors).forEach(field => {
+                        detailedMessage += validationErrors[field][0] + " ";
+                    });
+                    setErrorMessage(detailedMessage.trim());
+                    
+                } else {
+                    // Fallback for general server errors (500) or non-validation errors
+                    const serverErrorMsg = error.response?.data?.message || 'Fallo al crear el residente.';
+                    setErrorMessage(serverErrorMsg);
+                }
                 console.error('Error creating resident:', error);
             }
         }
         setFormValidated(true);
-    };
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        setPhoto(file);
-        // Create a URL for image preview
-        setPhotoPreview(URL.createObjectURL(file));
-    };
-
-    const handleRemoveImage = () => {
-        setPhoto(null);
-        setPhotoPreview(null);
     };
 
     return (
@@ -105,6 +104,7 @@ export default function CreateResidents() {
                 <div className="col-md-12 mt-4">
                     {errorMessage && (
                         <div className="alert alert-danger text-center">
+                            {/* Display the detailed error message here */}
                             {errorMessage}
                         </div>
                     )}
@@ -190,28 +190,7 @@ export default function CreateResidents() {
                     </div>
                 </div>
                 
-                {/* ADDRESS FIELD: CATALOG SELECT (NORMALIZED) */}
-                <div className='mb-3'>
-                    <label className='form-label'>Dirección (Catálogo)</label>
-                    <select
-                        value={addressCatalogId}
-                        onChange={(e) => setAddressCatalogId(e.target.value)}
-                        className='form-control'
-                        required
-                    >
-                        {/* Placeholder option */}
-                        <option value="" disabled>Seleccione una dirección del catálogo</option>
-                        {/* Map over the fetched addresses */}
-                        {addressList.map((addr) => (
-                            <option key={addr.id} value={addr.id}>
-                                {addr.full_address}
-                            </option>
-                        ))}
-                    </select>
-                    <div className="invalid-feedback">
-                        Por favor, seleccione una dirección.
-                    </div>
-                </div>
+                {/* REMOVED: ADDRESS FIELD (CATALOG SELECT) */}
 
                 {/* COMMENTS FIELD (Now resident-specific comments) */}
                 <div className='mb-3'>
