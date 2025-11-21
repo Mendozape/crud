@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AddressPayment; // NEW MODEL
-use App\Models\Address; // Use Address model instead of Resident
+use App\Models\AddressPayment;
+use App\Models\Address;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Models\Fee; 
-use App\Models\User; // For audit relationships
+use App\Models\Fee;
+use App\Models\User;
 
-class AddressPaymentController extends Controller // NEW CONTROLLER NAME
+class AddressPaymentController extends Controller
 {
     public function index()
     {
-        $addressPayments = AddressPayment::all(); 
+        $addressPayments = AddressPayment::all();
         return response()->json($addressPayments);
     }
 
@@ -26,7 +26,7 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
     {
         // 1. Check if the address exists
         try {
-            Address::findOrFail($addressId); 
+            Address::findOrFail($addressId);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
@@ -35,11 +35,11 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
         }
 
         // 2. Fetch all payments, eager loading the 'fee' relationship (withTrashed)
-        $payments = AddressPayment::where('address_id', $addressId) 
-            ->with(['fee' => fn($q) => $q->withTrashed()]) 
+        $payments = AddressPayment::where('address_id', $addressId)
+            ->with(['fee' => fn($q) => $q->withTrashed()])
             ->orderBy('payment_date', 'desc')
             ->get();
-        
+
         return response()->json([
             'success' => true,
             'data' => $payments
@@ -47,17 +47,19 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
     }
 
     /**
-     * Cancel (Anular) a specific payment.
+     * Cancel (Annul) a specific payment.
+     * This performs a logical cancellation by updating the status and audit fields.
      */
     public function cancelPayment($paymentId, Request $request)
     {
         try {
-            $payment = AddressPayment::findOrFail($paymentId); // Use new model
+            $payment = AddressPayment::findOrFail($paymentId);
 
             $request->validate([
-                'reason' => 'required|string|min:5|max:500',
+                'reason' => 'required|string|min:2|max:500',
             ]);
 
+            // Prevent cancellation if the payment is already cancelled
             if ($payment->status !== 'Pagado') {
                 return response()->json([
                     'success' => false,
@@ -65,22 +67,25 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
                 ], 400);
             }
 
+            // --- CRITICAL FIX: Use the standardized 'delete' audit field names ---
             $payment->status = 'Cancelado';
-            $payment->cancellation_reason = $request->reason;
-            $payment->cancelled_at = now();
-            $payment->cancelled_by_user_id = Auth::id(); 
+            $payment->deletion_reason = $request->reason; // FIX: Use deletion_reason
+            $payment->deleted_at = now();                // FIX: Use deleted_at
+            $payment->deleted_by_user_id = Auth::id();   // FIX: Use deleted_by_user_id
             $payment->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'El pago fue anulado exitosamente.'
             ], 200);
-
         } catch (ModelNotFoundException $e) {
             return response()->json(['success' => false, 'message' => 'Pago no encontrado.'], 404);
         } catch (ValidationException $e) {
             return response()->json(['success' => false, 'message' => 'El motivo de anulación es requerido.', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
+            // Log the error for debugging purposes in the server logs
+            \Log::error("Payment cancellation failed for ID {$paymentId}: " . $e->getMessage());
+
             return response()->json(['success' => false, 'message' => 'Fallo interno al procesar la anulación.'], 500);
         }
     }
@@ -92,7 +97,7 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'address_id' => 'required|exists:addresses,id', // CRITICAL CHANGE: Validating against addresses
+            'address_id' => 'required|exists:addresses,id', // Validating against addresses
             'fee_id' => 'required|exists:fees,id',
             'months' => 'required|array|min:1',
             'months.*' => 'integer|between:1,12',
@@ -101,10 +106,10 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
         ]);
 
         // Get months that are already registered as paid (status = Pagado)
-        $existingMonths = AddressPayment::where('address_id', $validated['address_id']) // CRITICAL CHANGE
+        $existingMonths = AddressPayment::where('address_id', $validated['address_id'])
             ->where('fee_id', $validated['fee_id'])
             ->where('year', $validated['year'])
-            ->where('status', 'Pagado') 
+            ->where('status', 'Pagado')
             ->whereIn('month', $validated['months'])
             ->pluck('month')
             ->toArray();
@@ -123,7 +128,7 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
         $payments = [];
         foreach ($newMonths as $month) {
             $payments[] = AddressPayment::create([
-                'address_id' => $validated['address_id'], // CRITICAL CHANGE
+                'address_id' => $validated['address_id'],
                 'fee_id' => $validated['fee_id'],
                 'payment_date' => $validated['payment_date'],
                 'month' => $month,
@@ -134,25 +139,30 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
 
         return response()->json($payments, 201);
     }
-    
-    // ... (show, update, destroy, getPaidMonths methods need adjustment too)
-    
+
+    /**
+     * Display the specified resource.
+     */
     public function show($id)
     {
         $addressPayment = AddressPayment::findOrFail($id);
         return response()->json($addressPayment);
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'address_id' => 'required|exists:addresses,id', // CRITICAL CHANGE
+            'address_id' => 'required|exists:addresses,id',
             'fee_id' => 'required|exists:fees,id',
             'payment_date' => 'required|date',
         ]);
 
         $addressPayment = AddressPayment::findOrFail($id);
 
+        // Prevent modification if the payment is cancelled/annulled
         if ($addressPayment->status === 'Cancelado') {
             return response()->json(['success' => false, 'message' => 'No se puede modificar un pago que ya ha sido cancelado.'], 403);
         }
@@ -168,23 +178,40 @@ class AddressPaymentController extends Controller // NEW CONTROLLER NAME
         return response()->json($addressPayment);
     }
 
+    /**
+     * Prevents physical deletion, enforcing logical annulment instead.
+     */
     public function destroy($id)
     {
         AddressPayment::findOrFail($id);
         return response()->json(['success' => false, 'message' => 'La eliminación física de pagos no está permitida. Por favor, utilice la función "Anular Pago" para revertir la transacción.'], 403);
     }
 
+    /**
+     * Get the months that are already paid for a given address, fee, and year.
+     */
     public function getPaidMonths($addressId, $year, Request $request)
     {
         $feeId = $request->query('fee_id');
-        $query = AddressPayment::where('address_id', $addressId) // CRITICAL CHANGE
-            ->where('year', $year)
-            ->where('status', 'Pagado');
+
+        // Base query: filter by address and year
+        $query = AddressPayment::where('address_id', $addressId)
+            ->where('year', $year);
 
         if ($feeId) {
             $query->where('fee_id', $feeId);
         }
+
+        // Filter payments that should block re-selection (Paid or Canceled)
+        // Payments marked as 'Cancelado' or 'Pagado' occupy the slot.
+        $query->whereIn('status', ['Pagado', 'Cancelado']);
+
+        // Exclude soft-deleted payments (allowing re-payment of annulled records)
+        $query->whereNull('deleted_at');
+
+        // Get unique month numbers
         $months = $query->pluck('month')->unique()->values();
+
         return response()->json([
             'months' => $months
         ]);

@@ -75,7 +75,7 @@ const PaymentForm = () => {
             try {
                 // ENDPOINT: /address_payments/{addressId}/{year}?fee_id={feeId}
                 const response = await axios.get(
-                    `http://localhost:8000/api/address_payments/${addressId}/${year}?fee_id=${feeId}`,
+                    `http://localhost:8000/api/address_payments/paid-months/${addressId}/${year}?fee_id=${feeId}`,
                     axiosOptions
                 );
                 setPaidMonths(response.data.months.map(m => parseInt(m)));
@@ -199,8 +199,8 @@ const PaymentForm = () => {
     // Helper to format address for display
     const getFormattedAddress = () => {
         if (!addressDetails) return 'Cargando Dirección...';
-        const { street, street_number, community, type } = addressDetails;
-        return `${street} #${street_number}, ${community} (${type})`;
+        const { street, street_number, type } = addressDetails;
+        return `${street} #${street_number} (${type})`;
     };
     
     // Resident helper function removed
@@ -208,7 +208,7 @@ const PaymentForm = () => {
     return (
         <div className="container mt-5">
             {/* Header shows only Address details */}
-            <h2>Registrar Pago para Dirección: **{getFormattedAddress()}**</h2>
+            <h2>Registrar pago: **{getFormattedAddress()}**</h2>
             {/* The alert box showing "Residente Asignado" is REMOVED */}
             
             <form

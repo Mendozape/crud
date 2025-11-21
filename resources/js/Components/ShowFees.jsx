@@ -55,6 +55,10 @@ const FeesTable = () => {
 
     // Function to perform soft deletion (Dar de Baja)
     const deactivateFee = async (id, reason) => {
+        // Clear previous messages at the start of submission attempt
+        setErrorMessage('');
+        setSuccessMessage('');
+
         try {
             // Use axios.delete, but pass 'reason' in the body/data object for the audit trail
             const response = await axios.delete(`${endpoint}/${id}`, {
@@ -65,16 +69,18 @@ const FeesTable = () => {
             
             if (response.status === 200) {
                 setSuccessMessage('Cuota dada de baja exitosamente.'); // UI Success message (Spanish)
+                setShowModal(false); // Close modal on success
+                setDeactivationReason(''); // Clear reason on success
                 fetchFees(); // Refresh list to show 'Inactivo' status
             } 
         } catch (error) {
             console.error('Deactivation error:', error);
+            // Handle server validation error (e.g., reason too short)
             const msg = error.response?.data?.message || 'Fallo al dar de baja la cuota.'; // Fallback UI message (Spanish)
             setErrorMessage(msg);
-        } finally {
-            setShowModal(false);
-            setDeactivationReason('');
+            // IMPORTANT: Do NOT close the modal on error (validation fail)
         }
+        // Removed `finally` block to prevent closing the modal on validation error
     };
 
     // Navigation handlers
@@ -87,11 +93,21 @@ const FeesTable = () => {
     // Opens the modal to confirm deactivation and capture reason
     const confirmDeactivation = (id) => {
         setFeeToDeactivate(id);
+        setDeactivationReason(''); // Ensure reason is clean
+        setErrorMessage(''); // Clear previous error
+        setSuccessMessage(''); // Clear previous success
         toggleModal();
     };
     
     // Calls the deactivation function with the captured reason
-    const handleDeactivation = () => deactivateFee(feeToDeactivate, deactivationReason);
+    const handleDeactivation = () => {
+        // Simple client-side check for empty reason. Server handles min length.
+        if (!deactivationReason.trim()) {
+            setErrorMessage('Debe especificar un motivo de la baja.');
+            return;
+        }
+        deactivateFee(feeToDeactivate, deactivationReason);
+    }
 
 
     // DataTable column definitions
@@ -108,8 +124,8 @@ const FeesTable = () => {
             sortable: true,
             cell: row => (
                 <span className={`badge ${row.deleted_at ? 'bg-danger' : 'bg-info'}`}> 
-            {row.deleted_at ? 'Inactivo' : 'Activo'}
-        </span>
+                {row.deleted_at ? 'Inactivo' : 'Activo'}
+            </span>
             ),
         },
         
@@ -165,8 +181,9 @@ const FeesTable = () => {
             </div>
 
             <div className="col-md-12 mt-4">
+                {/* SUCCESS MESSAGE REMAINS GLOBAL */}
                 {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
-                {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
+                {/* ERROR MESSAGE IS REMOVED FROM GLOBAL DISPLAY to fix the overlay issue */}
             </div>
 
             <div className="col-md-12 mt-4">
@@ -207,6 +224,10 @@ const FeesTable = () => {
                                     placeholder="Ingrese la razón de la baja (Ej: Cuota descontinuada, error en monto inicial, etc.)"
                                 />
                             </div>
+                            
+                            {/* FIX: Display error message inside the modal body, visible to the user */}
+                            {errorMessage && <div className="alert alert-danger text-center mt-2">{errorMessage}</div>}
+                            
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancelar</button> {/* Cancel */}

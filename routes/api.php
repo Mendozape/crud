@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\AddressPaymentController;
 use App\Http\Controllers\PermisosController;
-use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\ReportController; // Import ReportController
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AddressController; 
 use Illuminate\Support\Facades\Session;
@@ -69,10 +69,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- REPORTS ROUTES ---
     Route::get('reports/debtors', [ReportController::class, 'debtors']); 
-    Route::get('reports/payments-by-resident', [ReportController::class, 'paymentsByResident']);
+    
+    // CRITICAL FIX: Renamed endpoint to be address-focused, mapped to new method
+    Route::get('reports/payments-by-address', [ReportController::class, 'paymentsByAddressId']); 
+    
     Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']);
     Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
-    Route::get('reports/search-residents', [ReportController::class, 'searchResidents']);
+    
+    // CRITICAL FIX: Renamed search endpoint and mapped to new method
+    Route::get('reports/search-addresses', [ReportController::class, 'searchAddresses']); 
 
     // --- CHAT API ROUTES ---
     Route::get('/chat/contacts', [MessageController::class, 'getContacts']);

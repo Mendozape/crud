@@ -36,8 +36,8 @@ const PaymentHistoryPage = () => {
     
     const getFormattedAddress = () => {
         if (!addressDetails) return 'Cargando Dirección...';
-        const { street, street_number, community, type } = addressDetails;
-        return `${street} #${street_number}, ${community} (${type})`;
+        const { street, street_number, type } = addressDetails;
+        return `${street} #${street_number} (${type})`;
     };
 
     const fetchPaymentHistory = async () => {
@@ -49,9 +49,7 @@ const PaymentHistoryPage = () => {
                 axiosOptions
             );
             
-            console.log("Address Response:", addressResponse.data);
-            
-            // CRITICAL FIX: Handle both response formats (with or without 'data' wrapper)
+            // Handle both response formats (with or without 'data' wrapper)
             const addressData = addressResponse.data.data || addressResponse.data;
             setAddressDetails(addressData);
 
@@ -61,23 +59,16 @@ const PaymentHistoryPage = () => {
                 axiosOptions
             );
             
-            console.log("Payments Response Status:", paymentsResponse.status);
-            console.log("Payments Response Full:", paymentsResponse.data);
-            
-            // CRITICAL FIX: Handle the response structure correctly
+            // Handle the response structure correctly
             const fetchedPayments = paymentsResponse.data?.data || paymentsResponse.data || [];
-            
-            console.log("Fetched Payments Array:", fetchedPayments);
-            console.log("Is Array?", Array.isArray(fetchedPayments));
-            console.log("Length:", fetchedPayments.length);
             
             setPayments(fetchedPayments);
             setFilteredPayments(fetchedPayments);
             
         } catch (error) {
             console.error('Error fetching data:', error);
-            console.error('Error response:', error.response?.data);
-            setErrorMessage('Error al cargar el historial de pagos de la dirección.');
+            // This is a general error, keep it global
+            setErrorMessage('Error al cargar el historial de pagos de la dirección.'); 
         } finally {
             setLoading(false);
         }
@@ -104,10 +95,18 @@ const PaymentHistoryPage = () => {
         setPaymentToCancel(payment);
         setShowCancelModal(true);
         setCancellationReason('');
+        setErrorMessage(''); // Clear previous errors before opening modal
+        setSuccessMessage(''); // Clear previous success messages
     };
 
     const handleCancellation = async () => {
+        // Clear previous messages at the start of submission attempt
+        setErrorMessage('');
+        setSuccessMessage('');
+
+        // Frontend validation for empty reason
         if (!cancellationReason.trim()) {
+            // Show error inside modal for immediate visibility
             setErrorMessage('Debe especificar un motivo de cancelación.');
             return;
         }
@@ -121,14 +120,21 @@ const PaymentHistoryPage = () => {
 
             if (response.status === 200) {
                 setSuccessMessage('Pago anulado exitosamente.');
-                setShowCancelModal(false);
+                // CLOSE MODAL ONLY ON SUCCESS
+                setShowCancelModal(false); 
                 setPaymentToCancel(null);
+                setCancellationReason('');
                 fetchPaymentHistory(); 
             }
         } catch (error) {
             console.error('Error canceling payment:', error);
+            
+            // Handle server validation error (e.g., reason too short)
             const msg = error.response?.data?.message || 'Fallo al anular el pago.';
+            // Set error message to be displayed *inside* the modal
             setErrorMessage(msg);
+            
+            // IMPORTANT: DO NOT CLOSE MODAL HERE. User must correct the input.
         }
     };
 
@@ -177,7 +183,7 @@ const PaymentHistoryPage = () => {
         },
         {
             name: 'Motivo Cancelación',
-            selector: row => row.cancellation_reason || '',
+            selector: row => row.deletion_reason || '',
             sortable: false,
             wrap: true,
         },
@@ -205,8 +211,11 @@ const PaymentHistoryPage = () => {
                 
                 <div className="row mb-2">
                     <div className="col-12"> 
+                        {/* Display SUCCESS messages globally */}
                         {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
-                        {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
+                        {/* CRITICAL FIX: Removed GLOBAL errorMessage display here 
+                            to prevent the modal from covering it.
+                        */}
                     </div>
                 </div>
 
@@ -274,6 +283,10 @@ const PaymentHistoryPage = () => {
                                     placeholder="Detalle la razón de la anulación del pago."
                                 ></textarea>
                             </div>
+                            
+                            {/* FIX: Display error message inside the modal */}
+                            {errorMessage && <div className="alert alert-danger mt-2">{errorMessage}</div>}
+                            
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={() => setShowCancelModal(false)}>Cerrar</button>

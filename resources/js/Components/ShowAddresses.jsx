@@ -117,14 +117,14 @@ const ShowAddresses = () => {
         
         // NEW: Combined Address Column
         { 
-            name: 'Dirección (Calle, Número, Tipo)', 
+            name: 'Dirección', 
             selector: row => row.street, // Use 'street' for initial sorting
             sortable: true,
             cell: row => (
                 // Combine street, street_number, and type into a single display string
                 <div style={{ lineHeight: '1.2' }}>
                     {/* Calle #Número, Comunidad */}
-                    <span className="d-block">{`${row.street} #${row.street_number}, ${row.community}`}</span>
+                    <span className="d-block">{`${row.street} #${row.street_number}`}</span>
                     {/* Tipo */}
                     <span className="badge bg-secondary">{row.type}</span>
                 </div>

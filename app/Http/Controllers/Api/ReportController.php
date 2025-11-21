@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Resident;
-use App\Models\ResidentPayment;
+use App\Models\Address; // Primary Model
+use App\Models\AddressPayment; // Transaction Model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -12,146 +12,124 @@ use Illuminate\Support\Facades\Log;
 class ReportController extends Controller
 {
     /**
-     * Residents with more than X months overdue.
-     * Source of amount: Fee model (Current Fee amount).
+     * Debts per Property (Adeudos por Predio).
      */
     public function debtors(Request $request)
-    {
-        $monthsOverdue = (int) $request->get('months', 1);
-        $paymentType = $request->get('payment_type', null);
+{
+    $paymentType = $request->get('payment_type', null);
+    $year = (int) $request->get('year', date('Y'));
 
-        $startMonth = (int) $request->get('start_month', 1);
-        $startYear = (int) $request->get('start_year', date('Y'));
-        $endMonth = (int) $request->get('end_month', date('n'));
-        $endYear = (int) $request->get('end_year', date('Y'));
-
-        try {
-            // Get all fees if "Todos" is selected
-            $fees = [];
-            if ($paymentType === 'Todos') {
-                // Ensure we get only active fees for current debtors report
-                $fees = \App\Models\Fee::all(); 
-            } else if ($paymentType) {
-                $fee = \App\Models\Fee::where('name', $paymentType)->first();
-                if ($fee) {
-                    $fees = [$fee];
-                }
+    try {
+        // Get relevant fees
+        $fees = [];
+        if ($paymentType === 'Todos') {
+            $fees = \App\Models\Fee::all();
+        } else if ($paymentType) {
+            $fee = \App\Models\Fee::where('name', $paymentType)->first();
+            if ($fee) {
+                $fees = [$fee];
             }
-
-            $residents = Resident::select('id', 'name', 'last_name')
-                ->get();
-
-            $allRows = collect();
-
-            foreach ($fees as $fee) {
-                // Get current fee amount and name from the Fee object
-                $feeAmount = $fee->amount ?? 0;
-                $feeName = $fee->name ?? '';
-
-                $rows = $residents->map(function ($resident) use ($startMonth, $startYear, $endMonth, $endYear, $monthsOverdue, $feeName, $feeAmount) {
-
-                    $paymentsQuery = ResidentPayment::where('resident_id', $resident->id)
-                        // CRUCIAL FILTER: Only count Paid payments to calculate valid debt
-                        ->where('status', 'Pagado') 
-                        ->where(function ($q) use ($startMonth, $startYear, $endMonth, $endYear) {
-                            $q->where(function ($q2) use ($startMonth, $startYear) {
-                                $q2->whereYear('payment_date', '>', $startYear)
-                                    ->orWhere(function ($q3) use ($startMonth, $startYear) {
-                                        $q3->whereYear('payment_date', $startYear)
-                                            ->whereMonth('payment_date', '>=', $startMonth);
-                                    });
-                            })->where(function ($q2) use ($endMonth, $endYear) {
-                                $q2->whereYear('payment_date', '<', $endYear)
-                                    ->orWhere(function ($q3) use ($endMonth, $endYear) {
-                                        $q3->whereYear('payment_date', $endYear)
-                                            ->whereMonth('payment_date', '<=', $endMonth);
-                                    });
-                            });
-                        });
-
-                    if ($feeName) {
-                        $paymentsQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
-                    }
-
-                    $paidMonths = $paymentsQuery->count();
-                    $expectedMonths = ($endYear - $startYear) * 12 + ($endMonth - $startMonth );
-                    $months_overdue = max(0, $expectedMonths - $paidMonths);
-                    $total = $months_overdue * $feeAmount; // Calculation uses Fee amount
-
-                    $lastPayment = $paymentsQuery->orderByDesc('payment_date')->value('payment_date');
-
-                    return [
-                        'name' => $resident->name,
-                        'last_name' => $resident->last_name,
-                        'paid_months' => $paidMonths,
-                        'fee_amount' => $feeAmount, 
-                        'fee_name' => $feeName,
-                        'months_overdue' => $months_overdue,
-                        'last_payment_date' => $lastPayment ? \Carbon\Carbon::parse($lastPayment)->toDateString() : null,
-                        'total' => $total,
-                    ];
-                })
-                ->filter(fn($r) => $r['months_overdue'] >= $monthsOverdue);
-
-                $allRows = $allRows->merge($rows);
-            }
-
-            $allRows = $allRows->values()
-            ->sortBy('fee_name')    // 3. Tertiary sort (Payment Type)
-            ->sortBy('name')        // 2. Secondary sort (Name)
-            ->sortBy('last_name')   // 1. Primary sort (Last Name)
-            ->values();
-            
-            $grandTotal = $allRows->sum('total');
-
-            $allRows->push([
-                'name' => 'Total',
-                'last_name' => '',
-                'street' => '',
-                'street_number' => '',
-                'paid_months' => '',
-                'fee_amount' => '',
-                'fee_name' => '',
-                'months_overdue' => '',
-                'last_payment_date' => '',
-                'total' => $grandTotal,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'data' => $allRows
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
         }
+
+        // Fetch all addresses
+        $addresses = Address::select('id', 'street', 'street_number', 'type')->get();
+
+        $allRows = collect();
+
+        foreach ($fees as $fee) {
+            $feeAmount = $fee->amount ?? 0;
+            $feeName = $fee->name ?? '';
+
+            $rows = $addresses->map(function ($address) use ($year, $feeName, $feeAmount) {
+
+                // Address string is the main identifier
+                $fullAddress = "{$address->street} #{$address->street_number} ({$address->type})";
+
+                // Get all paid months for this address, fee, and year
+                $paymentsQuery = AddressPayment::where('address_id', $address->id)
+                    ->where('status', 'Pagado')
+                    ->where('year', $year);
+
+                if ($feeName) {
+                    $paymentsQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
+                }
+
+                $paidPayments = $paymentsQuery->get();
+
+                // Create array of paid months (1-12) with payment dates
+                $paidMonthsArray = $paidPayments->pluck('month')->toArray();
+                $paymentDates = [];
+                foreach ($paidPayments as $payment) {
+                    $paymentDates[$payment->month] = $payment->payment_date;
+                }
+
+                // Calculate total paid months
+                $paidMonths = count($paidMonthsArray);
+
+                // Expected months is 12 (full year)
+                $expectedMonths = 12;
+
+                $months_overdue = max(0, $expectedMonths - $paidMonths);
+                $total = $months_overdue * $feeAmount;
+
+                // Create payment status for each month (1=Enero, 2=Febrero, etc.)
+                $monthlyStatus = [];
+                $monthlyDates = [];
+                for ($m = 1; $m <= 12; $m++) {
+                    $isPaid = in_array($m, $paidMonthsArray);
+                    $monthlyStatus["month_$m"] = $isPaid;
+                    $monthlyDates["month_{$m}_date"] = $isPaid ? $paymentDates[$m] : null;
+                }
+
+                return array_merge([
+                    'name' => $fullAddress,
+                    'full_address' => $fullAddress,
+                    'paid_months' => $paidMonths,
+                    'fee_amount' => $feeAmount,
+                    'fee_name' => $feeName,
+                    'months_overdue' => $months_overdue,
+                    'total' => $total,
+                ], $monthlyStatus, $monthlyDates);
+            }); // Show ALL addresses (removed filter)
+
+            $allRows = $allRows->merge($rows);
+        }
+
+        $allRows = $allRows->values()
+            ->sortBy('fee_name')
+            ->sortBy('name')
+            ->values();
+
+        $grandTotal = $allRows->sum('total');
+
+        return response()->json(['success' => true, 'data' => $allRows, 'total' => $grandTotal]);
+    } catch (\Exception $e) {
+        \Log::error('Debtors Report Error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Internal server error while generating debtors report.'
+        ], 500);
     }
+}
 
     // --- SEPARATOR ---
 
     /**
-     * Payments filtered by resident.
-     * Source of amount/description: Fee model (Current Fee amount/description).
+     * Payments filtered by address (formerly paymentsByResident).
      */
-    public function paymentsByResident(Request $request)
+    public function paymentsByAddressId(Request $request) // CRITICAL: Renamed method
     {
-        $residentId = $request->get('resident_id', null);
+        $addressId = $request->get('address_id', null);
         $paymentType = $request->get('payment_type', null);
         $startMonth = (int) $request->get('start_month', 1);
         $startYear = (int) $request->get('start_year', date('Y'));
         $endMonth = (int) $request->get('end_month', date('n'));
         $endYear = (int) $request->get('end_year', date('Y'));
 
-        // Select all columns from resident_payments and eager load Fee relationship
-        $payments = ResidentPayment::select('*') 
-            ->with('resident', 'fee') // Load Fee relationship
-            ->when($residentId, fn($q) => $q->where('resident_id', $residentId))
-            
-            // CRUCIAL FILTER: Only include valid, paid payments in the report
-            ->where('status', 'Pagado') 
-            
+        $payments = AddressPayment::select('*')
+            ->with(['address', 'fee' => fn($q) => $q->withTrashed()])
+            ->when($addressId, fn($q) => $q->where('address_id', $addressId))
+            ->where('status', 'Pagado')
             ->where(function ($q) use ($startMonth, $startYear, $endMonth, $endYear) {
                 $q->where(function ($q2) use ($startMonth, $startYear) {
                     $q2->whereYear('payment_date', '>', $startYear)
@@ -169,44 +147,30 @@ class ReportController extends Controller
                     });
             });
 
-        // Only filter by payment type if not "Todos"
         if ($paymentType && $paymentType !== 'Todos') {
             $payments->whereHas('fee', fn($q) => $q->where('name', $paymentType));
         }
 
         $payments = $payments->orderBy('payment_date')->get()
             ->map(fn($p) => [
-                'name' => $p->resident->name,
-                'last_name' => $p->resident->last_name,
-                'street' => $p->resident->street,
-                'street_number' => $p->resident->street_number,
-                
-                // SOURCE FIX: Get amount and description from the Fee relationship
+                'address_id' => $p->address_id,
                 'fee_name' => $p->fee->name ?? '',
                 'fee_amount' => $p->fee->amount ?? 0,
-                'fee_description' => $p->fee->description ?? '', // Include description from Fee
-                
-                // 'amount' key is used for the display value in the frontend
-                'amount' => $p->fee->amount ?? 0, 
-                
-                'concept' => $p->concept ?? '',
+                'amount' => $p->fee->amount ?? 0,
                 'payment_date' => $p->payment_date,
-                'month' => $p->month, 
-                'year' => $p->year,  
+                'month' => $p->month,
+                'year' => $p->year,
             ]);
 
-        return response()->json([
-            'success' => true,
-            'data' => $payments
-        ]);
+        return response()->json(['success' => true, 'data' => $payments]);
     }
 
     // --- SEPARATOR ---
 
     /**
-     * Search residents by name or last name for autocomplete
+     * Search addresses by street/number for autocomplete (formerly searchResidents).
      */
-    public function searchResidents(Request $request)
+    public function searchAddresses(Request $request) // CRITICAL: Renamed method
     {
         $search = $request->get('search', '');
 
@@ -214,38 +178,56 @@ class ReportController extends Controller
             return response()->json(['success' => true, 'data' => []]);
         }
 
-        $residents = Resident::where('name', 'like', "%{$search}%")
-            ->orWhere('last_name', 'like', "%{$search}%")
+        // Fetch addresses matching street, number, or associated resident's name/last name (for user context)
+        $addresses = Address::select('id', 'street', 'street_number', 'type')
+            ->where('street', 'like', "%{$search}%")
+            ->orWhere('street_number', 'like', "%{$search}%")
+            // Temporarily keep resident search criteria for user identification/context
+            ->orWhereHas('currentResident', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%");
+            })
+            ->with('currentResident:id,name,last_name')
             ->limit(10)
             ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $residents
-        ]);
+        // Map the result to return the Address ID and address details
+        $results = $addresses->map(function ($a) {
+            $residentName = $a->currentResident->name ?? '';
+            $residentLastName = $a->currentResident->last_name ?? '';
+            $fullAddress = "{$a->street} #{$a->street_number} ({$a->type})";
+
+            return [
+                // CRITICAL: Return the ADDRESS ID as the main ID for filtering payments
+                'id' => $a->id, // THIS IS THE ADDRESS ID (for selectedResident.id)
+                // Display info for the user to select the correct address
+                'name' => $residentName, // Using Resident name temporarily for front-end autocomplete display/search query
+                'last_name' => $residentLastName,
+                'full_address' => $fullAddress,
+            ];
+        });
+
+        return response()->json(['success' => true, 'data' => $results->values()]);
     }
 
     // --- SEPARATOR ---
 
     public function paymentYears()
     {
-        $years = ResidentPayment::whereNotNull('payment_date')
+        // Use AddressPayment model
+        $years = AddressPayment::whereNotNull('payment_date')
             ->select(DB::raw('YEAR(payment_date) as year'))
             ->distinct()
             ->orderBy('year', 'desc')
             ->pluck('year');
 
-        return response()->json([
-            'success' => true,
-            'data' => $years
-        ]);
+        return response()->json(['success' => true, 'data' => $years]);
     }
 
     // --- SEPARATOR ---
 
     /**
      * Calculates total valid income grouped by month.
-     * CRITICAL FIX: Joins 'fees' table to sum the current fee amount.
      */
     public function incomeByMonth(Request $request)
     {
@@ -254,40 +236,30 @@ class ReportController extends Controller
         $paymentType = $request->get('payment_type', null);
 
         if (!$year) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Year is required'
-            ], 400);
+            return response()->json(['success' => false, 'message' => 'Year is required'], 400);
         }
 
-        $query = ResidentPayment::query()
-            // 1. Explicitly Join ResidentPayment with Fees
-            ->join('fees', 'resident_payments.fee_id', '=', 'fees.id')
-            
-            // 2. Select grouping fields and sum the fee amount
+        $query = AddressPayment::query()
+            ->join('fees', 'address_payments.fee_id', '=', 'fees.id')
             ->select(
-                'resident_payments.month',
-                DB::raw('SUM(fees.amount) as total'), // CRUCIAL FIX: Sum the amount from the FEES table
-                'resident_payments.fee_id'
+                'address_payments.month',
+                DB::raw('SUM(fees.amount) as total'),
+                'address_payments.fee_id'
             )
-            ->with('fee') // Eager load the fee relationship
-            
-            ->where('resident_payments.year', $year)
-            // CRUCIAL FILTER: Only calculate income from Paid payments
-            ->where('resident_payments.status', 'Pagado'); 
+            ->with('fee')
+            ->where('address_payments.year', $year)
+            ->where('address_payments.status', 'Pagado');
 
         if ($month) {
-            $query->where('resident_payments.month', $month);
+            $query->where('address_payments.month', $month);
         }
 
-        // Only filter by payment type if not "Todos"
         if ($paymentType && $paymentType !== 'Todos') {
-            // Apply filter on the fee relationship
             $query->whereHas('fee', fn($q) => $q->where('name', $paymentType));
         }
 
-        $income = $query->groupBy('resident_payments.month', 'resident_payments.fee_id')
-            ->orderBy('resident_payments.month')
+        $income = $query->groupBy('address_payments.month', 'address_payments.fee_id')
+            ->orderBy('address_payments.month')
             ->get()
             ->map(fn($i) => [
                 'month' => date('F', mktime(0, 0, 0, $i->month, 1)),
