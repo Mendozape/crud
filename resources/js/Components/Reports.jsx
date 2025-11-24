@@ -1,45 +1,38 @@
 import React, { useState, useEffect } from "react";
-import JsPDF from "jspdf"; 
-import "jspdf-autotable"; 
-import axios from 'axios'; 
+import JsPDF from "jspdf";
+import "jspdf-autotable";
+import axios from 'axios';
 
 const Reports = () => {
     const [fees, setFees] = useState([]);
     const [paymentType, setPaymentType] = useState("");
-    const [reportType, setReportType] = useState("");
+    const [reportType, setReportType] = useState("debtors"); // Fixed report type
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [rangeError, setRangeError] = useState(false);
 
     // For debtors report - only year selection
     const [debtorsYear, setDebtorsYear] = useState(new Date().getFullYear());
 
-    // For paymentsByResident report
+    // States related to removed reports (kept for compilation structure safety, but unused)
     const [startMonth, setStartMonth] = useState(1);
     const [startYear, setStartYear] = useState(new Date().getFullYear());
     const [endMonth, setEndMonth] = useState(new Date().getMonth() + 1);
     const [endYear, setEndYear] = useState(new Date().getFullYear());
-    const [residentQuery, setResidentQuery] = useState(""); 
+    const [residentQuery, setResidentQuery] = useState("");
     const [residentResults, setResidentResults] = useState([]);
     const [selectedResident, setSelectedResident] = useState(null);
-
-    // For incomeByMonth report
     const [availableYears, setAvailableYears] = useState([]);
     const [selectedYear, setSelectedYear] = useState(null);
     const [selectedMonth, setSelectedMonth] = useState(null);
+    const [rangeError, setRangeError] = useState(false); // Kept only for function definition, but logic removed
 
     const monthNames = [
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
-    const formatMonthYear = (monthNumber, yearNumber) => {
-        if (monthNumber >= 1 && monthNumber <= 12 && yearNumber) {
-            const month = monthNames[monthNumber - 1];
-            return `${month} ${yearNumber}`;
-        }
-        return 'N/A';
-    };
+    const currentMonthNum = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
 
     const getPaymentDisplayType = (filterValue) => {
         if (filterValue !== "Todos" && filterValue !== "") {
@@ -47,103 +40,33 @@ const Reports = () => {
         }
         if (filterValue === "Todos" && fees.length > 0) {
             const uniqueNames = [...new Set(fees.map(fee => fee.name))];
-            return uniqueNames.length === 1 ? uniqueNames[0] : "Cuota(s)"; 
+            return uniqueNames.length === 1 ? uniqueNames[0] : "Cuota(s)";
         }
         return "Cuota";
     };
-    
+
     const currentPaymentDisplayName = getPaymentDisplayType(paymentType);
 
+    // Simplified reset: only affects debtors filters
     const resetFilters = () => {
         setDebtorsYear(new Date().getFullYear());
-        setStartMonth(1);
-        setStartYear(new Date().getFullYear());
-        setEndMonth(new Date().getMonth() + 1);
-        setEndYear(new Date().getFullYear());
-        setResidentQuery("");
-        setSelectedResident(null);
-        setResidentResults([]);
         setData([]);
-        setRangeError(false);
-        setSelectedMonth(null);
-        setSelectedYear(null);
     };
 
+    // Load fees on mount
     useEffect(() => {
         axios.get("/api/fees", { withCredentials: true, headers: { Accept: 'application/json' } })
             .then(res => setFees(Array.isArray(res.data.data) ? res.data.data : []))
             .catch(() => setFees([]));
     }, []);
 
-    useEffect(() => {
-        if (reportType === "incomeByMonth") {
-            fetch("/api/reports/available-years", { credentials: "include" })
-                .then(res => res.json())
-                .then(json => {
-                    if (Array.isArray(json.data) && json.data.length > 0) {
-                        const years = json.data.map(y => parseInt(y));
-                        setAvailableYears(years);
-                        if (!selectedYear) setSelectedYear(years[0]);
-                    } else {
-                        setAvailableYears([]);
-                        setSelectedYear(null);
-                    }
-                })
-                .catch(() => {
-                    setAvailableYears([]);
-                    setSelectedYear(null);
-                });
-        }
-    }, [reportType]);
-
-    useEffect(() => {
-        if (startYear > endYear || (startYear === endYear && startMonth > endMonth)) {
-            setRangeError(true);
-        } else {
-            setRangeError(false);
-        }
-    }, [startMonth, startYear, endMonth, endYear]);
-
-    useEffect(() => {
-        if (!residentQuery) {
-            setResidentResults([]);
-            return;
-        }
-
-        const delayDebounceFn = setTimeout(() => {
-            fetch(`/api/reports/search-addresses?search=${encodeURIComponent(residentQuery)}`, { credentials: "include" })
-                .then(res => res.json())
-                .then(json => setResidentResults(Array.isArray(json.data) ? json.data : []))
-                .catch(() => setResidentResults([]));
-        }, 300);
-
-        return () => clearTimeout(delayDebounceFn);
-    }, [residentQuery]);
-
+    // Fetch debtors report data
     const fetchReport = async () => {
-        if (!paymentType || !reportType || rangeError) return;
-        if (reportType === "paymentsByResident" && !selectedResident) return;
-        if (reportType === "incomeByMonth" && !selectedYear) return;
+        if (!paymentType || reportType !== "debtors") return;
 
         setLoading(true);
-        let url = "";
-
         const encodedPaymentType = encodeURIComponent(paymentType);
-
-        switch (reportType) {
-            case "debtors":
-                url = `/api/reports/debtors?payment_type=${encodedPaymentType}&year=${debtorsYear}`;
-                break;
-            case "paymentsByResident":
-                url = `/api/reports/payments-by-address?payment_type=${encodedPaymentType}&address_id=${selectedResident.id}&start_month=${startMonth}&start_year=${startYear}&end_month=${endMonth}&end_year=${endYear}`;
-                break;
-            case "incomeByMonth":
-                url = `/api/reports/income-by-month?payment_type=${encodedPaymentType}&year=${selectedYear}`;
-                if (selectedMonth) url += `&month=${selectedMonth}`;
-                break;
-            default:
-                break;
-        }
+        const url = `/api/reports/debtors?payment_type=${encodedPaymentType}&year=${debtorsYear}`;
 
         try {
             const res = await fetch(url, { credentials: "include" });
@@ -160,9 +83,10 @@ const Reports = () => {
         }
     };
 
+    // Auto-fetch report when paymentType or year changes
     useEffect(() => {
         const delay = setTimeout(() => {
-            if (paymentType && reportType) {
+            if (paymentType && reportType === "debtors") {
                 fetchReport();
             } else {
                 setData([]);
@@ -174,77 +98,46 @@ const Reports = () => {
         paymentType,
         reportType,
         debtorsYear,
-        startMonth,
-        startYear,
-        endMonth,
-        endYear,
-        rangeError,
-        selectedResident,
-        selectedMonth,
-        selectedYear
     ]);
 
+    // Total debt calculation (used in the final summary row)
     const totalAmount = Number(
         data.reduce((sum, item) => {
-            const val = Number(item.total ?? item.amount ?? 0);
+            const val = Number(item.total ?? 0);
             return sum + val;
         }, 0)
     );
 
-    const getDisplayedAmount = (row) => {
-        return Number(row.amount ?? row.fee_amount ?? 0);
-    };
-
+    // Get report title
     const getReportTitle = () => {
-        let baseTitle;
-        switch (reportType) {
-            case 'debtors':
-                baseTitle = 'ADEUDOS POR PREDIO';
-                break;
-            case 'paymentsByResident':
-                baseTitle = 'REPORTE DE PAGOS POR DIRECCIÓN';
-                break;
-            case 'incomeByMonth':
-                baseTitle = 'REPORTE DE INGRESOS POR MES';
-                break;
-            default:
-                baseTitle = 'REPORTE GENERAL';
-        }
+        const baseTitle = 'ADEUDOS POR PREDIO';
         return `${baseTitle} - ${currentPaymentDisplayName.toUpperCase()}`;
     };
 
+    // Get filter details for the PDF header
     const getFilterDetails = () => {
         const details = [];
         details.push(`Tipo de Pago: ${paymentType}`);
-        
-        if (reportType === 'debtors') {
-            details.push(`Año: ${debtorsYear}`);
-            details.push(`Al día: ${new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`);
-        } else if (reportType === 'paymentsByResident' && selectedResident) {
-            details.push(`Dirección Seleccionada: ${selectedResident.full_address}`); 
-            details.push(`Período de Búsqueda: ${monthNames[startMonth - 1]} ${startYear} - ${monthNames[endMonth - 1]} ${endYear}`);
-        } else if (reportType === 'incomeByMonth') {
-            details.push(`Año de Ingreso: ${selectedYear}`);
-            if (selectedMonth) {
-                details.push(`Mes Específico: ${monthNames[selectedMonth - 1]}`);
-            }
-        }
+        details.push(`Año: ${debtorsYear}`);
+        details.push(`Al día: ${new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`);
         return details;
     };
 
+    // --- PDF LOGIC ---
     const generatePdf = () => {
         if (data.length === 0 || typeof JsPDF === 'undefined') {
             alert("No hay datos para generar el PDF o las librerías no se cargaron correctamente.");
             console.error("jsPDF or data is missing.");
             return;
         }
-        
-        const doc = new JsPDF('l', 'pt', 'a4'); 
+
+        const doc = new JsPDF('l', 'pt', 'a4');
         const title = getReportTitle();
         const filterDetails = getFilterDetails();
         let startY = 40;
         const margin = 40;
-        
+
+        // Header logic
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(30, 144, 255);
@@ -254,140 +147,192 @@ const Reports = () => {
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(80, 80, 80);
-        
+
         filterDetails.forEach(detail => {
             if (startY > doc.internal.pageSize.height - 50) {
-                   doc.addPage();
-                   startY = 40;
+                doc.addPage();
+                startY = 40;
             }
             doc.text(detail, margin, startY);
             startY += 12;
         });
 
         startY += 15;
+        // End Header logic
 
         const tableHeaders = [];
-        const tableBody = [];
-        let tableColSpans = []; 
+        let tableBody = [];
+        let currentColumnStyles = {};
+        let grandTotalPaid = 0;
+        let monthlyTotals = Array(12).fill(0);
+        let totalColumns = 18;
+
 
         if (reportType === "debtors") {
+            // 18 COLUMNS SETUP
             tableHeaders.push([
                 "Dirección/Predio", "Tipo de Pago", "Monto Cuota", "Meses Vencidos",
                 "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
+                "Total Pagado", // NEW COLUMN
                 "Total Deuda"
             ]);
-            tableBody.push(...data.map(row => [
-                row.full_address, 
-                row.fee_name || currentPaymentDisplayName, 
-                `$${Number(row.fee_amount || 0).toFixed(2)}`,
-                row.months_overdue,
-                row.month_1 ? '✓' : '✗',
-                row.month_2 ? '✓' : '✗',
-                row.month_3 ? '✓' : '✗',
-                row.month_4 ? '✓' : '✗',
-                row.month_5 ? '✓' : '✗',
-                row.month_6 ? '✓' : '✗',
-                row.month_7 ? '✓' : '✗',
-                row.month_8 ? '✓' : '✗',
-                row.month_9 ? '✓' : '✗',
-                row.month_10 ? '✓' : '✗',
-                row.month_11 ? '✓' : '✗',
-                row.month_12 ? '✓' : '✗',
-                `$${Number(row.total || 0).toFixed(2)}`
-            ]));
-            tableColSpans = [16];
-        } else if (reportType === "paymentsByResident") {
-            tableHeaders.push(["Fecha", "Tipo de Pago", "Mes y Año Pagado", "Monto"]);
-            tableBody.push(...data.map(row => [
-                row.payment_date,
-                row.fee_name || currentPaymentDisplayName, 
-                formatMonthYear(row.month, row.year),
-                `$${getDisplayedAmount(row).toFixed(2)}`
-            ]));
-            tableColSpans = [3];
-        } else if (reportType === "incomeByMonth") {
-             tableHeaders.push(["Mes", "Tipo de Pago", "Total Ingreso"]);
-             tableBody.push(...data.map(row => [
-                row.month,
-                row.payment_type,
-                `$${Number(row.total || 0).toFixed(2)}`
-            ]));
-            tableColSpans = [2];
-        } else {
-            alert("Seleccione un reporte válido.");
-            return;
-        }
 
-        doc.autoTable({
-            head: tableHeaders,
-            body: tableBody,
-            startY: startY,
-            theme: 'grid',
-            headStyles: {
-                fillColor: [60, 179, 113],
-                textColor: 255,
-                fontStyle: 'bold',
-                fontSize: 8,
-                halign: 'center' 
-            },
-            alternateRowStyles: {
-                fillColor: [240, 240, 240]
-            },
-            styles: {
-                 fontSize: 7,
-                 halign: 'center'
-            },
-            columnStyles: {
-                0: { halign: 'left', cellWidth: 100 },
+            // 1. Calculate totals and build the table body
+            const processedData = data.map(row => {
+                let rowTotalPaid = 0;
+                const feeAmount = Number(row.fee_amount || 0);
+                let monthsPaidCount = 0;
+                let transactionMonth = -1; // Month of the transaction
+
+                // 1.1 Determine the transaction month and count paid months
+                for (let i = 1; i <= 12; i++) {
+                    const isPaid = row[`month_${i}`];
+                    const paymentDateStr = row[`month_${i}_date`]; // string 'YYYY-MM-DD'
+
+                    if (isPaid) {
+                        monthsPaidCount++;
+                        // Use the actual payment_date month for the summation
+                        if (transactionMonth === -1 && paymentDateStr) {
+                            transactionMonth = new Date(paymentDateStr).getMonth() + 1;
+                        }
+                    }
+                }
+
+                // 1.2 Calculate the total transaction amount (used for summation)
+                const totalTransactionAmount = feeAmount * monthsPaidCount;
+                rowTotalPaid = totalTransactionAmount;
+                grandTotalPaid += rowTotalPaid;
+
+                // 1.3 Accumulate the transaction amount ONLY in the month of payment_date
+                if (transactionMonth !== -1) {
+                    monthlyTotals[transactionMonth - 1] += totalTransactionAmount;
+                }
+
+                // 1.4 Construct the row for the PDF body
+                const bodyRow = [
+                    row.full_address,
+                    row.fee_name || currentPaymentDisplayName,
+                    `$${feeAmount.toFixed(2)}`,
+                    row.months_overdue
+                ];
+
+                for (let i = 1; i <= 12; i++) {
+                    const isPaid = row[`month_${i}`];
+
+                    if (isPaid) {
+                        bodyRow.push('✓');
+                    } else {
+                        bodyRow.push(row.months_overdue > 0 && new Date().getMonth() + 1 > i ? '✗' : '-');
+                    }
+                }
+
+                // Add the NEW TOTAL PAID PER PROPERTY COLUMN
+                bodyRow.push(`$${rowTotalPaid.toFixed(2)}`);
+
+                // Add the existing Total Debt column
+                bodyRow.push(`$${Number(row.total || 0).toFixed(2)}`);
+
+                return bodyRow;
+            });
+
+            tableBody = processedData;
+
+            // 2. Construct the FINAL TOTALS ROW
+            const totalRow = ["Total Pagado:", "", "", ""];
+
+            // Fill monthly totals
+            monthlyTotals.forEach(total => {
+                totalRow.push(total > 0 ? `$${total.toFixed(2)}` : '-');
+            });
+
+            // Fill Grand Totals
+            const grandTotalDebtCurrent = data.reduce((sum, row) => sum + Number(row.total || 0), 0);
+            totalRow.push(`$${grandTotalPaid.toFixed(2)}`);
+            totalRow.push(`$${grandTotalDebtCurrent.toFixed(2)}`);
+
+            tableBody.push(totalRow);
+
+
+            // 3. Column Styles for 18 columns (762pt wide)
+            const availableWidth = doc.internal.pageSize.width - (2 * margin); // Recalculate inside generatePdf
+            const monthCellWidth = 25;
+            currentColumnStyles = {
+                0: { halign: 'left', cellWidth: 120 },
                 1: { halign: 'left', cellWidth: 60 },
-                2: { halign: 'right', cellWidth: 45 },
-                3: { halign: 'center', cellWidth: 35 },
-                ...(reportType === 'debtors' && {
-                    4: { halign: 'center', cellWidth: 25 },
-                    5: { halign: 'center', cellWidth: 25 },
-                    6: { halign: 'center', cellWidth: 25 },
-                    7: { halign: 'center', cellWidth: 25 },
-                    8: { halign: 'center', cellWidth: 25 },
-                    9: { halign: 'center', cellWidth: 25 },
-                    10: { halign: 'center', cellWidth: 25 },
-                    11: { halign: 'center', cellWidth: 25 },
-                    12: { halign: 'center', cellWidth: 25 },
-                    13: { halign: 'center', cellWidth: 25 },
-                    14: { halign: 'center', cellWidth: 25 },
-                    15: { halign: 'center', cellWidth: 25 },
-                    16: { halign: 'right', fontStyle: 'bold', cellWidth: 60 }
-                })
-            },
-            didDrawPage: function (data) {
-                doc.setFontSize(10);
-                doc.text(`Página ${doc.internal.getNumberOfPages()}`, doc.internal.pageSize.width - margin, doc.internal.pageSize.height - 20, { align: 'right' });
-            }
-        });
+                2: { halign: 'right', cellWidth: 50 },
+                3: { halign: 'center', cellWidth: 40 },
+                4: { halign: 'center', cellWidth: monthCellWidth },
+                5: { halign: 'center', cellWidth: monthCellWidth },
+                6: { halign: 'center', cellWidth: monthCellWidth },
+                7: { halign: 'center', cellWidth: monthCellWidth },
+                8: { halign: 'center', cellWidth: monthCellWidth },
+                9: { halign: 'center', cellWidth: monthCellWidth },
+                10: { halign: 'center', cellWidth: monthCellWidth },
+                11: { halign: 'center', cellWidth: monthCellWidth },
+                12: { halign: 'center', cellWidth: monthCellWidth },
+                13: { halign: 'center', cellWidth: monthCellWidth },
+                14: { halign: 'center', cellWidth: monthCellWidth },
+                15: { halign: 'center', cellWidth: monthCellWidth },
+                16: { halign: 'right', fontStyle: 'bold', cellWidth: 80 }, // Total Pagado (NEW)
+                17: { halign: 'right', fontStyle: 'bold', cellWidth: 112 } // Total Deuda
+            };
 
-        const finalY = doc.autoTable.previous.finalY;
-        
-        doc.autoTable({
-            head: [['Total:', `$${totalAmount.toFixed(2)}`]],
-            headStyles: {
-                fillColor: [200, 200, 200], 
-                textColor: [0, 0, 0],       
-                fontStyle: 'bold',
-                halign: 'right',
-                fontSize: 10,
-                lineWidth: 0.5,
-                lineColor: [100, 100, 100]
-            },
-            body: [], 
-            startY: finalY,
-            margin: { left: margin, right: margin },
-            styles: {
-                cellPadding: 6
-            },
-            columnStyles: {
-                0: { cellWidth: (doc.internal.pageSize.width - (2 * margin)) / tableHeaders[0].length * tableColSpans[0] + 0.5, halign: 'right' }, 
-                1: { cellWidth: (doc.internal.pageSize.width - (2 * margin)) / tableHeaders[0].length, halign: 'right' }
-            }
-        });
+            const finalRowIndex = tableBody.length - 1;
+
+            doc.autoTable({
+                head: tableHeaders,
+                body: tableBody,
+                startY: startY,
+                theme: 'grid',
+                tableWidth: 'auto',
+                headStyles: {
+                    fillColor: [60, 179, 113],
+                    textColor: 255,
+                    fontStyle: 'bold',
+                    fontSize: 7,
+                    halign: 'center'
+                },
+                styles: {
+                    fontSize: 6.5,
+                    halign: 'center',
+                    cellPadding: 2,
+                },
+                columnStyles: currentColumnStyles,
+                rowStyles: {
+                    [finalRowIndex]: {
+                        fontStyle: 'bold',
+                        fillColor: [220, 220, 220],
+                        textColor: [0, 0, 0],
+                        fontSize: 8,
+                    }
+                },
+                didParseCell: function (data) {
+                    if (data.row.index === finalRowIndex) {
+                        data.cell.styles.halign = (data.column.index === 0 || data.column.index < 4) ? 'left' :
+                            (data.column.index >= 4 && data.column.index <= 15) ? 'center' :
+                                'right';
+                        if (data.column.index > 0 && data.column.index < 4) {
+                            data.cell.text = [""];
+                        }
+                    } else {
+                        // Apply conditional red background for Total Deuda
+                        const totalDebtValue = Number(data.row.raw[17].replace('$', '').replace(',', '') || 0); // Debt is at index 17
+                        if (data.column.index === 17 && totalDebtValue > 0) {
+                            data.cell.styles.fillColor = [220, 53, 69]; // Bootstrap red color
+                            data.cell.styles.textColor = 255;
+                        }
+                    }
+                },
+                didDrawPage: function (data) {
+                    doc.setFontSize(10);
+                    doc.text(`Página ${doc.internal.getNumberOfPages()}`, doc.internal.pageSize.width - margin, doc.internal.pageSize.height - 20, { align: 'right' });
+                }
+            });
+
+        } else {
+            // If reportType is somehow set but not 'debtors', show a message in PDF
+            doc.text("No data to show for this report type.", 40, startY);
+        }
 
         doc.save(`${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);
     };
@@ -400,6 +345,7 @@ const Reports = () => {
                 <h4 className="mb-3 text-secondary">Parámetros del Reporte</h4>
 
                 <div className="row g-3 mb-4">
+                    {/* SELECTOR 1: Tipo de Pago */}
                     <div className="col-md-6 col-sm-12">
                         <label className="form-label fw-bold">Tipo de Pago</label>
                         <select
@@ -407,7 +353,7 @@ const Reports = () => {
                             value={paymentType}
                             onChange={(e) => {
                                 setPaymentType(e.target.value);
-                                setReportType("");
+                                setReportType("debtors"); // Fixed to debtors
                                 resetFilters();
                             }}
                         >
@@ -416,326 +362,227 @@ const Reports = () => {
                             {fees.map((fee) => (
                                 <option key={fee.id} value={fee.name}>
                                     {fee.name}
-                                    {fee.deleted_at && ` (Inactivo)`} 
+                                    {fee.deleted_at && ` (Inactivo)`}
                                 </option>
                             ))}
                         </select>
                     </div>
 
+                    {/* SELECTOR 2: Reporte Fijo */}
                     <div className="col-md-6 col-sm-12">
                         <label className="form-label fw-bold">Seleccionar Reporte</label>
                         <select
                             className="form-control"
-                            value={reportType}
-                            onChange={(e) => {
-                                setReportType(e.target.value);
-                                setData([]);
-                                if (e.target.value !== "paymentsByResident") {
-                                    setSelectedResident(null);
-                                    setResidentQuery("");
-                                }
-                            }}
-                            disabled={!paymentType}
+                            value={"debtors"} // Fixed value
+                            disabled={true}
                         >
-                            <option value="">-- Seleccionar Reporte --</option>
                             <option value="debtors">Adeudos por Predio</option>
-                            <option value="paymentsByResident">Pagos por Dirección</option>
-                            <option value="incomeByMonth">Ingresos por mes</option>
                         </select>
                     </div>
                 </div>
 
-                {(reportType === "debtors" || reportType === "paymentsByResident" || reportType === "incomeByMonth") && (
+                {/* Filters Detail for Debtors (only necessary section) */}
+                {(reportType === "debtors") && (
                     <div className="border-top pt-3 mt-3">
                         <h5 className="mb-3 text-secondary">Filtros de Detalle</h5>
 
-                        {rangeError && reportType === "paymentsByResident" && (
-                            <div className="alert alert-danger p-2" role="alert">
-                                ⚠️ Rango inválido: "Desde" debe ser anterior o igual a "Hasta".
-                            </div>
-                        )}
-
                         <div className="row g-2 align-items-end">
-                            
-                            {reportType === "debtors" && (
-                                <div className="col-md-3 col-6">
-                                    <label className="form-label form-label-sm">Año</label>
-                                    <select 
-                                        className="form-control" 
-                                        value={debtorsYear} 
-                                        onChange={(e) => setDebtorsYear(parseInt(e.target.value) || new Date().getFullYear())}
-                                    >
-                                        {Array.from({ length: 11 }, (_, i) => {
-                                            const year = new Date().getFullYear() - 5 + i;
-                                            return <option key={year} value={year}>{year}</option>;
-                                        })}
-                                    </select>
-                                </div>
-                            )}
 
-                            {reportType === "paymentsByResident" && (
-                                <>
-                                    <div className="col-md-3 col-12 position-relative">
-                                        <label className="form-label form-label-sm">Dirección</label>
-                                        <input
-                                            type="text"
-                                            className={`form-control ${selectedResident ? 'border-success' : ''}`}
-                                            value={residentQuery}
-                                            onChange={(e) => {
-                                                setResidentQuery(e.target.value);
-                                                setSelectedResident(null);
-                                                setData([]);
-                                            }}
-                                            placeholder="Buscar dirección..."
-                                        />
-                                        {residentResults.length > 0 && !selectedResident && (
-                                            <ul className="list-group position-absolute w-100 shadow-lg" style={{ zIndex: 10 }}>
-                                                {residentResults.map((res) => (
-                                                    <li
-                                                        key={res.id}
-                                                        className="list-group-item list-group-item-action cursor-pointer"
-                                                        onClick={() => {
-                                                            setSelectedResident(res);
-                                                            setResidentQuery(`${res.full_address} (${res.name} ${res.last_name})`); 
-                                                            setResidentResults([]);
-                                                        }}
-                                                    >
-                                                        {`${res.full_address} (${res.name} ${res.last_name})`}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                        {selectedResident && <small className="text-success">Seleccionado: {selectedResident.full_address}</small>}
-                                    </div>
-                                    <div className="col-md-2 col-6">
-                                        <label className="form-label form-label-sm">Desde Mes</label>
-                                        <select className="form-control" value={startMonth} onChange={(e) => setStartMonth(parseInt(e.target.value) || 1)}>
-                                            {monthNames.map((name, i) => (
-                                                <option key={i + 1} value={i + 1}>{name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="col-md-1 col-6">
-                                        <label className="form-label form-label-sm">Año</label>
-                                        <select className="form-control" value={startYear} onChange={(e) => setStartYear(parseInt(e.target.value) || new Date().getFullYear())}>
-                                            {Array.from({ length: 11 }, (_, i) => {
-                                                const year = new Date().getFullYear() - 5 + i;
-                                                return <option key={year} value={year}>{year}</option>;
-                                            })}
-                                        </select>
-                                    </div>
-                                    <div className="col-md-2 col-6">
-                                        <label className="form-label form-label-sm">Hasta Mes</label>
-                                        <select className="form-control" value={endMonth} onChange={(e) => setEndMonth(parseInt(e.target.value) || (new Date().getMonth() + 1))}>
-                                            {monthNames.map((name, i) => (
-                                                <option key={i + 1} value={i + 1}>{name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="col-md-1 col-6">
-                                        <label className="form-label form-label-sm">Año</label>
-                                        <select className="form-control" value={endYear} onChange={(e) => setEndYear(parseInt(e.target.value) || new Date().getFullYear())}>
-                                            {Array.from({ length: 11 }, (_, i) => {
-                                                const year = new Date().getFullYear() - 5 + i;
-                                                return <option key={year} value={year}>{year}</option>;
-                                            })}
-                                        </select>
-                                    </div>
-                                </>
-                            )}
-
-                            {reportType === "incomeByMonth" && (
-                                <>
-                                    <div className="col-md-2 col-6">
-                                        <label className="form-label form-label-sm">Año</label>
-                                        <select
-                                            className="form-control"
-                                            value={selectedYear || ""}
-                                            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                                        >
-                                            <option value="" disabled>Seleccionar año</option>
-                                            {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="col-md-3 col-6">
-                                        <label className="form-label form-label-sm">Mes (opcional)</label>
-                                        <select className="form-control" value={selectedMonth || ""} onChange={(e) => setSelectedMonth(parseInt(e.target.value) || null)}>
-                                            <option value="">Todos los meses</option>
-                                            {monthNames.map((name, i) => (
-                                                <option key={i + 1} value={i + 1}>{name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </>
-                            )}
+                            <div className="col-md-3 col-6">
+                                <label className="form-label form-label-sm">Año</label>
+                                <select
+                                    className="form-control"
+                                    value={debtorsYear}
+                                    onChange={(e) => setDebtorsYear(parseInt(e.target.value) || new Date().getFullYear())}
+                                >
+                                    {Array.from({ length: 11 }, (_, i) => {
+                                        const year = new Date().getFullYear() - 5 + i;
+                                        return <option key={year} value={year}>{year}</option>;
+                                    })}
+                                </select>
+                            </div>
 
                         </div>
                     </div>
                 )}
-
             </div>
 
             <div className="card shadow">
-                <div className="card-header bg-dark text-white fw-bold">
+                <div className="card-header bg-dark text-white fw-bold text-center">
                     {reportType === "debtors" 
-                        ? `Resultados del Reporte: Adeudos por Predio - ${currentPaymentDisplayName} - Año ${debtorsYear} - Al día: ${new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}` 
-                        : reportType === "paymentsByResident"
-                        ? `Resultados del Reporte: Pagos por Dirección - ${currentPaymentDisplayName}`
-                        : reportType === "incomeByMonth"
-                        ? `Resultados del Reporte: Ingresos por Mes - ${currentPaymentDisplayName}`
-                        : "Resultados del Reporte"}
+                        ? `Resultados del Reporte: ${currentPaymentDisplayName} - Año ${debtorsYear} - Al día: ${new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}` 
+                        : "Seleccione un Tipo de Pago para generar el Reporte."}
                 </div>
                 <div className="card-body p-0">
                     {loading ? (
                         <div className="p-4 text-center text-muted">Cargando datos...</div>
-                    ) : data.length === 0 ? (
+                    ) : data.length === 0 && reportType === "debtors" ? (
                         <div className="p-4 text-center text-muted">
-                            {reportType === 'paymentsByResident' && !selectedResident
-                                ? "Por favor, seleccione una dirección para generar el reporte de pagos."
-                                : rangeError
-                                    ? "Rango de fechas inválido. Corrija los filtros."
-                                    : "No hay datos disponibles para los filtros seleccionados."}
+                            No hay datos disponibles para los filtros seleccionados.
                         </div>
-                    ) : (
+                    ) : (reportType === "debtors") ? (
                         <div className="table-responsive">
-                            <table className="table table-bordered table-hover mb-0 table-striped">
+                            <table className={`table table-bordered table-hover mb-0 table-striped table-sm`}>
                                 <thead className="table-light">
                                     <tr>
-                                        {reportType === "debtors" ? (
-                                            <>
-                                                <th className="text-left">Dirección/Predio</th>
-                                                <th className="text-left">Tipo de Pago</th> 
-                                                <th className="text-end">Monto Cuota</th>
-                                                <th className="text-center">Meses Vencidos</th>
-                                                <th className="text-center">Ene</th>
-                                                <th className="text-center">Feb</th>
-                                                <th className="text-center">Mar</th>
-                                                <th className="text-center">Abr</th>
-                                                <th className="text-center">May</th>
-                                                <th className="text-center">Jun</th>
-                                                <th className="text-center">Jul</th>
-                                                <th className="text-center">Ago</th>
-                                                <th className="text-center">Sep</th>
-                                                <th className="text-center">Oct</th>
-                                                <th className="text-center">Nov</th>
-                                                <th className="text-center">Dic</th>
-                                                <th className="text-end">Total Deuda</th>
-                                            </>
-                                        ) : reportType === "paymentsByResident" ? (
-                                            <>
-                                                <th className="text-left">Fecha</th>
-                                                <th className="text-left">Tipo de Pago</th> 
-                                                <th className="text-left">Mes y Año Pagado</th> 
-                                                <th className="text-end">Monto</th>
-                                            </>
-                                        ) : reportType === "incomeByMonth" ? (
-                                            <>
-                                                <th className="text-left">Mes</th>
-                                                <th className="text-left">Tipo de Pago</th>
-                                                <th className="text-end">Total Ingreso</th>
-                                            </>
-                                        ) : (
-                                            Object.keys(data[0]).map((key) => (
-                                                <th key={key} className="text-left">
-                                                    {key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}
-                                                </th>
-                                            ))
-                                        )}
+                                        {/* Debtors Headers */}
+                                        <th className="text-left" style={{ minWidth: '150px' }}>Dirección/Predio</th>
+                                        <th className="text-left" style={{ minWidth: '80px' }}>Tipo de Pago</th>
+                                        <th className="text-end" style={{ minWidth: '70px' }}>Monto Cuota</th>
+                                        <th className="text-center" style={{ minWidth: '60px' }}>Meses Vencidos</th>
+
+                                        {/* Modificación para el indicador de mes actual arriba */}
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(monthNum => (
+                                            <th key={monthNum} className="text-center" style={{ width: '45px' }}>
+                                                {(monthNum === currentMonthNum && debtorsYear === currentYear) &&
+                                                    <div className="fw-bold text-danger pb-1" style={{ fontSize: '1.2em', lineHeight: '0.8' }}>
+                                                        ⬇️
+                                                    </div>
+                                                }
+                                                {monthNames[monthNum - 1].substring(0, 3)}
+                                            </th>
+                                        ))}
+
+                                        <th className="text-end" style={{ minWidth: '85px' }}>Total Pagado</th>
+                                        <th className="text-end" style={{ minWidth: '95px' }}>Total Deuda</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.map((row, i) => (
-                                        <tr key={i}>
-                                            {reportType === "debtors" ? (
-                                                <>
-                                                    <td className="text-left">{row.full_address}</td> 
-                                                    <td className="text-left">{row.fee_name || currentPaymentDisplayName}</td> 
-                                                    <td className="text-end">${Number(row.fee_amount || 0).toFixed(2)}</td>
-                                                    <td className="text-center">{row.months_overdue}</td>
-                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((monthNum) => {
-                                                        const currentMonth = new Date().getMonth() + 1;
-                                                        const currentYear = new Date().getFullYear();
-                                                        const isOverdue = debtorsYear < currentYear || (debtorsYear === currentYear && monthNum < currentMonth);
-                                                        const isPaid = row[`month_${monthNum}`];
-                                                        const paymentDate = row[`month_${monthNum}_date`];
-                                                        
-                                                        let bgClass = '';
-                                                        let content = '';
-                                                        
-                                                        if (isPaid) {
-                                                            // Pagado: sin fondo, solo texto verde con palomita y fecha
-                                                            bgClass = '';
-                                                            content = (
-                                                                <div className="text-success">
-                                                                    <div className="fw-bold">✓</div>
-                                                                    {paymentDate && <small style={{fontSize: '0.65em', display: 'block', lineHeight: '1'}}>{new Date(paymentDate).toLocaleDateString('es-MX', {day: '2-digit', month: '2-digit', year: '2-digit'})}</small>}
-                                                                </div>
-                                                            );
-                                                        } else if (isOverdue) {
-                                                            // Vencido y NO pagado: fondo rojo con X blanca
-                                                            bgClass = 'bg-danger text-white';
-                                                            content = <span className="fw-bold">✗</span>;
-                                                        } else {
-                                                            // Futuro y NO pagado: sin fondo, guion gris
-                                                            bgClass = '';
-                                                            content = <span className="text-muted">-</span>;
-                                                        }
-                                                        
-                                                        return (
-                                                            <td key={monthNum} className={`text-center ${bgClass}`}>
-                                                                {content}
-                                                            </td>
-                                                        );
-                                                    })}
-                                                    <td className="text-end text-danger fw-bold">${Number(row.total || 0).toFixed(2)}</td>
-                                                </>
-                                            ) : reportType === "paymentsByResident" ? (
-                                                <>
-                                                    <td className="text-left">{row.payment_date}</td>
-                                                    <td className="text-left">{row.fee_name || currentPaymentDisplayName}</td>
-                                                    <td className="text-left">
-                                                        {formatMonthYear(row.month, row.year)}
-                                                    </td>
-                                                    <td className="text-end">
-                                                        ${getDisplayedAmount(row).toFixed(2)}
-                                                    </td>
-                                                </>
-                                            ) : reportType === "incomeByMonth" ? (
-                                                <>
-                                                    <td className="text-left">{row.month}</td>
-                                                    <td className="text-left">{row.payment_type}</td>
-                                                    <td className="text-end">${Number(row.total || 0).toFixed(2)}</td>
-                                                </>
-                                            ) : (
-                                                Object.values(row).map((val, j) => (
-                                                    <td key={j}>{val}</td>
-                                                ))
-                                            )}
-                                        </tr>
-                                    ))}
+                                    {(() => {
+                                        let grandTotalPaid = 0;
+                                        const monthlyTotals = Array(12).fill(0);
 
-                                    <tr className="fw-bold bg-secondary text-white">
-                                        <td 
-                                            colSpan={reportType === "debtors" ? 16 : reportType === "paymentsByResident" ? 3 : 2} 
-                                            className="text-end"
-                                        >
-                                            Total:
-                                        </td>
-                                        <td className="text-end">
-                                            ${totalAmount.toFixed(2)}
-                                        </td>
-                                    </tr>
+                                        const rows = data.map((row, i) => {
+                                            let rowTotalPaid = 0;
+                                            const feeAmount = Number(row.fee_amount || 0);
+                                            let monthsPaidCount = 0;
+                                            let transactionMonth = -1;
+                                            const totalDebtValue = Number(row.total || 0);
+
+                                            const cells = [
+                                                <td key="addr" className="text-left">{row.full_address}</td>,
+                                                <td key="type" className="text-left">{row.fee_name || currentPaymentDisplayName}</td>,
+                                                <td key="fee" className="text-end">${feeAmount.toFixed(2)}</td>,
+                                                <td key="overdue" className="text-center">{row.months_overdue}</td>,
+                                            ];
+
+                                            // 1. Determine the transaction month and count paid months
+                                            for (let monthNum = 1; monthNum <= 12; monthNum++) {
+                                                const isPaid = row[`month_${monthNum}`];
+                                                const paymentDateStr = row[`month_${monthNum}_date`];
+
+                                                if (isPaid) {
+                                                    monthsPaidCount++;
+                                                    // Use the actual payment_date month for the summation
+                                                    if (transactionMonth === -1 && paymentDateStr) {
+                                                        transactionMonth = new Date(paymentDateStr).getMonth() + 1;
+                                                    }
+                                                }
+
+                                                let bgClass = '';
+                                                let content = <span className="text-muted">-</span>;
+
+                                                if (isPaid) {
+                                                    bgClass = '';
+                                                    content = (
+                                                        <div className="text-success">
+                                                            <div className="fw-bold">✓</div>
+                                                            {paymentDateStr && <small className="d-block" style={{ fontSize: '0.65em', lineHeight: '1' }}>{new Date(paymentDateStr).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' })}</small>}
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    const currentMonth = new Date().getMonth() + 1;
+                                                    const currentYear = new Date().getFullYear();
+                                                    const isTrulyOverdue = debtorsYear < currentYear || (debtorsYear === currentYear && monthNum < currentMonth);
+
+                                                    if (isTrulyOverdue) {
+                                                        bgClass = 'bg-danger text-white';
+                                                        content = <span className="fw-bold">✗</span>;
+                                                    }
+                                                }
+
+                                                cells.push(<td key={`m${monthNum}`} className={`text-center ${bgClass}`} style={{ width: '45px' }}>{content}</td>);
+                                            }
+
+                                            // Calculate total transaction amount
+                                            const totalTransactionAmount = feeAmount * monthsPaidCount;
+                                            rowTotalPaid = totalTransactionAmount;
+                                            grandTotalPaid += rowTotalPaid;
+
+                                            // 2. Accumulate the total transaction amount ONLY in the month of payment_date
+                                            if (transactionMonth !== -1) {
+                                                monthlyTotals[transactionMonth - 1] += totalTransactionAmount;
+                                            }
+
+                                            // Conditional logic for background color
+                                            const debtBgClass = totalDebtValue > 0 ? "bg-danger text-white" : "text-dark";
+
+                                            // NEW COLUMN: Total Pagado per Property
+                                            cells.push(
+                                                <td key="totalpaid" className="text-end fw-bold text-success" style={{ minWidth: '85px' }}>
+                                                    ${rowTotalPaid.toFixed(2)}
+                                                </td>
+                                            );
+
+                                            // EXISTING COLUMN: Total Deuda per Property (Applying conditional class)
+                                            cells.push(
+                                                <td
+                                                    key="totaldebt"
+                                                    className={`text-end fw-bold ${debtBgClass}`}
+                                                    style={{ minWidth: '95px' }}
+                                                >
+                                                    ${totalDebtValue.toFixed(2)}
+                                                </td>
+                                            );
+
+                                            return <tr key={i}>{cells}</tr>;
+                                        });
+
+                                        // 3. Construct the NEW SUMMATION ROW
+
+                                        // Conditional logic for the Grand Total Debt background color
+                                        const grandTotalDebtBgClass = totalAmount > 0 ? "bg-danger text-white" : "bg-secondary text-white";
+
+                                        const totalRow = (
+                                            <tr key="final-totals" className="fw-bold bg-light">
+                                                <td colSpan={4} className="text-left text-primary">
+                                                    TOTAL PAGADO POR MES:
+                                                </td>
+                                                {monthlyTotals.map((total, index) => {
+                                                    const monthNum = index + 1;
+                                                    const isCurrentMonth = monthNum === currentMonthNum && debtorsYear === currentYear;
+                                                    const totalBgClass = isCurrentMonth ? 'bg-warning text-dark' : (total > 0 ? 'text-success' : 'text-muted');
+
+                                                    return (
+                                                        <td key={`mt-${index}`} className={`text-center ${totalBgClass}`}>
+                                                            {total > 0 ? `$${total.toFixed(2)}` : '-'}
+                                                        </td>
+                                                    );
+                                                })}
+                                                {/* Summation for the NEW Total Pagado column */}
+                                                <td key="gtpaid" className="text-end text-success">
+                                                    ${grandTotalPaid.toFixed(2)}
+                                                </td>
+                                                {/* Summation for the Total Deuda column (Applying conditional class) */}
+                                                <td key="gtdebt" className={`text-end fw-bold ${grandTotalDebtBgClass}`}>
+                                                    ${totalAmount.toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        );
+
+                                        return rows.concat(totalRow);
+                                    })()}
                                 </tbody>
                             </table>
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </div>
 
-            {data.length > 0 && (
+            {data.length > 0 && reportType === "debtors" && (
                 <div className="row mt-4">
                     <div className="col-12 text-center">
-                        <button 
+                        <button
                             className="btn btn-lg btn-success shadow-sm"
                             onClick={generatePdf}
                             disabled={loading}
@@ -748,6 +595,6 @@ const Reports = () => {
 
         </div>
     );
-}; 
+};
 
 export default Reports;
