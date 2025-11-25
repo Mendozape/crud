@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 use App\Models\Address;
 use App\Models\Fee;
 use App\Models\User;
 
 class AddressPayment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The table associated with the model.
@@ -20,9 +22,7 @@ class AddressPayment extends Model
     protected $table = 'address_payments';
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * IMPORTANT FIX: Using standardized deletion fields from the migration.
+     * Mass assignable attributes.
      *
      * @var array
      */
@@ -32,16 +32,24 @@ class AddressPayment extends Model
         'month',
         'year',
         'payment_date',
+        'amount_paid',          
         'status',
-        
-        // --- CORRECTED AUDIT FIELDS (Matching 'fees' table and migration) ---
-        'deletion_reason',      // FIX
-        'deleted_at',           // FIX
-        'deleted_by_user_id',   // FIX
+
+        // --- AUDIT FIELDS ---
+        'deletion_reason',
+        'deleted_by_user_id',
     ];
 
     /**
-     * Get the address record associated with the payment (Belongs To).
+     * The attributes that should be mutated to dates.
+     */
+    protected $dates = [
+        'payment_date',
+        'deleted_at',
+    ];
+
+    /**
+     * Address relationship (Belongs To)
      */
     public function address()
     {
@@ -49,17 +57,15 @@ class AddressPayment extends Model
     }
 
     /**
-     * Get the fee record associated with the payment (Belongs To).
-     * The fee must use withTrashed() to view fees that were soft-deleted later.
+     * Fee relationship (Belongs To, including soft-deleted fees)
      */
     public function fee()
     {
         return $this->belongsTo(Fee::class, 'fee_id')->withTrashed();
     }
-    
+
     /**
-     * Get the user who logically deleted/annulled the payment (Belongs To).
-     * FIX: Relationship renamed to match the audit column.
+     * User who performed the logical deletion
      */
     public function deletedBy()
     {

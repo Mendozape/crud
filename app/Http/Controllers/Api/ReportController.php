@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Address; // Primary Model
-use App\Models\AddressPayment; // Transaction Model
+use App\Models\Address; 
+use App\Models\AddressPayment; 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
 {
     /**
-     * Debts per Property (Adeudos por Predio).
+     * Debts per Property (Adeudos por Predio)
      */
     public function debtors(Request $request)
     {
@@ -24,28 +22,27 @@ class ReportController extends Controller
             $fees = [];
             if ($paymentType === 'Todos') {
                 $fees = \App\Models\Fee::all();
-            } else if ($paymentType) {
+            } elseif ($paymentType) {
                 $fee = \App\Models\Fee::where('name', $paymentType)->first();
                 if ($fee) {
                     $fees = [$fee];
                 }
             }
 
-            // Fetch all addresses
+            // Get all addresses
             $addresses = Address::select('id', 'street', 'street_number', 'type')->get();
 
             $allRows = collect();
 
             foreach ($fees as $fee) {
                 $feeAmount = $fee->amount ?? 0;
-                $feeName = $fee->name ?? '';
+                $feeName   = $fee->name ?? '';
 
                 $rows = $addresses->map(function ($address) use ($year, $feeName, $feeAmount) {
 
-                    // Address string is the main identifier
                     $fullAddress = "{$address->street} #{$address->street_number} ({$address->type})";
 
-                    // Get all paid months for this address, fee, and year
+                    // Query all paid months for this address + fee
                     $paymentsQuery = AddressPayment::where('address_id', $address->id)
                         ->where('status', 'Pagado')
                         ->where('year', $year);
@@ -56,46 +53,56 @@ class ReportController extends Controller
 
                     $paidPayments = $paymentsQuery->get();
 
-                    // Create array of paid months (1-12) with payment dates
+                    // Extract paid months
                     $paidMonthsArray = $paidPayments->pluck('month')->toArray();
+
+                    // Historical saved data
                     $paymentDates = [];
+                    $paidAmounts  = [];
+
                     foreach ($paidPayments as $payment) {
-                        // Store payment_date keyed by month
-                        $paymentDates[$payment->month] = $payment->payment_date; 
+                        $paymentDates[$payment->month] = $payment->payment_date;
+                        $paidAmounts[$payment->month]  = $payment->amount_paid ?? 0;
                     }
 
-                    // Calculate total paid months
+                    // Count paid months
                     $paidMonths = count($paidMonthsArray);
 
-                    // Expected months is 12 (full year)
+                    // Expected total 12 months
                     $expectedMonths = 12;
 
+                    // Calculate overdue months
                     $months_overdue = max(0, $expectedMonths - $paidMonths);
+
+                    // Debt is always calculated using current fee amount
                     $total = $months_overdue * $feeAmount;
 
-                    // Create payment status for each month (1=Enero, 2=Febrero, etc.)
-                    $monthlyStatus = [];
-                    $monthlyDates = [];
+                    // Build monthly dataset (status, date, amount)
+                    $monthData = [];
+
                     for ($m = 1; $m <= 12; $m++) {
                         $isPaid = in_array($m, $paidMonthsArray);
-                        $monthlyStatus["month_$m"] = $isPaid;
-                        $monthlyDates["month_{$m}_date"] = $isPaid ? $paymentDates[$m] : null;
+
+                        $monthData["month_{$m}"] = $isPaid;
+                        $monthData["month_{$m}_date"] = $isPaid ? ($paymentDates[$m] ?? null) : null;
+                        $monthData["month_{$m}_amount_paid"] = $isPaid ? ($paidAmounts[$m] ?? 0) : null;
                     }
 
                     return array_merge([
                         'name' => $fullAddress,
                         'full_address' => $fullAddress,
                         'paid_months' => $paidMonths,
-                        'fee_amount' => $feeAmount,
+                        'fee_amount' => $feeAmount, 
                         'fee_name' => $feeName,
                         'months_overdue' => $months_overdue,
                         'total' => $total,
-                    ], $monthlyStatus, $monthlyDates);
-                }); // Show ALL addresses (removed filter)
+                    ], $monthData);
+                });
 
                 $allRows = $allRows->merge($rows);
             }
 
+            // Sort results
             $allRows = $allRows->values()
                 ->sortBy('fee_name')
                 ->sortBy('name')
@@ -103,7 +110,11 @@ class ReportController extends Controller
 
             $grandTotal = $allRows->sum('total');
 
-            return response()->json(['success' => true, 'data' => $allRows, 'total' => $grandTotal]);
+            return response()->json([
+                'success' => true,
+                'data' => $allRows,
+                'total' => $grandTotal
+            ]);
         } catch (\Exception $e) {
             \Log::error('Debtors Report Error: ' . $e->getMessage());
             return response()->json([

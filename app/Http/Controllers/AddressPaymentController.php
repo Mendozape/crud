@@ -96,49 +96,60 @@ class AddressPaymentController extends Controller
      */
     public function store(Request $request)
     {
+        // --- VALIDATION ---
         $validated = $request->validate([
-            'address_id' => 'required|exists:addresses,id', // Validating against addresses
-            'fee_id' => 'required|exists:fees,id',
-            'months' => 'required|array|min:1',
-            'months.*' => 'integer|between:1,12',
-            'year' => 'required|integer',
-            'payment_date' => 'required|date',
+            'address_id'    => 'required|exists:addresses,id',
+            'fee_id'        => 'required|exists:fees,id',
+            'payment_date'  => 'required|date',
+            'year'          => 'required|digits:4',
+            'months'        => 'required|array',
+            'months.*'      => 'integer|min:1|max:12',
         ]);
 
-        // Get months that are already registered as paid (status = Pagado)
-        $existingMonths = AddressPayment::where('address_id', $validated['address_id'])
+        // Load the fee to store the historical amount
+        $fee = Fee::findOrFail($validated['fee_id']);
+
+        // Fetch existing payments for this address, fee, and year
+        $existingPayments = AddressPayment::where('address_id', $validated['address_id'])
             ->where('fee_id', $validated['fee_id'])
             ->where('year', $validated['year'])
-            ->where('status', 'Pagado')
             ->whereIn('month', $validated['months'])
             ->pluck('month')
             ->toArray();
 
-        // Keep only months that are not already saved
-        $newMonths = array_diff($validated['months'], $existingMonths);
+        // Determine which months still need to be registered
+        $newMonths = array_diff($validated['months'], $existingPayments);
 
-        // If no new months to save, return an error
         if (empty($newMonths)) {
             return response()->json([
-                'message' => 'Todos los meses seleccionados ya están registrados como pagados.'
-            ], 422);
+                'message' => 'These months are already registered.',
+                'registered' => [],
+            ], 200);
         }
 
-        // Register payments only for the new months
+        // Save new payments
         $payments = [];
         foreach ($newMonths as $month) {
             $payments[] = AddressPayment::create([
-                'address_id' => $validated['address_id'],
-                'fee_id' => $validated['fee_id'],
+                'address_id'   => $validated['address_id'],
+                'fee_id'       => $validated['fee_id'],
                 'payment_date' => $validated['payment_date'],
-                'month' => $month,
-                'year' => $validated['year'],
-                'status' => 'Pagado',
+                'month'        => $month,
+                'year'         => $validated['year'],
+                'status'       => 'Pagado',
+
+                // 🔥 KEY FIELD — stores the fee value at the moment of payment
+                'amount_paid'  => $fee->amount,
             ]);
         }
 
-        return response()->json($payments, 201);
+        return response()->json([
+            'message'  => 'Payments registered successfully.',
+            'saved'    => $payments,
+            'skipped'  => array_values($existingPayments),
+        ], 201);
     }
+
 
     /**
      * Display the specified resource.
