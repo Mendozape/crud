@@ -18,7 +18,7 @@ export default function CreateAddresses() {
 
     // NEW STATES FOR RESIDENT ASSIGNMENT
     const [residentQuery, setResidentQuery] = useState(''); // Text typed in the input
-    const [residentId, setResidentId] = useState(null);       // ID of the selected resident to be stored
+    const [residentId, setResidentId] = useState(null);       // ID of the selected resident to be stored
     const [residentSuggestions, setResidentSuggestions] = useState([]); // Autocomplete results
     const [selectedResidentName, setSelectedResidentName] = useState(''); // Display name of the selected resident
     const [hasExistingAddress, setHasExistingAddress] = useState(false); // New state for visual warning
@@ -52,7 +52,10 @@ export default function CreateAddresses() {
                     withCredentials: true,
                     headers: { Accept: 'application/json' },
                 });
-                setResidentSuggestions(response.data.data);
+                
+                // ✅ FIX 1: Ensure state is always set to an array, even if API response data is null/undefined
+                const suggestions = Array.isArray(response.data.data) ? response.data.data : [];
+                setResidentSuggestions(suggestions);
             } catch (error) {
                 console.error('Error fetching resident search results:', error);
                 setResidentSuggestions([]);
@@ -152,7 +155,8 @@ export default function CreateAddresses() {
                     />
                     <input type="hidden" value={residentId || ''} required /> {/* Hidden field for validation check */}
 
-                    {residentSuggestions.length > 0 && (
+                    {/* ✅ FIX 2: Added optional chaining (?) to prevent crashing if residentSuggestions is undefined/null */}
+                    {residentSuggestions?.length > 0 && (
                         <ul className="list-group position-absolute w-100 shadow-lg" style={{ zIndex: 10 }}>
                             {residentSuggestions.map((res) => (
                                 <li

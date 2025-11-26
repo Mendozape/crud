@@ -30,7 +30,7 @@ class ReportController extends Controller
             }
 
             // Get all addresses
-            $addresses = Address::select('id', 'street', 'street_number', 'type')->get();
+            $addresses = Address::select('id', 'street', 'street_number', 'type', 'comments')->get();
 
             $allRows = collect();
 
@@ -96,6 +96,7 @@ class ReportController extends Controller
                         'fee_name' => $feeName,
                         'months_overdue' => $months_overdue,
                         'total' => $total,
+                        'comments' => $address->comments ?? '',
                     ], $monthData);
                 });
 

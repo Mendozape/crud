@@ -77,7 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
     
     // CRITICAL FIX: Renamed search endpoint and mapped to new method
-    Route::get('reports/search-addresses', [ReportController::class, 'searchAddresses']); 
+    Route::get('reports/search-residents', [ResidentController::class, 'searchResidents']); 
 
     // --- CHAT API ROUTES ---
     Route::get('/chat/contacts', [MessageController::class, 'getContacts']);

@@ -37,7 +37,7 @@ class ResidentController extends Controller
                     ->orWhere('last_name', 'like', "%{$search}%");
             })
             ->limit(10)
-            ->get(['id', 'name', 'last_name', 'email']); 
+            ->get(); 
 
         return response()->json([
             'success' => true,
