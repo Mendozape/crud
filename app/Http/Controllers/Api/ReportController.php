@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Address; 
 use App\Models\AddressPayment; 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
@@ -123,5 +124,33 @@ class ReportController extends Controller
                 'message' => 'Internal server error while generating debtors report.'
             ], 500);
         }
+    }
+    /**
+     * Get all expenses for the current month and year for the authenticated user.
+     */
+    public function currentMonthExpenses(Request $request)
+    {
+        // Get current year and month (or from request if provided, but requirement specifies current month)
+        $year = now()->year;
+        $month = now()->month;
+
+        // Fetch expenses that fall within the current month/year
+        $expenses = Auth::user()->expenses()
+            ->whereYear('expense_date', $year)
+            ->whereMonth('expense_date', $month)
+            ->get();
+
+        $totalAmount = $expenses->sum('amount');
+
+        // Return the expenses and the calculated total
+        return response()->json([
+            'message' => 'Gastos del mes recuperados exitosamente.',
+            'data' => [
+                'expenses' => $expenses,
+                'total_amount' => $totalAmount,
+                'month_name' => now()->locale('es')->monthName,
+                'year' => $year
+            ]
+        ], 200);
     }
 }

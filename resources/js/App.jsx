@@ -44,6 +44,11 @@ import ShowUsers from "./components/ShowUsers";
 import CreateUser from "./components/CreateUser";
 import EditUser from "./components/EditUser";
 
+// Expenses SPA
+import ExpensesTable from './components/ShowExpense';
+import CreateExpense from './components/CreateExpense';
+import EditExpense from './components/EditExpense';
+
 // Reports SPA
 import Reports from "./components/Reports";
 
@@ -80,7 +85,7 @@ const App = () => {
                     <Route path="/residents" element={<ShowResidents user={user} />} />
                     <Route path="/residents/create" element={<CreateResidents />} />
                     <Route path="/residents/edit/:id" element={<EditResidents />} />
-                    
+
                     <Route path="/residents/payments/history/:id" element={<PaymentHistoryPage />} />
                     <Route path="/addresses/payment/:id" element={<CreatePayments />} />
                     <Route path="/addresses/payments/history/:id" element={<PaymentHistoryPage />} />
@@ -109,6 +114,11 @@ const App = () => {
                     <Route path="/users" element={<ShowUsers />} />
                     <Route path="/users/create" element={<CreateUser />} />
                     <Route path="/users/edit/:id" element={<EditUser />} />
+
+                    {/* Expenses SPA routes */}
+                    <Route path="/expenses" element={<ExpensesTable />} />
+                    <Route path="/expenses/create" element={<CreateExpense />} />
+                    <Route path="/expenses/edit/:id" element={<EditExpense />} />
 
                     {/* Reports SPA routes */}
                     <Route path="/reports" element={<Reports />} />

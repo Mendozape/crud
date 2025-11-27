@@ -350,16 +350,6 @@ return [
                 ],*/
             ],
         ],
-        /*[
-            'text' => 'CRUD',
-            'url'  => 'client/',
-            'icon' => 'fas fa-fw fa-user',
-        ],*/
-        [
-            'text' => 'PREDIOS Y PAGOS',
-            'url'  => 'addresses',
-            'icon' => 'fas fa-fw fa-users',
-        ],
         [
             'text' => 'RESIDENTES',
             'url'  => 'residents',
@@ -368,48 +358,23 @@ return [
         [
             'text' => 'CUOTAS',
             'url'  => 'fees',
+            'icon' => 'fas fa-cash-register',
+        ],
+        [
+            'text' => 'GASTOS',
+            'url'  => 'expenses',
             'icon' => 'fas fa-fw fa-money-bill',
+        ],
+        [
+            'text' => 'PREDIOS Y PAGOS',
+            'url'  => 'addresses',
+            'icon' => 'fas fa-map-marked-alt ',
         ],
         [
             'text' => 'REPORTES',
             'url'  => 'reports',
             'icon' => 'fas fa-fw fa-chart-bar',
         ],
-        
-        /*[
-            'text'    => 'CRUD (Livewire)',
-            'icon'    => 'fas fa-fw fa-share',
-            'submenu' => [
-                [
-                    'text' => 'Employees',
-                    'url'  => 'employees',
-                ],
-            ],
-        ],*/
-        /*[
-            'text'    => 'WEBSOCKETS',
-            'icon'    => 'fas fa-fw fa-share',
-            'submenu' => [
-                [
-                    'text' => 'email',
-                    'url'  => 'notifications',
-                ],
-                [
-                    'text' => 'broadcasting notification',
-                    'url'  => 'test',
-                ],
-            ],
-        ],
-        [
-            'text'    => 'API REST',
-            'icon'    => 'fas fa-fw fa-share',
-            'submenu' => [
-                [
-                    'text' => 'Fetch',
-                    'url'  => 'apiFetch',
-                ],
-            ],
-        ],*/
     ],
 
     /*

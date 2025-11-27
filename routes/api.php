@@ -11,7 +11,8 @@ use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\FeeController;
 use App\Http\Controllers\AddressPaymentController;
 use App\Http\Controllers\PermisosController;
-use App\Http\Controllers\Api\ReportController; // Import ReportController
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AddressController; 
 use Illuminate\Support\Facades\Session;
@@ -78,6 +79,12 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // CRITICAL FIX: Renamed search endpoint and mapped to new method
     Route::get('reports/search-residents', [ResidentController::class, 'searchResidents']); 
+    // Defines the API resource routes: GET, POST, GET/{id}, PUT/PATCH/{id}, DELETE/{id}
+    
+    Route::apiResource('expenses', ExpenseController::class);
+    
+    //ROUTE FOR MONTHLY EXPENSES
+    Route::get('reports/current-month-expenses', [ReportController::class, 'currentMonthExpenses']);
 
     // --- CHAT API ROUTES ---
     Route::get('/chat/contacts', [MessageController::class, 'getContacts']);

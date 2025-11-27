@@ -9,7 +9,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-
+use App\Models\Expense;
 
 
 class User extends Authenticatable
@@ -20,6 +20,15 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
     use HasRoles;
+    
+    /**
+     * Get the expenses for the user.
+     */
+    public function expenses()
+    {
+        // A user can have many expenses (one-to-many relationship).
+        return $this->hasMany(Expense::class);
+    }
 
     public function getIsAdminAttribute()
     {
