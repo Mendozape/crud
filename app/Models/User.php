@@ -21,15 +21,7 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
     use HasRoles;
     
-    /**
-     * Get the expenses for the user.
-     */
-    public function expenses()
-    {
-        // A user can have many expenses (one-to-many relationship).
-        return $this->hasMany(Expense::class);
-    }
-
+    
     public function getIsAdminAttribute()
     {
         return $this->roles()->where('id', 1)->exists();

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AddressController; 
+use App\Http\Controllers\Api\ExpenseCategoryController; 
 use Illuminate\Support\Facades\Session;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -70,21 +71,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- REPORTS ROUTES ---
     Route::get('reports/debtors', [ReportController::class, 'debtors']); 
-    
-    // CRITICAL FIX: Renamed endpoint to be address-focused, mapped to new method
     Route::get('reports/payments-by-address', [ReportController::class, 'paymentsByAddressId']); 
-    
     Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']);
     Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
-    
-    // CRITICAL FIX: Renamed search endpoint and mapped to new method
     Route::get('reports/search-residents', [ResidentController::class, 'searchResidents']); 
-    // Defines the API resource routes: GET, POST, GET/{id}, PUT/PATCH/{id}, DELETE/{id}
-    
-    Route::apiResource('expenses', ExpenseController::class);
-    
-    //ROUTE FOR MONTHLY EXPENSES
     Route::get('reports/current-month-expenses', [ReportController::class, 'currentMonthExpenses']);
+    
+    // --- EXPENSES MODULE ROUTES ---
+    Route::apiResource('expenses', ExpenseController::class);
+    Route::apiResource('expense_categories', ExpenseCategoryController::class); 
 
     // --- CHAT API ROUTES ---
     Route::get('/chat/contacts', [MessageController::class, 'getContacts']);

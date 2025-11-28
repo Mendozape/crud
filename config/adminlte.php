@@ -361,6 +361,11 @@ return [
             'icon' => 'fas fa-cash-register',
         ],
         [
+            'text' => 'CATALOGO GASTOS',
+            'url'  => 'expense_categories',
+            'icon' => 'fas fa-fw fa-money-bill',
+        ],
+        [
             'text' => 'GASTOS',
             'url'  => 'expenses',
             'icon' => 'fas fa-fw fa-money-bill',

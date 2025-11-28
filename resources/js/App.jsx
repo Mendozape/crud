@@ -17,7 +17,7 @@ import ShowResidents from "./components/ShowResidents";
 import CreateResidents from "./components/CreateResidents";
 import EditResidents from "./components/EditResidents";
 import CreatePayments from "./components/CreatePayments";
-import PaymentHistoryPage from "./components/PaymentHistoryPage"; // <-- NEW IMPORT
+import PaymentHistoryPage from "./components/PaymentHistoryPage"; 
 
 // Fees SPA
 import ShowFees from "./components/ShowFees";
@@ -48,6 +48,11 @@ import EditUser from "./components/EditUser";
 import ExpensesTable from './components/ShowExpense';
 import CreateExpense from './components/CreateExpense';
 import EditExpense from './components/EditExpense';
+
+// ⭐ Expense Categories SPA (New Catalog Imports)
+import ShowExpenseCategories from './components/ShowExpenseCategories';
+import CreateExpenseCategory from './components/CreateExpenseCategory';
+import EditExpenseCategory from './components/EditExpenseCategory';
 
 // Reports SPA
 import Reports from "./components/Reports";
@@ -114,8 +119,15 @@ const App = () => {
                     <Route path="/users" element={<ShowUsers />} />
                     <Route path="/users/create" element={<CreateUser />} />
                     <Route path="/users/edit/:id" element={<EditUser />} />
-
-                    {/* Expenses SPA routes */}
+                    
+                    {/* --------------------------------------------------- */}
+                    {/* ⭐ EXPENSE CATEGORIES SPA ROUTES (NEW CATALOG) */}
+                    {/* --------------------------------------------------- */}
+                    <Route path="/expense_categories" element={<ShowExpenseCategories />} />
+                    <Route path="/expense_categories/create" element={<CreateExpenseCategory />} />
+                    <Route path="/expense_categories/edit/:id" element={<EditExpenseCategory />} />
+                    
+                    {/* Expenses SPA routes (Individual Transactions) */}
                     <Route path="/expenses" element={<ExpensesTable />} />
                     <Route path="/expenses/create" element={<CreateExpense />} />
                     <Route path="/expenses/edit/:id" element={<EditExpense />} />

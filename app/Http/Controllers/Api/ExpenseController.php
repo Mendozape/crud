@@ -12,129 +12,115 @@ class ExpenseController extends Controller
 {
     /**
      * Display a listing of the resource.
-     * Returns JSON of all expenses for the authenticated user.
+     * Returns ALL expenses (including soft deleted) for ALL users.
+     * Because user_id no longer exists, we cannot filter by user.
      */
     public function index()
     {
-        $expenses = Auth::user()->expenses()->withTrashed()->orderBy('expense_date', 'desc')->get();
+        // Load categories and include soft deleted items
+        $expenses = Expense::with(['category'])->withTrashed()->orderBy('expense_date', 'desc')->get();
 
-        // Return the collection of expenses as a JSON response.
         return response()->json([
-            'message' => 'Lista de gastos recuperada exitosamente.', // USER-FACING SPANISH TEXT
+            'message' => 'Lista de gastos recuperada exitosamente.',
             'data' => $expenses
         ], 200);
     }
 
     /**
-     * Store a newly created resource in storage.
-     * Returns the created expense as JSON.
+     * Store a newly created resource.
+     * Creates a new expense.
      */
     public function store(Request $request)
     {
         try {
-            // Validate the incoming request data.
             $validatedData = $request->validate([
-                'name' => 'required|string|max:100',
+                'expense_category_id' => 'required|exists:expense_categories,id',
                 'amount' => 'required|numeric|min:0.01',
                 'expense_date' => 'required|date',
             ]);
+            $validatedData['deleted_by'] = null;
+            // ✔ Since there's no user_id anymore, we only save the validated fields
+            Expense::create($validatedData);
 
-            // Create the expense and associate it with the authenticated user.
-            $expense = Auth::user()->expenses()->create($validatedData);
-
-            // Return the created expense with a 201 Created status.
             return response()->json([
-                'message' => 'Gasto creado exitosamente.', // USER-FACING SPANISH TEXT
-                'data' => $expense
+                'message' => 'Gasto creado exitosamente.',
             ], 201);
-            
+
         } catch (ValidationException $e) {
-            // Return validation errors with a 422 Unprocessable Entity status.
             return response()->json([
-                'message' => 'Error de validación.', // USER-FACING SPANISH TEXT
+                'message' => 'Error de validación.',
                 'errors' => $e->errors()
             ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al crear el gasto.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     /**
-     * Display the specified resource.
-     * Returns the specific expense as JSON.
+     * Display the specified expense.
      */
     public function show(Expense $expense)
     {
-        // Policy check: Ensure the authenticated user owns the expense.
-        if (Auth::id() !== $expense->user_id) {
-            // USER-FACING SPANISH TEXT: 'Acceso no autorizado.'
-            return response()->json([
-                'message' => 'Acceso no autorizado. El gasto no pertenece al usuario.'
-            ], 403); 
-        }
+        // ✔ No user_id check since the field no longer exists
 
-        // Return the specific expense as a JSON response.
+        // Load the related category
+        $expense->load('category');
+
         return response()->json([
-            'message' => 'Detalles del gasto recuperados exitosamente.', // USER-FACING SPANISH TEXT
+            'message' => 'Detalles del gasto recuperados exitosamente.',
             'data' => $expense
         ], 200);
     }
 
     /**
-     * Update the specified resource in storage.
-     * Returns the updated expense as JSON.
+     * Update an existing expense.
      */
     public function update(Request $request, Expense $expense)
     {
-        // Policy check: Ensure the authenticated user owns the expense.
-        if (Auth::id() !== $expense->user_id) {
-            // USER-FACING SPANISH TEXT: 'Acceso no autorizado.'
-            return response()->json([
-                'message' => 'Acceso no autorizado. El gasto no pertenece al usuario.'
-            ], 403); 
-        }
+        // ✔ No ownership check (user_id removed)
 
         try {
-            // Validate the request data.
             $validatedData = $request->validate([
-                'name' => 'required|string|max:100',
+                'expense_category_id' => 'required|integer|exists:expense_categories,id',
                 'amount' => 'required|numeric|min:0.01',
                 'expense_date' => 'required|date',
             ]);
 
             $expense->update($validatedData);
 
-            // Return the updated expense as a JSON response.
             return response()->json([
-                'message' => 'Gasto actualizado exitosamente.', // USER-FACING SPANISH TEXT
+                'message' => 'Gasto actualizado exitosamente.',
                 'data' => $expense
             ], 200);
 
         } catch (ValidationException $e) {
             return response()->json([
-                'message' => 'Error de validación.', // USER-FACING SPANISH TEXT
+                'message' => 'Error de validación.',
                 'errors' => $e->errors()
             ], 422);
         }
     }
 
     /**
-     * Remove the specified resource from storage (Soft Delete).
-     * Returns a 204 No Content status on success.
+     * Soft delete an expense.
      */
     public function destroy(Expense $expense)
     {
-        // Policy check: Ensure the authenticated user owns the expense.
-        if (Auth::id() !== $expense->user_id) {
-            // USER-FACING SPANISH TEXT: 'Acceso no autorizado.'
-            return response()->json([
-                'message' => 'Acceso no autorizado. El gasto no pertenece al usuario.'
-            ], 403); 
-        }
-        
-        $expense->delete(); // This performs the soft delete.
+        // ✔ No user check because user_id no longer exists
 
-        // Return a 204 No Content status, which is standard for successful deletions.
+        // Save who deleted the record
+        $expense->deleted_by = Auth::id();
+        $expense->save();
+
+        // Perform soft delete
+        $expense->delete();
+
         return response()->json([
-            'message' => 'Gasto eliminado exitosamente.' // USER-FACING SPANISH TEXT
-        ], 204); 
+            'message' => 'Gasto eliminado exitosamente.'
+        ], 204);
     }
 }

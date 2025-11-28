@@ -6,8 +6,9 @@ import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/expenses/';
+const categoriesEndpoint = 'http://localhost:8000/api/expense_categories'; // Endpoint for catalog data
 
-// Configuration for Axios requests
+// Configuration for Axios requests (omitted)
 const axiosOptions = {
     withCredentials: true,
     headers: {
@@ -16,21 +17,20 @@ const axiosOptions = {
     }
 };
 
-// NOTE: Since the Laravel Model now returns the date in 'Y-m-d' format, 
-// this helper is only needed as a fallback/safety check, but the Model fix 
-// is the primary solution.
 const formatDate = (dbDateString) => {
     if (!dbDateString) return '';
-    // If the API failed to format the date correctly (e.g., includes time or T/Z), 
-    // this splits by space or 'T' to get only the date portion (YYYY-MM-DD).
-    return dbDateString.includes(' ') ? dbDateString.split(' ')[0] : dbDateString.split('T')[0];
+    return dbDateString.split(' ')[0];
 };
 
 export default function EditExpense() {
-    const [name, setName] = useState('');
+    // State variables
+    // const [name, setName] = useState(''); // REMOVED
     const [amount, setAmount] = useState('');
-    // Quantity state removed
     const [expenseDate, setExpenseDate] = useState('');
+    const [expenseCategoryId, setExpenseCategoryId] = useState(''); 
+    const [categories, setCategories] = useState([]); 
+    const [loadingCategories, setLoadingCategories] = useState(true);
+
     const [formValidated, setFormValidated] = useState(false);
     const [errors, setErrors] = useState({});
     const [showModal, setShowModal] = useState(false);
@@ -39,24 +39,64 @@ export default function EditExpense() {
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
+    // Effect 1: Fetch Categories Catalog (omitted)
+    useEffect(() => {
+        const fetchCategories = async () => {
+            // ... (Category fetching logic) ...
+            try {
+                const res = await axios.get(categoriesEndpoint, axiosOptions);
+                const activeCategories = res.data.data.filter(cat => !cat.deleted_at);
+                setCategories(activeCategories);
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+                setErrorMessage("Fallo al cargar el catálogo de categorías.");
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+        fetchCategories();
+    }, []); 
+
+    // Effect 2: Fetch specific expense data (omitted)
+    useEffect(() => {
+        const getExpenseById = async () => {
+            try {
+                const response = await axios.get(`${endpoint}${id}`, axiosOptions);
+                const data = response.data.data;
+                
+                // REMOVED: setName(data.name || data.category?.name || ''); 
+                
+                setAmount(data.amount);
+                setExpenseDate(formatDate(data.expense_date)); 
+                setExpenseCategoryId(data.expense_category_id?.toString() || ''); 
+            } catch (error) {
+                console.error('Error fetching expense:', error);
+                setErrorMessage('Fallo al cargar el gasto.'); 
+            }
+        };
+        getExpenseById();
+    }, [id, setErrorMessage]);
+
+
     const handleUpdate = async (e) => {
-        e.preventDefault();
+        // NOTE: e.preventDefault() is called in 'update', not here.
+        
         const formData = new FormData();
-        formData.append('name', name);
+        
+        // --- DATA SENT TO API ---
+        formData.append('expense_category_id', expenseCategoryId); 
+        // ❌ REMOVED: formData.append('name', name);
         formData.append('amount', amount);
-        // Quantity removed
         formData.append('expense_date', expenseDate);
-        formData.append('_method', 'PUT'); // Necessary for Laravel PUT/PATCH requests via FormData
+        formData.append('_method', 'PUT'); 
+        // --- END DATA SENT ---
 
         try {
             const response = await axios.post(`${endpoint}${id}`, formData, axiosOptions);
             if (response.status === 200) {
-                // USER-FACING SPANISH TEXT: 'Gasto actualizado exitosamente.'
                 setSuccessMessage('Gasto actualizado exitosamente.');
-                setErrorMessage('');
                 navigate('/expenses');
             } else {
-                // USER-FACING SPANISH TEXT: 'Fallo al actualizar el gasto.'
                 setErrorMessage('Fallo al actualizar el gasto.');
             }
         } catch (error) {
@@ -64,7 +104,6 @@ export default function EditExpense() {
             if (error.response?.data?.errors) {
                 setErrors(error.response.data.errors);
             } else {
-                // USER-FACING SPANISH TEXT: 'Fallo al actualizar el gasto.'
                 setErrorMessage('Fallo al actualizar el gasto.');
             }
         } finally {
@@ -73,34 +112,24 @@ export default function EditExpense() {
     };
 
     const update = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevents form submission
+        
+        // ⭐ FIX: Add client-side validation check before showing modal
+        if (!amount || !expenseCategoryId || !expenseDate) {
+            setErrorMessage('Por favor, complete todos los campos obligatorios antes de actualizar.');
+            setFormValidated(true);
+            return;
+        }
+
         setShowModal(true);
     };
 
-    // Effect to fetch the expense data when the component loads
-    useEffect(() => {
-        const getExpenseById = async () => {
-            try {
-                const response = await axios.get(`${endpoint}${id}`, axiosOptions);
-                
-                setName(response.data.data.name);
-                setAmount(response.data.data.amount);
-                
-                // Applying the date formatting helper (required if Laravel doesn't use the explicit cast)
-                setExpenseDate(formatDate(response.data.data.expense_date)); 
-            } catch (error) {
-                console.error('Error fetching expense:', error);
-                // USER-FACING SPANISH TEXT: 'Fallo al cargar el gasto.'
-                setErrorMessage('Fallo al cargar el gasto.');
-            }
-        };
-        getExpenseById();
-    }, [id, setErrorMessage]);
-
     return (
-        <div>
+        <div className="container mt-4">
             <h2>Editar Gasto</h2>
+            {/* The onSubmit handler calls 'update' to show the modal */}
             <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
+                {/* ... (error message display) ... */}
                 <div className="col-md-12 mt-4">
                     {errorMessage && (
                         <div className="alert alert-danger text-center">
@@ -108,21 +137,27 @@ export default function EditExpense() {
                         </div>
                     )}
                 </div>
-
-                {/* Name Field */}
+                
+                {/* 1. Category Select */}
                 <div className='mb-3'>
-                    <label className='form-label'>Nombre</label>
-                    <input 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)}
-                        type='text'
-                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                    <label className='form-label'>Categoría</label>
+                    <select
+                        value={expenseCategoryId}
+                        onChange={(e) => setExpenseCategoryId(e.target.value)}
+                        className='form-control'
                         required
-                    />
-                    {errors.name && <div className="invalid-feedback">{errors.name[0]}</div>}
+                        disabled={loadingCategories}
+                    >
+                        <option value="">-- Seleccione una Categoría --</option>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
-                {/* Amount Field */}
+                {/* 2. Amount Field */}
                 <div className='mb-3'>
                     <label className='form-label'>Monto</label>
                     <input 
@@ -137,8 +172,7 @@ export default function EditExpense() {
                     {errors.amount && <div className="invalid-feedback">{errors.amount[0]}</div>}
                 </div>
 
-
-                {/* Expense Date Field */}
+                {/* 3. Expense Date Field */}
                 <div className='mb-3'>
                     <label className='form-label'>Fecha del Gasto</label>
                     <input
@@ -171,6 +205,7 @@ export default function EditExpense() {
                             <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                                 Cancelar
                             </button>
+                            {/* This button calls the async handleUpdate function */}
                             <button type="button" className="btn btn-danger" onClick={handleUpdate}>
                                 Actualizar
                             </button>

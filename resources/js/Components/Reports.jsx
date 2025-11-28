@@ -24,13 +24,15 @@ const Reports = () => {
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
-    const currentMonthNum = new Date().getMonth() + 1; // 1-12 (November is 11)
+    const currentMonthNum = new Date().getMonth() + 1; // 1-12 
     const currentYear = new Date().getFullYear();
     
-    // Total number of columns before comments (2 headers + 12 months + 2 totals) = 16
-    const totalHeaderColumns = 16; 
-    // Index of the current month column (0-indexed): 2 (Dir/Pago) + currentMonthNum - 1
-    const currentMonthColIndex = 2 + (currentMonthNum - 1); 
+    // Total number of month columns (12)
+    const totalMonthColumns = 12; 
+    // Total columns after month columns (Ingreso anual + Deuda + Comentarios) = 3
+    const totalTrailingColumns = 3; 
+    // Total columns in the table (2 headers + 12 months + 3 trailing) = 17
+    const fullTableColSpan = 2 + totalMonthColumns + totalTrailingColumns; 
 
 
     // Filter data (Debtors) based on search term
@@ -117,7 +119,6 @@ const Reports = () => {
         return details;
     };
 
-
     // --- FETCH LOGIC ---
 
     // Fetch monthly expenses
@@ -198,9 +199,6 @@ const Reports = () => {
     }, [paymentType, reportType, debtorsYear]);
 
     // --- PDF GENERATION ---
-    // NOTE: PDF logic below is simplified and assumes the new table structure 
-    // (with combined columns) is replicated for PDF generation, which is complex 
-    // and would need further adjustment outside of this scope.
     
     const generatePdf = () => {
         if (data.length === 0 || typeof JsPDF === "undefined") {
@@ -310,7 +308,7 @@ const Reports = () => {
             return bodyRow;
         });
         
-        // --- End PDF Data Processing ---
+        // End PDF Data Processing
 
         const totalRow = ["TOTAL INGRESOS MENSUAL:", ""];
         monthlyTotals.forEach(total => totalRow.push(total > 0 ? formatCurrency(total) : "-"));
@@ -328,9 +326,6 @@ const Reports = () => {
 
         processedData.push(totalRow);
         
-        // NOTE: The expense rows are NOT included in this PDF function to keep the logic simpler.
-
-        // ... (PDF table styling and output remains the same)
         const currentColumnStyles = {
             0: { halign: "left", cellWidth: 150 },
             1: { halign: "left", cellWidth: 70 },
@@ -673,7 +668,6 @@ const Reports = () => {
                                                 return sum + rowTotal;
                                             }, 0);
 
-
                                             const finalDebtDisplay = totalDebtSum > 0
                                                 ? `${formatCurrency(totalDebtSum)} (${grandTotalMonthsOverdue})`
                                                 : formatCurrency(totalDebtSum);
@@ -706,41 +700,43 @@ const Reports = () => {
                                             // --- EXPENSE ROWS ---
                                             const expenseRows = [];
                                             
-                                            // Filter expenses by search term
-                                            const currentMonthExpensesFiltered = currentMonthExpenses.expenses
-                                                .filter(exp => 
-                                                    exp.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                                    exp.amount?.toString().includes(searchTerm)
-                                                );
+                                            const isCurrentYearSelected = debtorsYear === currentYear;
 
-                                            // Header for Expenses
-                                            if (currentMonthExpensesFiltered.length > 0 || currentMonthExpenses.total > 0) {
-                                                // Calculate remaining columns after headers (12 month columns + 3 total columns = 15 columns)
-                                                const expenseHeaderColSpan = totalHeaderColumns - 2; // 14 columns: 12 months + Ingreso Anual + Deuda
-                                                
+                                            // FIX 1: Filter expenses by category name (expense.category?.name)
+                                            const currentMonthExpensesFiltered = isCurrentYearSelected
+                                                ? currentMonthExpenses.expenses
+                                                    .filter(exp => 
+                                                        exp.category?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                                        exp.amount?.toString().includes(searchTerm)
+                                                    )
+                                                : [];
+
+                                            
+                                            // 2. Render Expense Section (if relevant data exists)
+                                            if (isCurrentYearSelected && currentMonthExpensesFiltered.length > 0) {
+                                                const totalHeaderColSpan = fullTableColSpan - 2; 
+
                                                 expenseRows.push(
                                                     <tr key="expenses-header" className="fw-bold bg-dark text-white">
                                                         <td colSpan={2} className="text-left">GASTOS DEL MES ({currentMonthExpenses.monthName.toUpperCase()} {currentMonthExpenses.year}):</td>
-                                                        {/* Span across the rest of the columns (Months, Ingreso, Deuda, Comments) */}
-                                                        <td colSpan={expenseHeaderColSpan} className="text-center"></td> 
+                                                        <td colSpan={totalHeaderColSpan} className="text-center"></td> 
                                                         <td colSpan={1} className="text-left"></td>
                                                     </tr>
                                                 );
 
                                                 // Individual Expense Rows
                                                 currentMonthExpensesFiltered.forEach((expense, expIndex) => {
-                                                    // Determine span before and after the current month column
-                                                    const colsBeforeMonth = currentMonthNum - 1; // 11 in November
-                                                    const colsAfterMonth = 12 - currentMonthNum + 3; // (12 - 11) + 3 = 4 in November (Remaining month + 3 totals/comments)
+                                                    const colsBeforeMonth = currentMonthNum - 1; 
+                                                    const colsAfterMonth = (totalMonthColumns - currentMonthNum) + totalTrailingColumns; 
                                                     
                                                     expenseRows.push(
                                                         <tr key={`expense-${expIndex}`} className="text-muted" style={{ fontSize: '0.85em' }}>
-                                                            {/* 1. Name Column (Colspan 2) */}
+                                                            {/* ⭐ FIX 2: Display Category Name */}
                                                             <td colSpan={2} className="text-left">
-                                                                <span className="fw-bold text-danger">➖ {expense.name}</span>
+                                                                <span className="fw-bold text-danger">➖ {expense.category?.name || 'Gasto'}</span>
                                                             </td>
 
-                                                            {/* 2. Empty columns BEFORE the month (Colspan=colsBeforeMonth) */}
+                                                            {/* 2. Empty columns BEFORE the month */}
                                                             {colsBeforeMonth > 0 && <td colSpan={colsBeforeMonth} className="text-center"></td>}
 
                                                             {/* 3. CURRENT MONTH EXPENSE (1 Column) */}
@@ -748,37 +744,40 @@ const Reports = () => {
                                                                 {formatCurrency(expense.amount)}
                                                             </td>
 
-                                                            {/* 4. Empty columns AFTER the month (Colspan=colsAfterMonth) */}
+                                                            {/* 4. Empty columns AFTER the month */}
                                                             {colsAfterMonth > 0 && <td colSpan={colsAfterMonth} className="text-center"></td>}
-
-                                                            {/* No need for a separate comments column here as it's spanned by colsAfterMonth */}
                                                         </tr>
                                                     );
                                                 });
                                                 
-                                                // Expense TOTAL Row
-                                                // Calculate span for the total text: 2 (headers) + (currentMonthNum - 1) (months before) = currentMonthNum + 1
-                                                const totalColSpan = currentMonthNum + 1; 
+                                                // Expense TOTAL Row (omitted for brevity)
+                                                const totalTextColSpan = 2 + (currentMonthNum - 1); 
                                                 const totalAmountColSpan = 1; 
-                                                const totalTailColSpan = 12 - currentMonthNum + 3; // (12 - 11) + 3 = 4
+                                                const totalTailColSpan = totalMonthColumns - currentMonthNum + totalTrailingColumns; 
 
                                                 expenseRows.push(
                                                     <tr key="expenses-total" className="fw-bold bg-secondary text-white">
-                                                        {/* Text Span: Headers + Months before (11 for November) */}
-                                                        <td colSpan={totalColSpan} className="text-end">TOTAL EGRESOS {currentMonthExpenses.monthName.toUpperCase()}:</td>
-                                                        
-                                                        {/* Total Amount (Current Month Column) */}
+                                                        <td colSpan={totalTextColSpan} className="text-end">TOTAL EGRESOS {currentMonthExpenses.monthName.toUpperCase()}:</td>
                                                         <td colSpan={totalAmountColSpan} className="text-end">
                                                             {formatCurrency(currentMonthExpenses.total)}
                                                         </td>
-                                                        
-                                                        {/* Tail Span: Remaining Months + Totals + Comments */}
                                                         <td colSpan={totalTailColSpan} className="text-left"></td>
+                                                    </tr>
+                                                );
+                                            } else if (isCurrentYearSelected) {
+                                                // Show message if Year is Current BUT No Expenses Exist
+                                                const fullColSpan = 2 + totalMonthColumns + totalTrailingColumns; 
+
+                                                expenseRows.push(
+                                                    <tr key="no-expenses">
+                                                        <td colSpan={fullColSpan} className="text-center text-muted fst-italic p-3">
+                                                            No hay gastos registrados para {monthNames[currentMonthNum - 1]} de {currentYear}.
+                                                        </td>
                                                     </tr>
                                                 );
                                             }
 
-                                            // Return: Income Rows -> Income Total Row -> Expense Rows -> Expense Total Row
+                                            // Return rows and totals
                                             return rows.concat(totalRow, expenseRows);
                                         })()}
                                     </tbody>

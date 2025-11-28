@@ -129,28 +129,29 @@ class ReportController extends Controller
      * Get all expenses for the current month and year for the authenticated user.
      */
     public function currentMonthExpenses(Request $request)
-    {
-        // Get current year and month (or from request if provided, but requirement specifies current month)
-        $year = now()->year;
-        $month = now()->month;
+{
+    // Get current year and month
+    $year = now()->year;
+    $month = now()->month;
 
-        // Fetch expenses that fall within the current month/year
-        $expenses = Auth::user()->expenses()
-            ->whereYear('expense_date', $year)
-            ->whereMonth('expense_date', $month)
-            ->get();
+    // Fetch expenses from ALL users that fall within the current month/year.
+    // We use Expense::query() directly and eager load the category.
+    $expenses = \App\Models\Expense::with(['category']) 
+        ->whereYear('expense_date', $year)
+        ->whereMonth('expense_date', $month)
+        ->get();
 
-        $totalAmount = $expenses->sum('amount');
+    $totalAmount = $expenses->sum('amount');
 
-        // Return the expenses and the calculated total
-        return response()->json([
-            'message' => 'Gastos del mes recuperados exitosamente.',
-            'data' => [
-                'expenses' => $expenses,
-                'total_amount' => $totalAmount,
-                'month_name' => now()->locale('es')->monthName,
-                'year' => $year
-            ]
-        ], 200);
-    }
+    // Return the expenses and the calculated total
+    return response()->json([
+        'message' => 'Gastos del mes recuperados exitosamente.',
+        'data' => [
+            'expenses' => $expenses,
+            'total_amount' => $totalAmount,
+            'month_name' => now()->locale('es')->monthName,
+            'year' => $year
+        ]
+    ], 200);
+}
 }
