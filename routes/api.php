@@ -75,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/income-by-month', [ReportController::class, 'incomeByMonth']);
     Route::get('/reports/available-years', [ReportController::class, 'paymentYears']);
     Route::get('reports/search-residents', [ResidentController::class, 'searchResidents']); 
-    Route::get('reports/current-month-expenses', [ReportController::class, 'currentMonthExpenses']);
+    Route::get('reports/expenses', [ReportController::class, 'expenses']);
     
     // --- EXPENSES MODULE ROUTES ---
     Route::apiResource('expenses', ExpenseController::class);

@@ -3,20 +3,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Address; 
-use App\Models\AddressPayment; 
+use App\Models\Address;
+use App\Models\AddressPayment;
+use App\Models\Expense;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ReportController extends Controller
 {
     /**
-     * Debts per Property (Adeudos por Predio)
+     * Income Report (Debtors / Adeudos)
+     * Filters by year and calculates totals by calendar payment month (payment_date).
+     * @param Request $request Contains payment_type and year.
+     * @return \Illuminate\Http\JsonResponse
      */
     public function debtors(Request $request)
     {
         $paymentType = $request->get('payment_type', null);
-        $year = (int) $request->get('year', date('Y'));
+        $year = (int) $request->get('year', date('Y')); // Report Year (ingresoYear from front)
 
         try {
             // Get relevant fees
@@ -43,42 +47,61 @@ class ReportController extends Controller
 
                     $fullAddress = "{$address->street} #{$address->street_number} ({$address->type})";
 
-                    // Query all paid months for this address + fee
-                    $paymentsQuery = AddressPayment::where('address_id', $address->id)
+                    // 1. QUERY for FEE STATUS (month_1, month_2, etc.) - Filtered by FEE MONTH YEAR
+                    // This query determines which month squares are checked/paid.
+                    $monthlyStatusQuery = AddressPayment::where('address_id', $address->id)
                         ->where('status', 'Pagado')
-                        ->where('year', $year);
+                        ->where('year', $year); // Fee year
 
                     if ($feeName) {
-                        $paymentsQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
+                         $monthlyStatusQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
                     }
+                    $monthlyStatusPayments = $monthlyStatusQuery->get();
 
-                    $paidPayments = $paymentsQuery->get();
+                    // 2. QUERY for CALENDAR MONTH SUM (Total Row) - Filtered by PAYMENT DATE YEAR
+                    // This query determines the total income RECEIVED per calendar month (for the total row).
+                    $calendarPaymentsQuery = AddressPayment::where('address_id', $address->id)
+                        ->where('status', 'Pagado')
+                        ->whereYear('payment_date', $year); // Payment Year
 
-                    // Extract paid months
-                    $paidMonthsArray = $paidPayments->pluck('month')->toArray();
+                    if ($feeName) {
+                        $calendarPaymentsQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
+                    }
+                    $calendarPayments = $calendarPaymentsQuery->get();
 
-                    // Historical saved data
+
+                    // --- Data extraction for columns ---
+                    $paidMonthsArray = $monthlyStatusPayments->pluck('month')->toArray();
                     $paymentDates = [];
                     $paidAmounts  = [];
 
-                    foreach ($paidPayments as $payment) {
+                    foreach ($monthlyStatusPayments as $payment) {
                         $paymentDates[$payment->month] = $payment->payment_date;
                         $paidAmounts[$payment->month]  = $payment->amount_paid ?? 0;
                     }
 
-                    // Count paid months
+                    // --- FIX: Calculate total income per calendar month based on payment date (payment_date) ---
+                    $incomeByCalendarMonth = [];
+                    for ($m = 1; $m <= 12; $m++) {
+                        $incomeByCalendarMonth[$m] = 0; // Initialize array with keys 1-12
+                    }
+
+                    foreach ($calendarPayments as $payment) {
+                        // Extract month number from the actual payment_date
+                        $paymentMonth = Carbon::parse($payment->payment_date)->month;
+                        // Accumulate amount in the calendar month of payment
+                        $incomeByCalendarMonth[$paymentMonth] += $payment->amount_paid ?? 0;
+                    }
+                    // --- END FIX LOGIC ---
+
+
+                    // Debt Calculation (based on FEE MONTH status)
                     $paidMonths = count($paidMonthsArray);
-
-                    // Expected total 12 months
                     $expectedMonths = 12;
-
-                    // Calculate overdue months
                     $months_overdue = max(0, $expectedMonths - $paidMonths);
-
-                    // Debt is always calculated using current fee amount
                     $total = $months_overdue * $feeAmount;
 
-                    // Build monthly dataset (status, date, amount)
+                    // Build monthly dataset
                     $monthData = [];
 
                     for ($m = 1; $m <= 12; $m++) {
@@ -87,13 +110,16 @@ class ReportController extends Controller
                         $monthData["month_{$m}"] = $isPaid;
                         $monthData["month_{$m}_date"] = $isPaid ? ($paymentDates[$m] ?? null) : null;
                         $monthData["month_{$m}_amount_paid"] = $isPaid ? ($paidAmounts[$m] ?? 0) : null;
+                        
+                        // Add the calendar month payment field (for the front-end Total Row)
+                        $monthData["total_paid_in_month_{$m}"] = $incomeByCalendarMonth[$m]; 
                     }
 
                     return array_merge([
                         'name' => $fullAddress,
                         'full_address' => $fullAddress,
                         'paid_months' => $paidMonths,
-                        'fee_amount' => $feeAmount, 
+                        'fee_amount' => $feeAmount,
                         'fee_name' => $feeName,
                         'months_overdue' => $months_overdue,
                         'total' => $total,
@@ -125,33 +151,36 @@ class ReportController extends Controller
             ], 500);
         }
     }
+    
     /**
-     * Get all expenses for the current month and year for the authenticated user.
+     * Expense Report (Egresos)
+     * Filters by requested month and year.
+     * @param Request $request Contains month and year.
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function currentMonthExpenses(Request $request)
-{
-    // Get current year and month
-    $year = now()->year;
-    $month = now()->month;
+    public function expenses(Request $request)
+    {
+        // Get year and month from the request, using current date as fallback.
+        $year = (int) $request->get('year', now()->year);
+        $month = (int) $request->get('month', now()->month);
 
-    // Fetch expenses from ALL users that fall within the current month/year.
-    // We use Expense::query() directly and eager load the category.
-    $expenses = \App\Models\Expense::with(['category']) 
-        ->whereYear('expense_date', $year)
-        ->whereMonth('expense_date', $month)
-        ->get();
+        if ($month < 1 || $month > 12) {
+            $month = now()->month;
+        }
 
-    $totalAmount = $expenses->sum('amount');
+        $expenses = Expense::with('category')
+            ->whereYear('expense_date', $year)
+            ->whereMonth('expense_date', $month)
+            ->get();
 
-    // Return the expenses and the calculated total
-    return response()->json([
-        'message' => 'Gastos del mes recuperados exitosamente.',
-        'data' => [
+        $dateForName = Carbon::createFromDate($year, $month, 1)->locale('es');
+
+        return response()->json([
+            'month' => $month,
+            'year' => $year,
+            'month_name' => $dateForName->monthName,
             'expenses' => $expenses,
-            'total_amount' => $totalAmount,
-            'month_name' => now()->locale('es')->monthName,
-            'year' => $year
-        ]
-    ], 200);
-}
+            'total' => $expenses->sum('amount'),
+        ]);
+    }
 }
