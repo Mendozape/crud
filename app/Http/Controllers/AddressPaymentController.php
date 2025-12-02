@@ -104,6 +104,10 @@ class AddressPaymentController extends Controller
             'year'          => 'required|digits:4',
             'months'        => 'required|array',
             'months.*'      => 'integer|min:1|max:12',
+
+            // NEW VALIDATION: Waived months (optional array)
+            'waived_months' => 'nullable|array',
+            'waived_months.*' => 'integer|min:1|max:12',
         ]);
 
         // Load the fee to store the historical amount
@@ -127,24 +131,38 @@ class AddressPaymentController extends Controller
             ], 200);
         }
 
-        // Save new payments
+        // NEW: Get the list of months to be waived (defaults to empty array)
+        $monthsToWaive = $validated['waived_months'] ?? [];
+
+
+        // Save new payments/condonations
         $payments = [];
         foreach ($newMonths as $month) {
+
+            // Determine if the current month is in the waived list
+            $isWaived = in_array($month, $monthsToWaive);
+
+            // Set amount to 0 if the month is waived, otherwise use the full fee amount
+            $amountToPay = $isWaived ? 0 : $fee->amount;
+
+            // Set status to 'Condonado' if waived, otherwise 'Pagado'
+            $status = $isWaived ? 'Condonado' : 'Pagado';
+
             $payments[] = AddressPayment::create([
                 'address_id'   => $validated['address_id'],
                 'fee_id'       => $validated['fee_id'],
                 'payment_date' => $validated['payment_date'],
                 'month'        => $month,
                 'year'         => $validated['year'],
-                'status'       => 'Pagado',
 
-                // 🔥 KEY FIELD — stores the fee value at the moment of payment
-                'amount_paid'  => $fee->amount,
+                // 🔥 UPDATED FIELDS
+                'status'       => $status,
+                'amount_paid'  => $amountToPay,
             ]);
         }
 
         return response()->json([
-            'message'  => 'Payments registered successfully.',
+            'message'  => 'Movements (Payments and/or Waived) registered successfully.',
             'saved'    => $payments,
             'skipped'  => array_values($existingPayments),
         ], 201);
@@ -210,18 +228,21 @@ class AddressPaymentController extends Controller
             ->where('year', $year);
 
         if ($feeId) {
+            // Filter by fee type if provided
             $query->where('fee_id', $feeId);
         }
 
-        // Filter payments that should block re-selection (Paid or Canceled)
-        // Payments marked as 'Cancelado' or 'Pagado' occupy the slot.
-        $query->whereIn('status', ['Pagado', 'Cancelado']);
+        // Only return payments that block re-selection
+        // Payments marked as 'Pagado', 'Cancelado', or 'Condonado' occupy that month
+        $query->whereIn('status', ['Pagado', 'Cancelado', 'Condonado']);
 
-        // Exclude soft-deleted payments (allowing re-payment of annulled records)
+        // Exclude soft-deleted payments (those annulled can be re-paid)
         $query->whereNull('deleted_at');
 
-        // Get unique month numbers
-        $months = $query->pluck('month')->unique()->values();
+        // Get month + status and ensure only one record per month
+        $months = $query->get(['month', 'status'])
+            ->unique('month')   // Ensure only one record per month
+            ->values();         // Reindex the collection
 
         return response()->json([
             'months' => $months

@@ -23,7 +23,7 @@ class ReportController extends Controller
         $year = (int) $request->get('year', date('Y')); // Report Year (ingresoYear from front)
 
         try {
-            // Get relevant fees
+            // Get relevant fees based on filter selection ('Todos' or specific fee name)
             $fees = [];
             if ($paymentType === 'Todos') {
                 $fees = \App\Models\Fee::all();
@@ -34,11 +34,12 @@ class ReportController extends Controller
                 }
             }
 
-            // Get all addresses
+            // Get all address records for mapping
             $addresses = Address::select('id', 'street', 'street_number', 'type', 'comments')->get();
 
             $allRows = collect();
 
+            // Iterate over each fee (or just the selected one) to generate report rows
             foreach ($fees as $fee) {
                 $feeAmount = $fee->amount ?? 0;
                 $feeName   = $fee->name ?? '';
@@ -48,20 +49,23 @@ class ReportController extends Controller
                     $fullAddress = "{$address->street} #{$address->street_number} ({$address->type})";
 
                     // 1. QUERY for FEE STATUS (month_1, month_2, etc.) - Filtered by FEE MONTH YEAR
-                    // This query determines which month squares are checked/paid.
+                    // This query determines which month squares are checked/paid (and therefore not debt).
                     $monthlyStatusQuery = AddressPayment::where('address_id', $address->id)
-                        ->where('status', 'Pagado')
+                        // Must include 'Pagado' and 'Condonado' to mark the month as covered.
+                        ->whereIn('status', ['Pagado', 'Condonado']) 
                         ->where('year', $year); // Fee year
 
                     if ($feeName) {
-                         $monthlyStatusQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
+                        $monthlyStatusQuery->whereHas('fee', fn($q) => $q->where('name', $feeName));
                     }
+                    // Select all relevant fields, including status, date, and amount paid.
                     $monthlyStatusPayments = $monthlyStatusQuery->get();
 
                     // 2. QUERY for CALENDAR MONTH SUM (Total Row) - Filtered by PAYMENT DATE YEAR
-                    // This query determines the total income RECEIVED per calendar month (for the total row).
+                    // This query determines the actual income RECEIVED per calendar month (for the total row calculation).
                     $calendarPaymentsQuery = AddressPayment::where('address_id', $address->id)
-                        ->where('status', 'Pagado')
+                        // Must include 'Pagado' and 'Condonado' for complete balance tracking.
+                        ->whereIn('status', ['Pagado', 'Condonado']) 
                         ->whereYear('payment_date', $year); // Payment Year
 
                     if ($feeName) {
@@ -71,16 +75,21 @@ class ReportController extends Controller
 
 
                     // --- Data extraction for columns ---
+                    // Array of month numbers that are registered (used to build the row structure)
                     $paidMonthsArray = $monthlyStatusPayments->pluck('month')->toArray();
                     $paymentDates = [];
                     $paidAmounts  = [];
+                    // Store the status ('Pagado'/'Condonado') for each registered month.
+                    $monthStatuses = []; 
 
                     foreach ($monthlyStatusPayments as $payment) {
                         $paymentDates[$payment->month] = $payment->payment_date;
                         $paidAmounts[$payment->month]  = $payment->amount_paid ?? 0;
+                        // Store the actual status for display in the frontend.
+                        $monthStatuses[$payment->month] = $payment->status; 
                     }
 
-                    // --- FIX: Calculate total income per calendar month based on payment date (payment_date) ---
+                    // 3. FIX: Calculate total income per calendar month based on payment date (payment_date)
                     $incomeByCalendarMonth = [];
                     for ($m = 1; $m <= 12; $m++) {
                         $incomeByCalendarMonth[$m] = 0; // Initialize array with keys 1-12
@@ -95,21 +104,20 @@ class ReportController extends Controller
                     // --- END FIX LOGIC ---
 
 
-                    // Debt Calculation (based on FEE MONTH status)
-                    $paidMonths = count($paidMonthsArray);
-                    $expectedMonths = 12;
-                    $months_overdue = max(0, $expectedMonths - $paidMonths);
-                    $total = $months_overdue * $feeAmount;
+                    // 4. Data preparation for the monthly columns
+                    $registeredMonthsCount = count($paidMonthsArray);
 
-                    // Build monthly dataset
                     $monthData = [];
 
                     for ($m = 1; $m <= 12; $m++) {
-                        $isPaid = in_array($m, $paidMonthsArray);
+                        $isRegistered = in_array($m, $paidMonthsArray);
 
-                        $monthData["month_{$m}"] = $isPaid;
-                        $monthData["month_{$m}_date"] = $isPaid ? ($paymentDates[$m] ?? null) : null;
-                        $monthData["month_{$m}_amount_paid"] = $isPaid ? ($paidAmounts[$m] ?? 0) : null;
+                        $monthData["month_{$m}"] = $isRegistered;
+                        $monthData["month_{$m}_date"] = $isRegistered ? ($paymentDates[$m] ?? null) : null;
+                        $monthData["month_{$m}_amount_paid"] = $isRegistered ? ($paidAmounts[$m] ?? 0) : null;
+                        
+                        // Pass the exact status ('Pagado' or 'Condonado') to the frontend for display
+                        $monthData["month_{$m}_status"] = $isRegistered ? ($monthStatuses[$m] ?? 'Pagado') : null; 
                         
                         // Add the calendar month payment field (for the front-end Total Row)
                         $monthData["total_paid_in_month_{$m}"] = $incomeByCalendarMonth[$m]; 
@@ -118,11 +126,11 @@ class ReportController extends Controller
                     return array_merge([
                         'name' => $fullAddress,
                         'full_address' => $fullAddress,
-                        'paid_months' => $paidMonths,
+                        'paid_months' => $registeredMonthsCount,
                         'fee_amount' => $feeAmount,
                         'fee_name' => $feeName,
-                        'months_overdue' => $months_overdue,
-                        'total' => $total,
+                        'months_overdue' => 0, // Calculated in frontend for temporal accuracy
+                        'total' => 0,          // Calculated in frontend for temporal accuracy
                         'comments' => $address->comments ?? '',
                     ], $monthData);
                 });
@@ -168,11 +176,13 @@ class ReportController extends Controller
             $month = now()->month;
         }
 
+        // Fetch expenses for the given month and year
         $expenses = Expense::with('category')
             ->whereYear('expense_date', $year)
             ->whereMonth('expense_date', $month)
             ->get();
 
+        // Create a Carbon instance to get the month name in Spanish
         $dateForName = Carbon::createFromDate($year, $month, 1)->locale('es');
 
         return response()->json([

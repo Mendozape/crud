@@ -110,8 +110,9 @@ const Reports = () => {
         let unpaidCount = 0;
         // Check payment status for months 1 through 'lastMonth'
         for (let m = 1; m <= lastMonth; m++) {
-            const isPaid = !!row[`month_${m}`];
-            if (!isPaid) unpaidCount++;
+            const isRegistered = !!row[`month_${m}`];
+            // Debt is calculated ONLY if the month is NOT registered (paid or condoned)
+            if (!isRegistered) unpaidCount++;
         }
         return unpaidCount * feeAmount;
     };
@@ -124,8 +125,9 @@ const Reports = () => {
         let unpaidCount = 0;
         // Count unpaid months up to 'lastMonth'
         for (let m = 1; m <= lastMonth; m++) {
-            const isPaid = !!row[`month_${m}`];
-            if (!isPaid) unpaidCount++;
+            const isRegistered = !!row[`month_${m}`];
+            // Months overdue count ONLY if the month is NOT registered (paid or condoned)
+            if (!isRegistered) unpaidCount++;
         }
         return unpaidCount;
     };
@@ -327,7 +329,7 @@ const Reports = () => {
                     const calendarAmount = Number(row[`total_paid_in_month_${m}`] || 0);
                     monthlyCalendarTotals[m - 1] += calendarAmount;
                     
-                    // Calculate rowTotalPaid only if the month is marked as paid
+                    // Calculate rowTotalPaid only if the month is marked as registered
                     if (row[`month_${m}`]) {
                         rowTotalPaid += Number(row[`month_${m}_amount_paid`] ?? feeAmount);
                     }
@@ -345,16 +347,29 @@ const Reports = () => {
 
                 // Map monthly payments to table cells
                 for (let m = 1; m <= 12; m++) {
-                    const paid = !!row[`month_${m}`];
+                    const isRegistered = !!row[`month_${m}`]; // Check if it's paid OR condoned
                     const dateStr = row[`month_${m}_date`] ? 
                         new Date(row[`month_${m}_date`]).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit" }) : "";
                     const amountPaid = Number(row[`month_${m}_amount_paid`] ?? 0);
+                    const status = row[`month_${m}_status`]; // Status: 'Pagado' or 'Condonado'
 
-                    if (paid) {
-                        // Display date and amount if paid
-                        const amountText = amountPaid ? formatCurrency(amountPaid) : "";
-                        const lines = [dateStr, amountText].filter(Boolean).join("\n");
-                        bodyRow.push(lines);
+                    if (isRegistered) {
+                        const amountDisplay = amountPaid > 0 ? formatCurrency(amountPaid) : '';
+                        
+                        let visualContent;
+                        
+                        // Determine if the month was waived (status is Condonado OR amount paid is 0)
+                        const isWaived = status === 'Condonado' || amountPaid === 0;
+
+                        if (isWaived) {
+                             // 2. Si es condonado (o monto cero), poner "Condonado" en lugar del monto.
+                            visualContent = [dateStr, "Condonado"].filter(Boolean).join("\n");
+                        } else {
+                            // 1. Si está pagado con monto, poner monto
+                            visualContent = [dateStr, amountDisplay].filter(Boolean).join("\n");
+                        }
+                        
+                        bodyRow.push(visualContent);
                     } else {
                         // Mark 'X' if overdue up to the previous month, otherwise '-'
                         const lastMonth = getLastMonthToConsider(ingresoYear); 
@@ -444,51 +459,59 @@ const Reports = () => {
                 },
                 didParseCell: function (data) {
                     const columnCount = tableHeaders[0].length;
+                    const monthIndexStart = 2; // Index where month columns start
 
-                    if (data.row.index === finalRowIndex) { // Styling for the final total row
-                        const monthIndexStart = 2;
-
+                    // --- Final Row Styling ---
+                    if (data.row.index === finalRowIndex) { 
+                        // ... (Existing Final Row Logic) ...
                         if (data.column.index === 0) {
-                            data.cell.colSpan = 2; // Merge the first two columns for the label
+                            data.cell.colSpan = 2; 
                             data.cell.styles.halign = 'left';
                         } else if (data.column.index === 1) {
-                            return false; // Skip the second column as it's merged into the first
+                            return false;
                         }
 
-                        // Highlight current month's total column
                         if (data.column.index >= monthIndexStart && data.column.index < columnCount - 3) {
                             const monthNum = data.column.index - monthIndexStart + 1;
                             if (monthNum === currentMonthNum && ingresoYear === currentYear) {
-                                data.cell.styles.fillColor = [255, 255, 153]; // Light yellow
+                                data.cell.styles.fillColor = [255, 255, 153]; 
                                 data.cell.styles.textColor = [0, 0, 0];
                             }
                         }
 
-                        // Highlight Grand Total Debt if greater than zero
                         if (data.column.index === 15 && grandTotalDebt > 0) {
-                            data.cell.styles.fillColor = [220, 53, 69]; // Red
+                            data.cell.styles.fillColor = [220, 53, 69]; 
                             data.cell.styles.textColor = 255;
                         }
 
-                    } else { // Styling for regular data rows
-                        // Check if debt column (index 15) has a debt value greater than 0
+                    } else { 
+                        // --- Regular Data Row Styling ---
+                        // Debt Column Styling
                         const totalDebtRaw = data.row.raw[15] ? String(data.row.raw[15]).split(' ')[0].replace(/\$|,/g, '') : '0';
                         const totalDebtValue = Number(totalDebtRaw) || 0;
 
                         if (data.column.index === 15 && totalDebtValue > 0) {
-                            data.cell.styles.fillColor = [220, 53, 69]; // Red
+                            data.cell.styles.fillColor = [220, 53, 69]; 
                             data.cell.styles.textColor = 255;
                         }
 
-                        // Check monthly columns (index 2 to 13)
+                        // Monthly Columns Styling (Index 2 to 13)
                         if (data.column.index >= 2 && data.column.index <= 13) {
+                            const cellText = String(data.cell.text);
+                            
                             // Highlight "X" (overdue mark) cells in red
-                            if (data.cell.text && String(data.cell.text)[0] === 'X') {
-                                data.cell.styles.fillColor = [220, 53, 69]; // Red
+                            if (cellText && cellText[0] === 'X') {
+                                data.cell.styles.fillColor = [220, 53, 69]; 
+                                data.cell.styles.textColor = 255;
+                            } 
+                            // Highlight Condonado in blue/info color
+                            else if (cellText.includes('Condonado')) {
+                                data.cell.styles.fillColor = [100, 149, 237]; // Cornflower Blue
                                 data.cell.styles.textColor = 255;
                             }
-                            // Adjust font size/alignment for paid cells containing date and amount (multi-line)
-                            if (String(data.cell.text).includes("\n")) {
+
+                            // Adjust font size/alignment for paid cells (multi-line)
+                            if (cellText.includes("\n")) {
                                 data.cell.styles.fontSize = 6.5;
                                 data.cell.styles.halign = "center";
                                 data.cell.styles.valign = "middle";
@@ -503,7 +526,7 @@ const Reports = () => {
                 }
             });
 
-            // Update startY to position the next section
+            // ... (3. EXPENSE TABLE GENERATION remains unchanged) ...
             let expenseStartY = doc.autoTable.previous.finalY + 15;
             const expensesToDisplay = (currentMonthExpenses.expenses || []);
             
@@ -764,11 +787,12 @@ const Reports = () => {
 
                                                     // Generate monthly cells
                                                     for (let m = 1; m <= 12; m++) {
-                                                        const isPaid = !!row[`month_${m}`];
+                                                        const isRegistered = !!row[`month_${m}`]; // Check if it's paid OR condoned
                                                         const paymentDateStr = row[`month_${m}_date`];
                                                         const amountPaid = Number(row[`month_${m}_amount_paid`] ?? feeAmount);
+                                                        const status = row[`month_${m}_status`]; // Status: 'Pagado' or 'Condonado'
 
-                                                        if (isPaid) {
+                                                        if (isRegistered) {
                                                             rowTotalPaid += amountPaid; // Accumulate row total paid
                                                         }
                                                         
@@ -776,18 +800,47 @@ const Reports = () => {
                                                         const calendarAmount = Number(row[`total_paid_in_month_${m}`] || 0);
                                                         monthlyCalendarTotals[m - 1] += calendarAmount; 
                                                         
-                                                        if (isPaid) {
-                                                            // Paid cell: display checkmark, date, and amount
-                                                            const dateText = paymentDateStr ? new Date(paymentDateStr).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' }) : '';
-                                                            const amountText = amountPaid ? formatCurrency(amountPaid) : '';
-                                                            const content = (
-                                                                <div style={{ lineHeight: 1 }}>
-                                                                    <div className="text-success fw-bold">✓</div>
-                                                                    {dateText && <small className="d-block" style={{ fontSize: '0.65em' }}>{dateText}</small>}
-                                                                    {amountText && <small className="d-block" style={{ fontSize: '0.65em' }}>{amountText}</small>}
-                                                                </div>
-                                                            );
-                                                            cells.push(<td key={`m${m}-${i}`} className="text-center" style={{ width: '50px' }}>{content}</td>);
+                                                        if (isRegistered) {
+                                                            
+                                                            let content;
+                                                            let cellClass = 'text-center';
+                                                            
+                                                            // Determine if the month was waived (status is Condonado OR amount paid is 0)
+                                                            const isWaived = status === 'Condonado' || amountPaid === 0;
+
+                                                            if (isWaived) {
+                                                                // Condonado: Show date and the word "condonado"
+                                                                const dateText = paymentDateStr ? new Date(paymentDateStr).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' }) : '';
+                                                                
+                                                                // Usar small para el tamaño de la cantidad y texto en minúsculas
+                                                                const statusText = <small className="d-block text-white fw-bold" style={{ fontSize: '0.65em' }}>condonado</small>;
+
+                                                                content = (
+                                                                    <div style={{ lineHeight: 1 }}>
+                                                                        <div className="text-white fw-bold">✓</div>
+                                                                        {dateText && <small className="d-block text-white" style={{ fontSize: '0.65em' }}>{dateText}</small>}
+                                                                        {statusText}
+                                                                    </div>
+                                                                );
+                                                                // Clase para fondo azul (info)
+                                                                cellClass = 'text-center bg-info text-white'; 
+                                                                
+                                                            } else {
+                                                                // Pagado: Show date and amount
+                                                                const dateText = paymentDateStr ? new Date(paymentDateStr).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' }) : '';
+                                                                const amountText = formatCurrency(amountPaid);
+                                                                
+                                                                content = (
+                                                                    <div style={{ lineHeight: 1 }}>
+                                                                        <div className="text-success fw-bold">✓</div>
+                                                                        {dateText && <small className="d-block" style={{ fontSize: '0.65em' }}>{dateText}</small>}
+                                                                        {amountText && <small className="d-block" style={{ fontSize: '0.65em' }}>{amountText}</small>}
+                                                                    </div>
+                                                                );
+                                                                cellClass = 'text-center'; 
+                                                            }
+
+                                                            cells.push(<td key={`m${m}-${i}`} className={cellClass} style={{ width: '50px' }}>{content}</td>);
                                                         } else {
                                                             // Unpaid cell: '✗' if overdue, '-' if not due yet
                                                             const lastMonth = getLastMonthToConsider(ingresoYear);
@@ -858,25 +911,14 @@ const Reports = () => {
                                                     </tr>
                                                 );
                                                 
-                                                // Expense rows preparation
+                                                // Expense rows preparation (remains unchanged)
                                                 const expenseRows = [];
-                                                const expensesToDisplay = (currentMonthExpenses.expenses || [])
-                                                    // Filter expenses using the same search term as the main table (optional extra filter)
-                                                    .filter(exp => {
-                                                        if (!searchTerm) return true;
-                                                        const cat = (exp.category?.name || exp.category || '').toString().toLowerCase();
-                                                        const desc = (exp.description || '').toString().toLowerCase();
-                                                        const amt = (exp.amount || '').toString();
-                                                        return cat.includes(searchTerm.toLowerCase()) || desc.includes(searchTerm.toLowerCase()) || amt.includes(searchTerm);
-                                                    });
+                                                const expensesToDisplay = (currentMonthExpenses.expenses || []);
                                                 
                                                 const expenseMonthDisplay = currentMonthExpenses.monthName;
                                                 const expenseYearDisplay = currentMonthExpenses.year;
                                                 
-                                                // If there are expenses to display or a total is present
                                                 if ((expensesToDisplay.length > 0) || (currentMonthExpenses.total && currentMonthExpenses.total > 0)) {
-                                                    const totalHeaderColSpan = fullTableColSpan - 2;
-
                                                     // Expense Header Row
                                                     expenseRows.push(
                                                         <tr key="expenses-header" className="fw-bold bg-dark text-white">
@@ -886,25 +928,20 @@ const Reports = () => {
 
                                                     // Individual Expense Rows (only display amount in the corresponding month column)
                                                     expensesToDisplay.forEach((expense, expIndex) => {
-                                                        // Calculate column spans to center the expense amount under the correct month
                                                         const colsBeforeMonth = Number(gastoMonth) - 1; 
                                                         const colsAfterMonth = (totalMonthColumns - Number(gastoMonth)) + totalTrailingColumns; 
                                                         
                                                         expenseRows.push(
-                                                            <tr key={`expense-${expIndex}`} className="text-muted" style={{ fontSize: '0.85em' }}>
+                                                            <tr key="expense-expIndex" className="text-muted" style={{ fontSize: '0.85em' }}>
                                                                 <td colSpan={2} className="text-left">
-                                                                    {/* Display category/description for context */}
                                                                     <span className="fw-bold text-danger">➖ {expense.category?.name || expense.category || 'Gasto'}</span>
                                                                     <span className="d-block text-truncate fst-italic" style={{maxWidth: '200px'}}>{expense.description}</span>
                                                                 </td>
-                                                                {/* Empty columns before the expense month */}
                                                                 {colsBeforeMonth > 0 && <td colSpan={colsBeforeMonth} className="text-center"></td>}
-                                                                {/* Expense amount in the target month column */}
-                                                                <td key={`exp-amount-month-${expIndex}`} className="text-end fw-bold text-danger bg-light">
+                                                                <td key="exp-amount-month-expIndex" className="text-end fw-bold text-danger bg-light">
                                                                     {formatCurrency(expense.amount)}
                                                                     <small className="d-block text-muted" style={{fontSize: '0.65em'}}>{new Date(expense.expense_date).toLocaleDateString('es-MX', {day: '2-digit', month: '2-digit', year: 'numeric'})}</small>
                                                                 </td>
-                                                                {/* Empty columns after the expense month */}
                                                                 {colsAfterMonth > 0 && <td colSpan={colsAfterMonth} className="text-center"></td>}
                                                             </tr>
                                                         );
@@ -947,7 +984,7 @@ const Reports = () => {
                                                 const formulaString = `${ingresoFormatted} - ${egresoFormatted} = ${saldoFormatted}`;
                                                 
                                                 // Apply custom blue background class for the SALDO row
-                                                const saldoBgClass = saldo >= 0 ? 'bg-blue' : 'bg-red'; 
+                                                const saldoBgClass = saldo >= 0 ? 'bg-success' : 'bg-danger'; 
 
                                                 const saldoRow = (
                                                     <tr key="saldo-total" className={`fw-bold ${saldoBgClass} text-white`}>
