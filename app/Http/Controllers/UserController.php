@@ -141,10 +141,9 @@ class UserController extends Controller
         $user = User::create($input);
         $user->assignRole($request->input('roles')); // Assign selected roles
 
-        $admins = User::role('Admin')->get();
-        Notification::send($admins, new DataBase($user)); // Notify all admins
-
-        event(new UserRegistered($user->name)); // Fire registered event
+        //$admins = User::role('Admin')->get();
+        //Notification::send($admins, new DataBase($user)); // Notify all admins
+        //event(new UserRegistered($user->name)); // Fire registered event
 
         return response()->json([
             'message' => 'User created successfully',

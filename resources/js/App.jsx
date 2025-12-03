@@ -5,8 +5,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Pages
 import Stats from "./pages/Stats";
-import NotiPage from "./pages/Notfications/NotiPage";
-import NotiProfile from "./pages/Notfications/NotiProfile";
+//import NotiPage from "./pages/Notfications/NotiPage";
+//import NotiProfile from "./pages/Notfications/NotiProfile";
 import Profile from "./pages/Profile";
 
 // Chat Pages & Components
@@ -82,9 +82,7 @@ const App = () => {
                     {/* CHAT ROUTE: This loads the main chat interface */}
                     <Route path="/chat" element={<ChatPage user={user} />} />
 
-                    <Route path="/notificationsList" element={<NotiPage />}>
-                        <Route path=":id" element={<NotiProfile />} />
-                    </Route>
+                    
 
                     {/* Residents SPA routes */}
                     <Route path="/residents" element={<ShowResidents user={user} />} />

@@ -122,6 +122,11 @@ const ResidentsTable = () => {
             minWidth: '150px',
         },
     ];
+    const NoDataComponent = () => (
+        <div style={{ padding: '24px', textAlign: 'center', fontSize: '1.1em', color: '#6c757d' }}>
+            No hay registros para mostrar.
+        </div>
+    );
 
     useEffect(() => {
         if (successMessage) {
@@ -161,6 +166,7 @@ const ResidentsTable = () => {
                     columns={columns}
                     data={filteredResidents}
                     progressPending={loading}
+                    noDataComponent={<NoDataComponent />}
                     pagination
                     paginationPerPage={10}
                     paginationRowsPerPageOptions={[5, 10, 15, 20]}

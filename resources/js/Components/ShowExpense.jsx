@@ -144,6 +144,11 @@ const ExpensesTable = () => {
             minWidth: '200px',
         },
     ];
+    const NoDataComponent = () => (
+        <div style={{ padding: '24px', textAlign: 'center', fontSize: '1.1em', color: '#6c757d' }}>
+            No hay registros para mostrar.
+        </div>
+    );
 
     // Effect to clear success message after 5 seconds (omitted for brevity)
     // Effect to clear error message after 5 seconds (omitted for brevity)
@@ -179,6 +184,7 @@ const ExpensesTable = () => {
                         columns={columns}
                         data={filteredExpenses}
                         progressPending={loading}
+                        noDataComponent={<NoDataComponent />}
                         pagination
                         paginationPerPage={10}
                         paginationRowsPerPageOptions={[5, 10, 15, 20]}

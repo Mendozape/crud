@@ -20,12 +20,12 @@ use Illuminate\Support\Facades\Auth;
 class NotificationsController extends Controller
 {
     //public $user;
-    public function email()
+    /*public function email()
     {
         $email= Notification::send(User::where('email','erasto.mendoza.perez@gmail.com')-> first(), new newsCreated);
         return view('notifications.email')->with('email',$email);
-    }
-    public function NotiUpdate($id)
+    }*/
+    /*public function NotiUpdate($id)
     {
         if($id){
             auth()->user()->unreadNotifications->where('id',$id)->markAsRead();
@@ -33,7 +33,7 @@ class NotificationsController extends Controller
             auth()->user()->unreadNotifications->markAsRead();
         }
         return redirect()->route('index');
-    }
+    }*/
     public function broadcasting()
     {
         //$user = Auth::user();

@@ -141,6 +141,11 @@ const ShowExpenseCategories = () => {
             minWidth: '150px',
         },
     ];
+    const NoDataComponent = () => (
+        <div style={{ padding: '24px', textAlign: 'center', fontSize: '1.1em', color: '#6c757d' }}>
+            No hay registros para mostrar.
+        </div>
+    );
 
     return (
         <div className="container-fluid mt-4">
@@ -173,6 +178,7 @@ const ShowExpenseCategories = () => {
                         columns={columns}
                         data={filteredCategories}
                         progressPending={loading}
+                        noDataComponent={<NoDataComponent />}
                         pagination
                         highlightOnHover
                         striped

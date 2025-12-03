@@ -13,11 +13,11 @@ const ShowAddresses = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filteredAddresses, setFilteredAddresses] = useState([]);
-    
+
     // States for soft deletion modal
     const [showModal, setShowModal] = useState(false);
-    const [addressToDeactivate, setAddressToDeactivate] = useState(null); 
-    const [deactivationReason, setDeactivationReason] = useState(''); 
+    const [addressToDeactivate, setAddressToDeactivate] = useState(null);
+    const [deactivationReason, setDeactivationReason] = useState('');
 
     // Context hook for global messages
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
@@ -56,9 +56,9 @@ const ShowAddresses = () => {
             const addressText = `${addr.community} ${addr.street} ${addr.street_number} ${addr.type}`;
             const residentName = addr.resident ? `${addr.resident.name} ${addr.resident.last_name}` : '';
             const searchText = search.toLowerCase();
-            
+
             return addressText.toLowerCase().includes(searchText) ||
-                   residentName.toLowerCase().includes(searchText);
+                residentName.toLowerCase().includes(searchText);
         });
         setFilteredAddresses(result);
     }, [search, addresses]);
@@ -74,12 +74,12 @@ const ShowAddresses = () => {
                 headers: { Accept: 'application/json' },
                 data: { reason: reason } // Sending the reason in the DELETE body
             });
-            
+
             if (response.status === 200) {
                 // User-facing success message in Spanish
                 setSuccessMessage('Entrada de catálogo dada de baja exitosamente.');
                 fetchAddresses(); // Refresh list to show 'Inactive' status
-            } 
+            }
         } catch (error) {
             console.error('Deactivation error:', error);
             // User-facing error message in Spanish
@@ -94,30 +94,30 @@ const ShowAddresses = () => {
     // Navigation handlers
     const editAddress = (id) => navigate(`/addresses/edit/${id}`);
     const createAddress = () => navigate('/addresses/create');
-    
+
     // NEW HANDLERS: Payments linked to ADDRESS ID
     const createPayment = (id) => navigate(`/addresses/payment/${id}`);
-    const viewPaymentHistory = (id) => navigate(`/addresses/payments/history/${id}`); 
+    const viewPaymentHistory = (id) => navigate(`/addresses/payments/history/${id}`);
 
     // Modal handlers
     const toggleModal = () => setShowModal(!showModal);
-    
+
     // Opens the modal to confirm deactivation and capture reason
     const confirmDeactivation = (id) => {
         setAddressToDeactivate(id);
         toggleModal();
     };
-    
+
     // Calls the deactivation function with the captured reason
     const handleDeactivation = () => deactivateAddress(addressToDeactivate, deactivationReason);
 
 
     // DataTable column definitions
     const columns = [
-        
+
         // NEW: Combined Address Column
-        { 
-            name: 'Dirección', 
+        {
+            name: 'Dirección',
             selector: row => row.street, // Use 'street' for initial sorting
             sortable: true,
             cell: row => (
@@ -132,8 +132,8 @@ const ShowAddresses = () => {
             minWidth: '280px',
         },
         // NEW: Resident Column (Name + Last Name combined)
-        { 
-            name: 'Residente Asignado', 
+        {
+            name: 'Residente Asignado',
             selector: row => row.resident ? `${row.resident.name} ${row.resident.last_name}` : 'Vacante',
             sortable: true,
             cell: row => (
@@ -147,45 +147,45 @@ const ShowAddresses = () => {
 
         { name: 'Comentarios', selector: row => row.comments, sortable: true },
 
-        { 
+        {
             name: 'Estado', // Status label in Spanish
-            selector: row => row.deleted_at ? 'Inactivo' : 'Activo', 
+            selector: row => row.deleted_at ? 'Inactivo' : 'Activo',
             sortable: true,
             cell: row => (
-                <span className={`badge ${row.deleted_at ? 'bg-danger' : 'bg-info'}`}> 
+                <span className={`badge ${row.deleted_at ? 'bg-danger' : 'bg-info'}`}>
                     {/* Display status in Spanish */}
                     {row.deleted_at ? 'Inactivo' : 'Activo'}
                 </span>
             ),
         },
-        
+
         {
             name: 'Acciones', // Actions label in Spanish
             cell: row => (
                 // Actions depend on the address status
                 <div style={{ display: 'flex', gap: '5px' }}>
-                    
+
                     {/* NEW ACTIONS: Payment and History (Available only if ACTIVE) */}
                     {!row.deleted_at && (
                         <>
-                            <button 
-                                className="btn btn-primary btn-sm" 
+                            <button
+                                className="btn btn-primary btn-sm"
                                 onClick={() => createPayment(row.id)}
                             >
                                 Pagar
                             </button>
-                            <button 
-                                className="btn btn-warning btn-sm" 
+                            <button
+                                className="btn btn-warning btn-sm"
                                 onClick={() => viewPaymentHistory(row.id)}
                             >
                                 <i className="fas fa-history"></i> Historial
                             </button>
                         </>
                     )}
-                    
+
                     {/* Edit and Delete Actions */}
                     <button className="btn btn-info btn-sm" onClick={() => editAddress(row.id)} disabled={!!row.deleted_at}>Editar</button>
-                    
+
                     {row.deleted_at ? (
                         // If inactive, show disabled button
                         <button className="btn btn-secondary btn-sm" disabled>Dada de Baja</button>
@@ -198,6 +198,11 @@ const ShowAddresses = () => {
             minWidth: '320px', // Increased width to fit 4 buttons
         },
     ];
+    const NoDataComponent = () => (
+        <div style={{ padding: '24px', textAlign: 'center', fontSize: '1.1em', color: '#6c757d' }}>
+            No hay registros para mostrar.
+        </div>
+    );
 
     // Effects to clear messages
     useEffect(() => {
@@ -243,6 +248,7 @@ const ShowAddresses = () => {
                     columns={columns}
                     data={filteredAddresses}
                     progressPending={loading}
+                    noDataComponent={<NoDataComponent />}
                     pagination
                     paginationPerPage={10}
                     paginationRowsPerPageOptions={[5, 10, 15, 20]}
@@ -265,7 +271,7 @@ const ShowAddresses = () => {
                         <div className="modal-body">
                             {/* Confirmation text in Spanish */}
                             <p>¿Está seguro de que desea dar de baja esta entrada del catálogo de direcciones? No podrá ser usada para nuevos residentes, pero los registros históricos permanecerán vinculados.</p>
-                            
+
                             <div className="form-group mt-3">
                                 {/* Label in Spanish */}
                                 <label htmlFor="reason">Motivo de la Baja <span className="text-danger">*</span></label>
@@ -283,9 +289,9 @@ const ShowAddresses = () => {
                         <div className="modal-footer">
                             {/* Buttons in Spanish */}
                             <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancelar</button>
-                            <button 
-                                type="button" 
-                                className="btn btn-danger" 
+                            <button
+                                type="button"
+                                className="btn btn-danger"
                                 onClick={handleDeactivation}
                                 disabled={!deactivationReason.trim()} // Disabled if no reason is provided
                             >

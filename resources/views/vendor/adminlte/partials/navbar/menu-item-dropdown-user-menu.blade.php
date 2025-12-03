@@ -31,22 +31,7 @@
 </li>
 
 
-{{-- Notifications icon - separate from user menu --}}
-<li class="nav-item dropdown">
-    <a
-        href="#"
-        class="nav-link"
-        title="Notifications"
-        onclick="event.preventDefault();
-               // Navigate to /notificationsList without reloading the page
-               window.history.pushState({}, '', '/notificationsList');
-               // Tell React Router to render the new route
-               window.dispatchEvent(new PopStateEvent('popstate'));
-    ">
-        <i class="fas fa-bell text-warning"></i>
-        <span id="notification-count" class="badge badge-danger navbar-badge"></span> {{-- React updates this --}}
-    </a>
-</li>
+
 
 {{-- User menu dropdown --}}
 <li class="nav-item dropdown user-menu">
