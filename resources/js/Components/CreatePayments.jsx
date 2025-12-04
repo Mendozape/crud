@@ -21,6 +21,9 @@ const PaymentForm = () => {
     const [formValidated, setFormValidated] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [validationWarning, setValidationWarning] = useState(false);
+    
+    // NEW STATE: To hold the Street Name fetched using the street_id
+    const [streetName, setStreetName] = useState('Cargando...'); 
 
     const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
@@ -39,14 +42,26 @@ const PaymentForm = () => {
         return localDate.toISOString().split('T')[0];
     };
 
+    // NEW EFFECT: Fetch Address Details and then fetch the Street Name using street_id
     useEffect(() => {
         const fetchAddressDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/api/addresses/${addressId}`, axiosOptions);
-                setAddressDetails(response.data.data);
+                // 1. Fetch Address Details (which now contains street_id)
+                const addressResponse = await axios.get(`http://localhost:8000/api/addresses/${addressId}`, axiosOptions);
+                const details = addressResponse.data.data;
+                setAddressDetails(details);
+                
+                // 2. Fetch Street Name using street_id
+                if (details && details.street_id) {
+                    const streetResponse = await axios.get(`http://localhost:8000/api/streets/${details.street_id}`, axiosOptions);
+                    setStreetName(streetResponse.data.name || 'Calle Desconocida');
+                } else {
+                     setStreetName('ID de Calle no encontrado');
+                }
             } catch (error) {
-                console.error('Error fetching address details:', error);
-                setErrorMessage('Fallo al cargar la dirección para el pago.');
+                console.error('Error fetching address or street details:', error);
+                setErrorMessage('Fallo al cargar la dirección o el nombre de la calle.');
+                setStreetName('Error de Carga');
             }
         };
         fetchAddressDetails();
@@ -180,6 +195,7 @@ const PaymentForm = () => {
         };
 
         try {
+            // NOTE: Using 'addressPayments' model as per saved user info.
             await axios.post('http://localhost:8000/api/address_payments', paymentData, axiosOptions);
             setSuccessMessage('Registro de movimiento(s) exitoso.');
             setShowModal(false);
@@ -189,7 +205,7 @@ const PaymentForm = () => {
             console.error('Payment Submission Error:', error); 
             if (error.response) {
                 const msg = error.response.data.message || 
-                                `Error ${error.response.status}: El servidor no pudo procesar la solicitud. Revise la consola.`;
+                                        `Error ${error.response.status}: El servidor no pudo procesar la solicitud. Revise la consola.`;
                 setErrorMessage(msg);
             } else if (error.request) {
                 setErrorMessage('Error de red: No se pudo conectar con el servidor API.');
@@ -217,10 +233,12 @@ const PaymentForm = () => {
         { value: currentYear + 2, label: currentYear + 2 }
     ];
     
+    // UPDATED: Now uses streetName state instead of reading 'street' directly from addressDetails.
     const getFormattedAddress = () => {
         if (!addressDetails) return 'Cargando Dirección...';
-        const { street, street_number, type } = addressDetails;
-        return `${street} #${street_number} (${type})`;
+        const { street_number, type } = addressDetails;
+        // Uses the fetched streetName
+        return `${streetName} #${street_number} (${type})`;
     };
     
     const isFeeSelected = !!feeId;

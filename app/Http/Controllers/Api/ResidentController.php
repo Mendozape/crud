@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use \Exception;
 
 class ResidentController extends Controller
 {
@@ -195,30 +196,55 @@ class ResidentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    // En ResidentController.php, método destroy
+
     public function destroy(string $id)
     {
         try {
+            // Find the resident, throws ModelNotFoundException if not found
             $resident = Resident::findOrFail($id);
 
-            // CRITICAL CHECK: Count if the resident has any associated payments.
-            if ($resident->residentPayments()->count() > 0) {
+            // ⭐ CRITICAL CHECK 1: Resident Addresses (The primary block condition)
+            // Block deletion if the resident is assigned to any active address record.
+            if ($resident->addresses()->count() > 0) { 
                 return response()->json([
                     'success' => false,
-                    'message' => 'No se puede eliminar el residente porque tiene pagos registrados.'
-                ], 409); // 409 Conflict: Indicates related resource conflict.
+                    'message' => 'No se puede eliminar el residente porque tiene direcciones  asignadas.' 
+                ], 409); // 409 Conflict
             }
 
-            // Delete the resident's image from storage 
+            // --- NOTE: Verification for residentPayments has been REMOVED as per instruction. ---
+            
+            // Check if the resident has a photo and attempt to delete it
             if ($resident->photo) {
-                Storage::delete('public/images/' . $resident->photo);
+                // We wrap the storage deletion in a nested try-catch block 
+                // to give a specific error if file deletion fails.
+                try {
+                    // Delete the resident's image from storage 
+                    if (Storage::exists('public/images/' . $resident->photo)) {
+                        Storage::delete('public/images/' . $resident->photo);
+                    }
+                } catch (\Exception $e) {
+                    // Catch file deletion error specifically
+                    return response()->json([
+                        'message' => 'Fallo al eliminar la foto del residente. Intente de nuevo más tarde.'
+                    ], 500); 
+                }
             }
 
+            // Delete the resident record (Soft Delete)
             $resident->delete();
+            
+            // Success response
             return response()->json(['message' => 'Residente eliminado con éxito.'], 200);
+
         } catch (ModelNotFoundException $e) {
+            // Catches error if ID does not exist
             return response()->json(['message' => 'Residente no encontrado.'], 404);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Fallo al eliminar el residente.'], 500);
+            // Fallback for any other unexpected error
+            // Log the error for internal review: Log::error($e->getMessage());
+            return response()->json(['message' => 'Fallo al eliminar el residente por un error inesperado.'], 500);
         }
     }
 

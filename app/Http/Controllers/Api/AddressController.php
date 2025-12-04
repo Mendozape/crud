@@ -7,6 +7,7 @@ use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException; // Used for try-catch in destroy (optional but good practice)
 
 class AddressController extends Controller
 {
@@ -17,8 +18,8 @@ class AddressController extends Controller
     public function index()
     {
         // ENGLISH CODE COMMENTS
-        // Use withTrashed() to include soft-deleted records. Eager load the 'resident' relationship.
-        $addresses = Address::withTrashed()->with('resident')->get();
+        // Use withTrashed() to include soft-deleted records. Eager load the 'resident' and 'street' relationships.
+        $addresses = Address::withTrashed()->with(['resident', 'street'])->get();
         return response()->json(['data' => $addresses]);
     }
 
@@ -29,16 +30,19 @@ class AddressController extends Controller
     {
         // ENGLISH CODE COMMENTS
         // Fetches only non-soft-deleted address catalog entries
-        $addresses = Address::select('id', 'community', 'street', 'street_number')
+        $addresses = Address::select('id', 'community', 'street_id', 'street_number')
             ->whereNull('deleted_at') // Only active addresses
+            ->with('street') // Eager load the street name
             ->orderBy('community')
             ->get();
-            
+
         // Format the address for display in the frontend select/dropdown
         $formattedAddresses = $addresses->map(function ($address) {
+            // Use the relationship to get the street name
+            $streetName = $address->street ? $address->street->name : 'N/A';
             return [
                 'id' => $address->id,
-                'full_address' => "Calle {$address->street} #{$address->street_number}, {$address->community}"
+                'full_address' => "Calle {$streetName} #{$address->street_number}, {$address->community}"
             ];
         });
 
@@ -58,31 +62,38 @@ class AddressController extends Controller
                 'integer',
                 'exists:residents,id',
             ],
-            
+
+            // NEW VALIDATION: Check street_id instead of street (text)
+            'street_id' => [
+                'required',
+                'integer',
+                'exists:streets,id', // Must exist in the streets table
+            ],
+
             // Address data validation
             'community' => 'required|string|max:255',
-            'street' => 'required|string|max:255',
             'street_number' => [
                 'required',
                 'string',
                 'max:255',
-                'numeric', 
-                // CRITICAL FIX: The validation check must be robust and ignore soft-deleted records.
+                'numeric',
+                // CRITICAL FIX: The validation check must use 'street_id' and ignore soft-deleted records.
                 Rule::unique('addresses')->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                                 ->where('street', $request->street)
-                                 ->where('street_number', $request->street_number)
-                                 ->whereNull('deleted_at'); // This makes the validation pass/fail check robust.
+                        ->where('street_id', $request->street_id) // <-- UPDATED to street_id
+                        ->where('street_number', $request->street_number)
+                        ->whereNull('deleted_at'); // This makes the validation pass/fail check robust.
                 }),
             ],
             'type' => 'required|string|max:255',
             'comments' => 'nullable|string',
         ], [
             // --- CUSTOM ERROR MESSAGES IN SPANISH ---
-            // This message will now be used because the validation logic is correct
             'street_number.unique' => 'La combinación de Comunidad, Calle y Número ya existe (Dirección duplicada).',
             'street_number.numeric' => 'El número de calle debe contener solo dígitos.',
             'resident_id.required' => 'Debe seleccionar un residente para asignar la dirección.',
+            'street_id.required' => 'Debe seleccionar una calle válida del catálogo.',
+            'street_id.exists' => 'La calle seleccionada no existe o no está activa.',
             // ----------------------------------------
         ]);
 
@@ -93,21 +104,20 @@ class AddressController extends Controller
             ], 422);
         }
 
-        // Create the new entry. If the validation above passed, the DB insertion *should* succeed.
+        // Create the new entry.
         try {
+            // Laravel automatically handles saving street_id if present in $request->all() and $fillable.
             $address = Address::create($request->all());
         } catch (\Illuminate\Database\QueryException $e) {
-            // FIX: If, despite the validation, a DB constraint violation occurs (usually unique keys or FKs),
-            // we catch it and return our Spanish message.
-            if ($e->getCode() === '23000') { // 23000 is the SQLSTATE for Integrity Constraint Violation
+            if ($e->getCode() === '23000') {
                 return response()->json([
                     'message' => 'La dirección física ya existe o el residente es inválido.',
                     'errors' => ['general' => 'Violación de restricción de base de datos.']
                 ], 422);
             }
-            throw $e; // Re-throw other exceptions
+            throw $e;
         }
-        
+
         return response()->json(['message' => 'Dirección creada exitosamente.', 'data' => $address], 201);
     }
 
@@ -117,8 +127,8 @@ class AddressController extends Controller
     public function show(Address $address)
     {
         // ENGLISH CODE COMMENTS
-        // Returns the data for the specific address record
-        return response()->json(['data' => $address]);
+        // Returns the data for the specific address record, eager loading street info.
+        return response()->json(['data' => $address->load('street')]);
     }
 
     /**
@@ -134,19 +144,25 @@ class AddressController extends Controller
                 'integer',
                 'exists:residents,id',
             ],
+            // NEW VALIDATION: Check street_id instead of street (text)
+            'street_id' => [
+                'required',
+                'integer',
+                'exists:streets,id', // Must exist in the streets table
+            ],
+
             'community' => 'required|string|max:255',
-            'street' => 'required|string|max:255',
             'street_number' => [
                 'required',
                 'string',
                 'max:255',
                 'numeric',
-                // FIX: Ignore current ID AND exclude soft-deleted records
+                // FIX: Ignore current ID AND exclude soft-deleted records, and use 'street_id'
                 Rule::unique('addresses')->ignore($address->id)->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                                 ->where('street', $request->street)
-                                 ->where('street_number', $request->street_number)
-                                 ->whereNull('deleted_at'); // Key fix for Soft Deletes
+                        ->where('street_id', $request->street_id) // <-- UPDATED to street_id
+                        ->where('street_number', $request->street_number)
+                        ->whereNull('deleted_at'); // Key fix for Soft Deletes
                 }),
             ],
             'type' => 'required|string|max:255',
@@ -156,6 +172,8 @@ class AddressController extends Controller
             'street_number.unique' => 'La combinación de Comunidad, Calle y Número ya existe (Dirección duplicada).',
             'street_number.numeric' => 'El número de calle debe contener solo dígitos.',
             'resident_id.required' => 'Debe seleccionar un residente para asignar la dirección.',
+            'street_id.required' => 'Debe seleccionar una calle válida del catálogo.',
+            'street_id.exists' => 'La calle seleccionada no existe o no está activa.',
             // ----------------------------------------
         ]);
 
@@ -178,14 +196,36 @@ class AddressController extends Controller
     public function destroy(Request $request, Address $address)
     {
         // ENGLISH CODE COMMENTS
-        // Validation to ensure a reason for deactivation is provided
-        $request->validate([
-            'reason' => 'required|string|min:5',
-        ]);
 
-        // Perform the soft delete (sets the 'deleted_at' timestamp)
+        // 1. Validation to ensure a reason for deactivation is provided
+        try {
+            $request->validate([
+                'reason' => 'required|string|min:5',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'El motivo de baja es obligatorio y debe tener al menos 5 caracteres.'
+            ], 422);
+        }
+
+        // 2. CRITICAL CHECK: Block deletion only if the address has ACTIVE payments.
+        // We exclude soft-deleted payments (deleted_at IS NOT NULL).
+
+        // ⭐ AJUSTE CLAVE: Usar whereNull('deleted_at') para contar solo pagos activos.
+        $activePaymentsCount = $address->payments()
+            ->whereNull('deleted_at')
+            ->count();
+
+        if ($activePaymentsCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede dar de baja esta dirección porque tiene pagos registrados ACTIVOS. Anule los pagos o use una nueva dirección.'
+            ], 409); // 409 Conflict
+        }
+
+        // 3. Perform the soft delete (sets the 'deleted_at' timestamp)
         $address->delete();
 
-        return response()->json(['message' => 'Address catalog entry deactivated successfully.'], 200);
+        return response()->json(['message' => 'Entrada de catálogo dada de baja exitosamente.'], 200);
     }
 }

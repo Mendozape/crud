@@ -1,4 +1,3 @@
-// App.jsx
 import * as React from "react";
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -29,6 +28,11 @@ import ShowAddresses from "./components/ShowAddresses";
 import CreateAddresses from "./components/CreateAddresses";
 import EditAddresses from "./components/EditAddresses";
 
+//  Streets SPA (New Catalog Imports)
+import ShowStreets from "./components/ShowStreet"; // 
+import CreateStreets from "./components/CreateStreet";
+import EditStreets from "./components/EditStreet";
+
 // Permissions SPA
 import ShowPermissions from "./components/ShowPermissions";
 import CreatePermission from "./components/CreatePermission";
@@ -49,7 +53,7 @@ import ExpensesTable from './components/ShowExpense';
 import CreateExpense from './components/CreateExpense';
 import EditExpense from './components/EditExpense';
 
-// ⭐ Expense Categories SPA (New Catalog Imports)
+// Expense Categories SPA (Catalog Imports)
 import ShowExpenseCategories from './components/ShowExpenseCategories';
 import CreateExpenseCategory from './components/CreateExpenseCategory';
 import EditExpenseCategory from './components/EditExpenseCategory';
@@ -82,8 +86,6 @@ const App = () => {
                     {/* CHAT ROUTE: This loads the main chat interface */}
                     <Route path="/chat" element={<ChatPage user={user} />} />
 
-                    
-
                     {/* Residents SPA routes */}
                     <Route path="/residents" element={<ShowResidents user={user} />} />
                     <Route path="/residents/create" element={<CreateResidents />} />
@@ -103,6 +105,13 @@ const App = () => {
                     <Route path="/addresses/create" element={<CreateAddresses />} />
                     <Route path="/addresses/edit/:id" element={<EditAddresses />} />
 
+                    {/* --------------------------------------------------- */}
+                    {/* ⭐ STREETS SPA ROUTES (NEW CATALOG) */}
+                    {/* --------------------------------------------------- */}
+                    <Route path="/streets" element={<ShowStreets />} />
+                    <Route path="/streets/create" element={<CreateStreets />} />
+                    <Route path="/streets/edit/:id" element={<EditStreets />} />
+
                     {/* Permissions SPA routes */}
                     <Route path="/permissions" element={<ShowPermissions />} />
                     <Route path="/permissions/create" element={<CreatePermission />} />
@@ -119,7 +128,7 @@ const App = () => {
                     <Route path="/users/edit/:id" element={<EditUser />} />
                     
                     {/* --------------------------------------------------- */}
-                    {/* ⭐ EXPENSE CATEGORIES SPA ROUTES (NEW CATALOG) */}
+                    {/* Expense Categories SPA ROUTES (CATALOG) */}
                     {/* --------------------------------------------------- */}
                     <Route path="/expense_categories" element={<ShowExpenseCategories />} />
                     <Route path="/expense_categories/create" element={<CreateExpenseCategory />} />

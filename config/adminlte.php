@@ -351,9 +351,9 @@ return [
             ],
         ],
         [
-            'text' => 'RESIDENTES',
-            'url'  => 'residents',
-            'icon' => 'fas fa-fw fa-users',
+            'text' => 'CALLES',
+            'url'  => 'streets',
+            'icon' => 'fas fa-road',
         ],
         [
             'text' => 'CUOTAS',
@@ -363,12 +363,17 @@ return [
         [
             'text' => 'CATALOGO GASTOS',
             'url'  => 'expense_categories',
-            'icon' => 'fas fa-fw fa-money-bill',
+            'icon' => 'fas fa-fw fa-receipt',
         ],
         [
             'text' => 'GASTOS',
             'url'  => 'expenses',
             'icon' => 'fas fa-fw fa-money-bill',
+        ],
+        [
+            'text' => 'RESIDENTES',
+            'url'  => 'residents',
+            'icon' => 'fas fa-fw fa-users',
         ],
         [
             'text' => 'PREDIOS Y PAGOS',

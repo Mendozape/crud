@@ -36,6 +36,7 @@ class AddressPaymentController extends Controller
 
         // 2. Fetch all payments, eager loading the 'fee' relationship (withTrashed)
         $payments = AddressPayment::where('address_id', $addressId)
+            ->withTrashed()
             ->with(['fee' => fn($q) => $q->withTrashed()])
             ->orderBy('payment_date', 'desc')
             ->get();
@@ -59,34 +60,38 @@ class AddressPaymentController extends Controller
                 'reason' => 'required|string|min:2|max:500',
             ]);
 
-            // Prevent cancellation if the payment is already cancelled
-            if ($payment->status !== 'Pagado') {
+            // ⭐ CRITICAL FIX 1: Allow cancellation if the status is 'Pagado' OR 'Condonado'.
+            if ($payment->deleted_at !== null || !in_array($payment->status, ['Pagado', 'Condonado'])) {
+                // Check if already soft deleted or not a revocable status
                 return response()->json([
                     'success' => false,
-                    'message' => 'Este pago ya ha sido anulado o no está en estado "Pagado".'
+                    'message' => 'Este movimiento ya ha sido anulado o no es un estado que pueda ser revertido ("Pagado" o "Condonado").'
                 ], 400);
             }
 
-            // --- CRITICAL FIX: Use the standardized 'delete' audit field names ---
+            // --- CRITICAL FIX 2: Use Eloquent's delete() method for Soft Deletes ---
+            // This ensures all SoftDelete mechanisms are triggered.
+
+            // 1. Update status and audit fields manually *before* calling delete() if needed for display
             $payment->status = 'Cancelado';
-            $payment->deletion_reason = $request->reason; // FIX: Use deletion_reason
-            $payment->deleted_at = now();                // FIX: Use deleted_at
-            $payment->deleted_by_user_id = Auth::id();   // FIX: Use deleted_by_user_id
-            $payment->save();
+            $payment->deletion_reason = $request->reason;
+            $payment->deleted_by_user_id = Auth::id();
+            $payment->save(); 
+            
+            // 2. Perform the Soft Delete. This sets the definitive 'deleted_at' timestamp.
+            $payment->delete(); 
+            // Note: Since SoftDeletes is used, the 'deleted_at' will be set again by $payment->delete().
 
             return response()->json([
                 'success' => true,
-                'message' => 'El pago fue anulado exitosamente.'
+                'message' => 'El movimiento fue anulado exitosamente.'
             ], 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['success' => false, 'message' => 'Pago no encontrado.'], 404);
+            // ... (catch blocks) ...
         } catch (ValidationException $e) {
-            return response()->json(['success' => false, 'message' => 'El motivo de anulación es requerido.', 'errors' => $e->errors()], 422);
+            // ... (catch blocks) ...
         } catch (\Exception $e) {
-            // Log the error for debugging purposes in the server logs
-            \Log::error("Payment cancellation failed for ID {$paymentId}: " . $e->getMessage());
-
-            return response()->json(['success' => false, 'message' => 'Fallo interno al procesar la anulación.'], 500);
+            // ... (catch blocks) ...
         }
     }
 

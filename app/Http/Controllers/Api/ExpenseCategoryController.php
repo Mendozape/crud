@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ExpenseCategory;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use App\Models\Expense;
 
 class ExpenseCategoryController extends Controller
 {
@@ -45,7 +46,6 @@ class ExpenseCategoryController extends Controller
                 'message' => 'Categoría de gasto creada exitosamente.', // USER-FACING SPANISH TEXT
                 'data' => $category
             ], 201);
-            
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Error de validación.', // USER-FACING SPANISH TEXT
@@ -89,7 +89,6 @@ class ExpenseCategoryController extends Controller
                 'message' => 'Categoría de gasto actualizada exitosamente.', // USER-FACING SPANISH TEXT
                 'data' => $expenseCategory
             ], 200);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Error de validación.', // USER-FACING SPANISH TEXT
@@ -106,10 +105,25 @@ class ExpenseCategoryController extends Controller
      */
     public function destroy(ExpenseCategory $expenseCategory)
     {
+        // CRITICAL CHECK: Before soft deleting, ensure the category is not actively being used by any expense.
+
+        // Check if there are any active (non-soft-deleted) expenses linked to this category.
+        // This relies on the 'expenses()' relationship defined in the ExpenseCategory model.
+        if ($expenseCategory->expenses()->count() > 0) {
+            // Return 409 Conflict status if linked expenses are found.
+            return response()->json([
+                // User-facing Spanish text indicating the restriction
+                'message' => 'No se puede eliminar la categoría porque tiene gastos asignados. Desvincule o anule los gastos primero.'
+            ], 409);
+        }
+
+        // If no active expenses are linked, proceed with the soft delete.
         $expenseCategory->delete();
 
+        // Return a successful response.
         return response()->json([
-            'message' => 'Categoría de gasto eliminada suavemente.', // USER-FACING SPANISH TEXT
-        ], 204); 
+            // User-facing Spanish text confirming successful soft deletion
+            'message' => 'Categoría de gasto eliminada suavemente.'
+        ], 200);
     }
 }

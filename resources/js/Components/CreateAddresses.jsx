@@ -1,4 +1,3 @@
-// src/components/CreateAddresses.jsx
 import React, { useState, useContext, useEffect } from 'react'; 
 import axios from 'axios';
 import { MessageContext } from './MessageContext';
@@ -6,22 +5,29 @@ import { useNavigate } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/addresses';
 const residentSearchEndpoint = 'http://localhost:8000/api/reports/search-residents'; 
+const streetsEndpoint = 'http://localhost:8000/api/streets'; // <-- NEW: Endpoint to fetch streets
 
 export default function CreateAddresses() {
-    // State for address form inputs (unchanged)
+    // State for address form inputs
     const [community, setCommunity] = useState('PRADOS DE LA HUERTA'); 
-    const [street, setStreet] = useState('');
+    
+    // CHANGE 1: Use streetId (integer) instead of street (string name)
+    const [streetId, setStreetId] = useState(''); 
+    
     const [streetNumber, setStreetNumber] = useState('');
     const [type, setType] = useState(''); 
     const [comments, setComments] = useState('');
     const [formValidated, setFormValidated] = useState(false);
 
-    // NEW STATES FOR RESIDENT ASSIGNMENT
-    const [residentQuery, setResidentQuery] = useState(''); // Text typed in the input
-    const [residentId, setResidentId] = useState(null);       // ID of the selected resident to be stored
-    const [residentSuggestions, setResidentSuggestions] = useState([]); // Autocomplete results
-    const [selectedResidentName, setSelectedResidentName] = useState(''); // Display name of the selected resident
-    const [hasExistingAddress, setHasExistingAddress] = useState(false); // New state for visual warning
+    // NEW STATE: To hold the fetched list of streets
+    const [streets, setStreets] = useState([]); 
+
+    // STATES FOR RESIDENT ASSIGNMENT (Unchanged)
+    const [residentQuery, setResidentQuery] = useState('');
+    const [residentId, setResidentId] = useState(null); 
+    const [residentSuggestions, setResidentSuggestions] = useState([]);
+    const [selectedResidentName, setSelectedResidentName] = useState('');
+    const [hasExistingAddress, setHasExistingAddress] = useState(false); 
 
     // Context and navigation hooks
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
@@ -35,11 +41,36 @@ export default function CreateAddresses() {
             e.preventDefault();
         }
     };
+    
+    // -------------------------------------------------------------------
+    // ⭐ NEW EFFECT: Fetch the list of available streets
+    // -------------------------------------------------------------------
+    const fetchStreets = async () => {
+        try {
+            // NOTE: The street controller returns all streets, including soft-deleted ones (for status check).
+            // We should filter them on the client side to only show active ones,
+            // or ensure the API endpoint is filtered. Assuming standard listing here.
+            const response = await axios.get(streetsEndpoint, {
+                withCredentials: true,
+                headers: { Accept: 'application/json' },
+            });
+            // Filter to include only ACTIVE streets (where deleted_at is null)
+            const activeStreets = response.data.data.filter(s => !s.deleted_at); 
+            setStreets(activeStreets || []);
+        } catch (error) {
+            console.error('Error fetching streets:', error);
+            setErrorMessage('Fallo al cargar el catálogo de calles.');
+        }
+    };
 
-    // Effect for resident autocomplete search (Debouncing)
+    // Initial data load on component mount: Residents and Streets
+    useEffect(() => {
+        fetchStreets();
+    }, []);
+
+    // Effect for resident autocomplete search (Debouncing) (Unchanged)
     useEffect(() => {
         // ENGLISH CODE COMMENTS
-        // FIX: Start searching immediately if the query is not empty
         if (!residentQuery) { 
             setResidentSuggestions([]);
             return;
@@ -47,13 +78,11 @@ export default function CreateAddresses() {
 
         const delayDebounceFn = setTimeout(async () => {
             try {
-                // Endpoint uses 'search' parameter
                 const response = await axios.get(`${residentSearchEndpoint}?search=${residentQuery}`, {
                     withCredentials: true,
                     headers: { Accept: 'application/json' },
                 });
                 
-                // ✅ FIX 1: Ensure state is always set to an array, even if API response data is null/undefined
                 const suggestions = Array.isArray(response.data.data) ? response.data.data : [];
                 setResidentSuggestions(suggestions);
             } catch (error) {
@@ -65,7 +94,7 @@ export default function CreateAddresses() {
         return () => clearTimeout(delayDebounceFn);
     }, [residentQuery]);
 
-    // Handler when a resident suggestion is clicked
+    // Handler when a resident suggestion is clicked (Unchanged)
     const handleSelectResident = (resident) => {
         // ENGLISH CODE COMMENTS
         setResidentId(resident.id);
@@ -81,42 +110,38 @@ export default function CreateAddresses() {
         e.preventDefault();
         const form = e.currentTarget;
 
-        // Validation: Check form validity and ensure a resident ID is selected
-        if (form.checkValidity() === false || !residentId || hasExistingAddress) {
+        // Validation: Check form validity and ensure Street ID is selected
+        if (form.checkValidity() === false || !residentId || !streetId || hasExistingAddress) {
             e.stopPropagation();
-            // User-facing message in Spanish
             if (hasExistingAddress) {
-                 setErrorMessage('El residente seleccionado ya tiene una dirección asignada (1:1).');
+                setErrorMessage('El residente seleccionado ya tiene una dirección asignada (1:1).');
             } else {
-                 setErrorMessage('Por favor, complete todos los campos obligatorios, incluyendo la asignación del residente.'); 
+                setErrorMessage('Por favor, complete todos los campos obligatorios, incluyendo la asignación de Residente y Calle.'); 
             }
             if (hasExistingAddress) return; 
         } else {
             const formData = new FormData();
             formData.append('community', community);
-            formData.append('street', street);
+            
+            // CHANGE 2: Send street_id instead of street name
+            formData.append('street_id', streetId); 
+            
             formData.append('street_number', streetNumber);
             formData.append('type', type);
             formData.append('comments', comments);
-            
-            // NEW: Append the selected resident ID
             formData.append('resident_id', residentId);
 
             try {
-                // API POST request to store the new address
                 await axios.post(endpoint, formData, {
                     withCredentials: true,
                     headers: { Accept: 'application/json' },
                 });
 
-                // User-facing success message in Spanish
                 setSuccessMessage('Dirección creada y residente asignado exitosamente.');
                 setErrorMessage('');
                 navigate('/addresses');
             } catch (error) {
-                // Error handling (e.g., unique constraint violation or resident already assigned)
-                const errorMsg = error.response?.data?.message || 'Fallo al crear la dirección. Verifique que el residente no tenga otra dirección asignada.';
-                // User-facing error message in Spanish
+                const errorMsg = error.response?.data?.message || 'Fallo al crear la dirección. Verifique la unicidad de la dirección o la validez de los IDs.';
                 setErrorMessage(errorMsg);
                 console.error('Error creating address:', error);
             }
@@ -136,26 +161,23 @@ export default function CreateAddresses() {
                     )}
                 </div>
                 
-                {/* FIELD: RESIDENT ASSIGNMENT (AUTOCOMPLETE) */}
+                {/* FIELD: RESIDENT ASSIGNMENT (AUTOCOMPLETE) - Unchanged */}
                 <div className='mb-3 position-relative'>
                     <label className='form-label'>Residente Asignado (Obligatorio) <span className="text-danger">*</span></label>
                     <input
                         type='text'
-                        // Show invalid state if validated and no ID, or if it has an existing address
                         className={`form-control ${formValidated && (!residentId || hasExistingAddress) ? 'is-invalid' : (residentId && !hasExistingAddress ? 'is-valid' : '')}`}
                         value={residentQuery}
                         onChange={(e) => {
                             setResidentQuery(e.target.value);
-                            setResidentId(null); // Clear ID if user starts typing again
+                            setResidentId(null); 
                             setSelectedResidentName('');
-                            setHasExistingAddress(false); // Reset warning
+                            setHasExistingAddress(false);
                         }}
                         placeholder="Buscar por nombre o apellido..."
                         required
                     />
-                    <input type="hidden" value={residentId || ''} required /> {/* Hidden field for validation check */}
-
-                    {/* ✅ FIX 2: Added optional chaining (?) to prevent crashing if residentSuggestions is undefined/null */}
+                    <input type="hidden" value={residentId || ''} required />
                     {residentSuggestions?.length > 0 && (
                         <ul className="list-group position-absolute w-100 shadow-lg" style={{ zIndex: 10 }}>
                             {residentSuggestions.map((res) => (
@@ -170,12 +192,11 @@ export default function CreateAddresses() {
                         </ul>
                     )}
                     {residentId && !hasExistingAddress && <small className="text-success">Residente seleccionado: {selectedResidentName}</small>}
-                    {/* Display warning feedback */}
                     {formValidated && !residentId && <div className="invalid-feedback d-block">Por favor, seleccione un residente de la lista.</div>}
                     {hasExistingAddress && <div className="text-danger mt-1">⚠️ Este residente ya tiene una dirección asignada (1:1). No puede crear una nueva.</div>}
                 </div>
                 
-                {/* FIELD: COMMUNITY (SELECT) - MANDATORY */}
+                {/* FIELD: COMMUNITY (SELECT) - MANDATORY (Unchanged) */}
                 <div className='mb-3'>
                     <label className='form-label'>COMUNIDAD (Obligatorio)</label>
                     <select
@@ -183,9 +204,8 @@ export default function CreateAddresses() {
                         onChange={(e) => setCommunity(e.target.value)}
                         className='form-control'
                         required
-                        disabled // Disabled as only one option is allowed
+                        disabled 
                     >
-                        {/* The single required option */}
                         <option value="PRADOS DE LA HUERTA">PRADOS DE LA HUERTA</option>
                     </select>
                     <div className="invalid-feedback">
@@ -193,38 +213,39 @@ export default function CreateAddresses() {
                     </div>
                 </div>
 
-                {/* FIELD: STREET (SELECT) - MANDATORY */}
+                {/* FIELD: STREET (SELECT) - NOW USES streetId FROM API */}
                 <div className='mb-3'>
-                    <label className='form-label'>CALLE (Obligatorio)</label>
+                    <label className='form-label'>CALLE (Obligatorio) <span className="text-danger">*</span></label>
                     <select
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                        className='form-control'
+                        // CHANGE 3: Bind to streetId
+                        value={streetId}
+                        onChange={(e) => setStreetId(e.target.value)}
+                        className={`form-control ${formValidated && !streetId ? 'is-invalid' : ''}`}
                         required
                     >
-                        {/* Default disabled option. Empty value triggers the required flag. */}
                         <option value="" disabled>Seleccione una calle</option>
-                        {/* Fixed options */}
-                        <option value="CIRCUITO PRADOS DEL RIO">CIRCUITO PRADOS DEL RIO</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
+                        {/* CHANGE 4: Map over fetched streets */}
+                        {streets.map((st) => (
+                            <option key={st.id} value={st.id}>
+                                {st.name}
+                            </option>
+                        ))}
                     </select>
                     <div className="invalid-feedback">
                         Por favor, seleccione una calle.
                     </div>
                 </div>
 
-                {/* FIELD: STREET NUMBER (INPUT) - NUMERIC ONLY AND MANDATORY */}
+                {/* FIELD: STREET NUMBER (INPUT) - MANDATORY (Unchanged) */}
                 <div className='mb-3'>
                     <label className='form-label'>Número (Obligatorio)</label>
                     <input
                         value={streetNumber}
                         onChange={(e) => setStreetNumber(e.target.value)}
-                        onKeyPress={handleNumberInput} // Restricts key input to digits
+                        onKeyPress={handleNumberInput} 
                         type='text' 
                         className='form-control'
                         required
-                        // Client-side pattern validation: ensures only digits are in the final value
                         pattern="[0-9]*" 
                     />
                     <div className="invalid-feedback">
@@ -232,18 +253,16 @@ export default function CreateAddresses() {
                     </div>
                 </div>
                 
-                {/* FIELD: TYPE (SELECT) - MANDATORY */}
+                {/* FIELD: TYPE (SELECT) - MANDATORY (Unchanged) */}
                 <div className='mb-3'>
                     <label className='form-label'>Tipo (Obligatorio) ⚠️</label>
                     <select
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                         className='form-control'
-                        required // It is mandatory
+                        required 
                     >
-                        {/* Default disabled option with empty value to trigger required validation */}
                         <option value="" disabled>Seleccione un tipo</option>
-                        {/* Fixed options */}
                         <option value="CASA">CASA</option>
                         <option value="TERRENO">TERRENO</option>
                     </select>
@@ -252,7 +271,7 @@ export default function CreateAddresses() {
                     </div>
                 </div>
 
-                {/* FIELD: COMMENTS (TEXTAREA) - OPTIONAL */}
+                {/* FIELD: COMMENTS (TEXTAREA) - OPTIONAL (Unchanged) */}
                 <div className='mb-3'>
                     <label className='form-label'>Comentarios (Opcional)</label>
                     <textarea

@@ -10,13 +10,6 @@ class SpaController extends Controller
             'user' => auth()->user(),
             'logout_url' => route('logout'),
         ];
-
-        // Only include notifications and admin flag if route is /home
-        if (request()->is('home')) {
-            $data['notifications'] = auth()->user()->unreadNotifications ?? null;
-            $data['admin'] = auth()->user()->isAdmin ? 'Yes' : 'No';
-        }
-
         return view('app')->with('data', $data);
     }
 }

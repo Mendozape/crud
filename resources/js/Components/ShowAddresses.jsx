@@ -1,4 +1,3 @@
-// src/components/ShowAddresses.jsx
 import React, { useEffect, useState, useContext } from 'react';
 import DataTable from 'react-data-table-component';
 import { MessageContext } from './MessageContext';
@@ -27,7 +26,7 @@ const ShowAddresses = () => {
     const fetchAddresses = async () => {
         try {
             // ENGLISH CODE COMMENTS
-            // Controller now uses with('resident') to fetch the assigned resident
+            // Controller now uses with(['resident', 'street']) to fetch the assigned resident and the street name
             const response = await axios.get(endpoint, {
                 withCredentials: true,
                 headers: { Accept: 'application/json' },
@@ -49,11 +48,15 @@ const ShowAddresses = () => {
         fetchAddresses();
     }, []);
 
-    // Filter addresses based on search input (by community, street, or resident name)
+    // Filter addresses based on search input (by community, street name, or resident name)
     useEffect(() => {
         // ENGLISH CODE COMMENTS
         const result = addresses.filter(addr => {
-            const addressText = `${addr.community} ${addr.street} ${addr.street_number} ${addr.type}`;
+            // FIX: Access street name using optional chaining (addr.street?.name)
+            const streetName = addr.street?.name || ''; 
+            
+            // Build searchable text string
+            const addressText = `${addr.community} ${streetName} ${addr.street_number} ${addr.type}`;
             const residentName = addr.resident ? `${addr.resident.name} ${addr.resident.last_name}` : '';
             const searchText = search.toLowerCase();
 
@@ -118,13 +121,15 @@ const ShowAddresses = () => {
         // NEW: Combined Address Column
         {
             name: 'Dirección',
-            selector: row => row.street, // Use 'street' for initial sorting
+            // FIX: Use optional chaining to access the street name for sorting
+            selector: row => row.street?.name || '', 
             sortable: true,
             cell: row => (
-                // Combine street, street_number, and type into a single display string
+                // Combine street name (from relationship), street_number, and type into a single display string
                 <div style={{ lineHeight: '1.2' }}>
                     {/* Calle #Número, Comunidad */}
-                    <span className="d-block">{`${row.street} #${row.street_number}`}</span>
+                    {/* FIX: Display street name from row.street.name */}
+                    <span className="d-block">{`${row.street?.name || 'N/A'} #${row.street_number}`}</span>
                     {/* Tipo */}
                     <span className="badge bg-secondary">{row.type}</span>
                 </div>
@@ -191,7 +196,7 @@ const ShowAddresses = () => {
                         <button className="btn btn-secondary btn-sm" disabled>Dada de Baja</button>
                     ) : (
                         // If active, show the Deactivate button
-                        <button className="btn btn-danger btn-sm" onClick={() => confirmDeactivation(row.id)}>Dar de Baja</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => confirmDeactivation(row.id)}>Dar de baja</button>
                     )}
                 </div>
             ),
@@ -295,7 +300,7 @@ const ShowAddresses = () => {
                                 onClick={handleDeactivation}
                                 disabled={!deactivationReason.trim()} // Disabled if no reason is provided
                             >
-                                Dar de Baja
+                                Dar de baja
                             </button>
                         </div>
                     </div>

@@ -19,6 +19,8 @@ const ExpensesTable = () => {
     const [showModal, setShowModal] = useState(false);
     const [expenseToDelete, setExpenseToDelete] = useState(null); 
     const [deletionReason, setDeletionReason] = useState(''); 
+    // NEW STATE: Local error message specific to the modal
+    const [modalError, setModalError] = useState(''); 
 
     // Context hook for global messages
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
@@ -26,6 +28,7 @@ const ExpensesTable = () => {
 
     // Function to fetch all expenses (eager loads the 'category')
     const fetchExpenses = async () => {
+        setLoading(true);
         try {
             const response = await axios.get(endpoint, {
                 withCredentials: true,
@@ -53,51 +56,71 @@ const ExpensesTable = () => {
         const lowerCaseSearch = search.toLowerCase();
         
         const result = expenses.filter(expense => 
-            // ⭐ FIX: Use optional chaining (?.) and check the category name for filtering.
             // Check category name
             (expense.category?.name?.toLowerCase().includes(lowerCaseSearch)) ||
             // Check the 'amount' field (converted to string)
             (expense.amount?.toString().toLowerCase().includes(lowerCaseSearch))
-            // The original expense.name is NOT checked as it's been removed/is null.
         );
         setFilteredExpenses(result);
     }, [search, expenses]);
 
-    // Function to perform soft deletion (omitted for brevity)
+    // Function to perform soft deletion (COMPLETED LOGIC)
     const deleteExpense = async (id, reason) => {
-        setErrorMessage('');
+        setModalError('');
         setSuccessMessage('');
+        setErrorMessage(''); // Clear global error on submission attempt
 
         try {
-             // ... (deletion logic)
+            const response = await axios.delete(`${endpoint}/${id}`, {
+                withCredentials: true,
+                headers: { Accept: 'application/json' },
+                // Send the reason in the DELETE body (required by the controller)
+                data: { reason: reason } 
+            });
+
+            if (response.status === 204 || response.status === 200) {
+                // USER-FACING SPANISH TEXT
+                setSuccessMessage('Gasto eliminado exitosamente.');
+                setShowModal(false); // Close the modal on success
+                fetchExpenses(); // Refresh the list
+            } 
         } catch (error) {
-            // ... (error handling)
+            console.error('Deletion error:', error);
+            // Get error message from API or fallback
+            const msg = error.response?.data?.message || 'Fallo al eliminar el gasto.';
+            
+            // Set error message to the LOCAL modal state
+            setModalError(msg); 
+            // IMPORTANT: Do not close modal on failure
         }
     };
 
-    // Navigation and Modal handlers (omitted for brevity)
+    // Navigation and Modal handlers
     const editExpense = (id) => navigate(`/expenses/edit/${id}`);
     const createExpense = () => navigate('/expenses/create');
 
     const toggleModal = () => setShowModal(!showModal);
+    
     const confirmDeletion = (id) => {
         setExpenseToDelete(id);
         setDeletionReason('');
-        setErrorMessage('');
+        setErrorMessage(''); // Clear global error
         setSuccessMessage('');
+        setModalError(''); // Clear local modal error
         toggleModal();
     };
+
     const handleDeletion = () => {
-        if (!deletionReason.trim()) {
-            setErrorMessage('Debe especificar un motivo de la eliminación.');
+        // Frontend validation for minimum reason length
+        if (!deletionReason.trim() || deletionReason.trim().length < 10) { 
+            setModalError('Debe especificar un motivo de la eliminación (mínimo 10 caracteres).');
             return;
         }
         deleteExpense(expenseToDelete, deletionReason);
     };
 
-    // DataTable column definitions
+    // DataTable column definitions 
     const columns = [
-        // ⭐ FIX: Show the category name instead of the raw expense.name field.
         { name: 'Categoría', selector: row => row.category?.name || 'N/A', sortable: true },
         { name: 'Monto', selector: row => `$${parseFloat(row.amount).toFixed(2)}`, sortable: true },
         { 
@@ -150,9 +173,6 @@ const ExpensesTable = () => {
         </div>
     );
 
-    // Effect to clear success message after 5 seconds (omitted for brevity)
-    // Effect to clear error message after 5 seconds (omitted for brevity)
-
     return (
         <div className="container-fluid mt-4">
             <h2 className="mb-4 text-primary">Lista de Gastos</h2>
@@ -175,7 +195,7 @@ const ExpensesTable = () => {
 
                 <div className="col-md-12 mt-4">
                     {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
-                    {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
+                    {errorMessage && !showModal && <div className="alert alert-danger text-center">{errorMessage}</div>}
                 </div>
 
                 <div className="col-md-12 mt-4">
@@ -193,9 +213,49 @@ const ExpensesTable = () => {
                     />
                 </div>
 
-                {/* Modal for Deletion Confirmation (omitted for brevity) */}
+                {/* FULL DELETION CONFIRMATION MODAL */}
                 <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
-                    {/* ... Modal content ... */}
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header bg-danger text-white">
+                                <h5 className="modal-title">Confirmar Eliminación de Gasto</h5>
+                                <button type="button" className="close" aria-label="Cerrar" onClick={toggleModal}>
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <p>¿Está seguro de que desea eliminar este gasto?</p>
+                                
+                                <div className="form-group mt-3">
+                                    <label htmlFor="reason">Motivo de la Eliminación <span className="text-danger">*</span></label>
+                                    <textarea
+                                        id="reason"
+                                        className="form-control"
+                                        rows="3"
+                                        value={deletionReason}
+                                        onChange={(e) => setDeletionReason(e.target.value)}
+                                        placeholder="Ingrese la razón de la eliminación (mínimo 10 caracteres)."
+                                    />
+                                </div>
+                                
+                                {/* Display LOCAL modalError here */}
+                                {modalError && <div className="alert alert-danger text-center mt-3">{modalError}</div>}
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={toggleModal}>
+                                    Cancelar
+                                </button>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-danger" 
+                                    onClick={handleDeletion}
+                                    disabled={!deletionReason.trim()}
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 {showModal && <div className="modal-backdrop fade show"></div>}
             </div>

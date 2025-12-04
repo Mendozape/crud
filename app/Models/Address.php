@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany; 
+use App\Models\AddressPayment;
 
 class Address extends Model
 {
@@ -19,32 +22,47 @@ class Address extends Model
 
     /**
      * The attributes that are mass assignable.
+     * NOTE: The 'street' text column has been replaced by the 'street_id' foreign key.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        // NEW: Foreign key added to this table
         'resident_id',
+        'street_id',       // <-- NEW FIELD: Foreign key referencing the 'streets' table
         'type',
-        'street',
         'street_number',
         'community',
         'comments',
     ];
 
     /**
-     * Define the inverse relationship.
-     * An Address belongs to ONE Resident. This is the 'belongsTo' side of the 1:1 relationship.
-     * Since resident_id is unique and nullable in the addresses table, it's 1:1 Optional.
+     * Get the Resident that owns the Address. (Inverse 1:N relationship)
+     * An Address belongs to ONE Resident.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
-    public function resident()
+    public function resident(): BelongsTo
     {
         // This relationship uses the 'resident_id' column on the current 'addresses' table
+        // We explicitly define the foreign key for clarity, though it follows convention.
         return $this->belongsTo(Resident::class, 'resident_id');
     }
     
-    // NOTE: The old residents() method (HasMany) was removed because the table no longer acts as a general catalog 
-    // where many residents point to it. Instead, this address points to one resident (resident()).
+    /**
+     * Get the Street that owns the Address. (Inverse 1:N relationship)
+     * An Address belongs to ONE Street.
+     *
+     * @return BelongsTo
+     */
+    public function street(): BelongsTo
+    {
+        // This relationship uses the 'street_id' column on the current 'addresses' table
+        // We explicitly define the foreign key for clarity, though it follows convention.
+        return $this->belongsTo(Street::class, 'street_id');
+    }
+    public function payments(): HasMany 
+    {
+        // the foreign key 'address_id' exist in the table 'address_payments'
+        return $this->hasMany(AddressPayment::class, 'address_id');
+    }
 }

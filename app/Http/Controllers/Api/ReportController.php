@@ -14,6 +14,7 @@ class ReportController extends Controller
     /**
      * Income Report (Debtors / Adeudos)
      * Filters by year and calculates totals by calendar payment month (payment_date).
+     *
      * @param Request $request Contains payment_type and year.
      * @return \Illuminate\Http\JsonResponse
      */
@@ -34,8 +35,11 @@ class ReportController extends Controller
                 }
             }
 
-            // Get all address records for mapping
-            $addresses = Address::select('id', 'street', 'street_number', 'type', 'comments')->get();
+            // Get all address records for mapping. 
+            // CRUCIAL FIX: Eager load the 'street' relationship to get the street name.
+            $addresses = Address::select('id', 'street_id', 'street_number', 'type', 'comments')
+                ->with('street') // Load the related Street model
+                ->get();
 
             $allRows = collect();
 
@@ -46,7 +50,9 @@ class ReportController extends Controller
 
                 $rows = $addresses->map(function ($address) use ($year, $feeName, $feeAmount) {
 
-                    $fullAddress = "{$address->street} #{$address->street_number} ({$address->type})";
+                    // FIX: Access street name via the relationship: $address->street->name
+                    $streetName = $address->street->name ?? 'CALLE NO ASIGNADA'; 
+                    $fullAddress = "{$streetName} #{$address->street_number} ({$address->type})";
 
                     // 1. QUERY for FEE STATUS (month_1, month_2, etc.) - Filtered by FEE MONTH YEAR
                     // This query determines which month squares are checked/paid (and therefore not debt).

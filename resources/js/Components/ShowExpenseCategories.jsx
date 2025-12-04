@@ -16,6 +16,8 @@ const ShowExpenseCategories = () => {
     // States for soft deletion modal
     const [showModal, setShowModal] = useState(false);
     const [categoryToDelete, setCategoryToDelete] = useState(null); 
+    // NEW STATE: Error message specific to the modal
+    const [modalError, setModalError] = useState(''); 
     
     // Context hook for global messages
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
@@ -33,7 +35,7 @@ const ShowExpenseCategories = () => {
             setFilteredCategories(response.data.data || []);
         } catch (error) {
             console.error('Error fetching categories:', error);
-            // USER-FACING SPANISH TEXT
+            // USER-FACING SPANISH TEXT (Global error, typically for fetch failures)
             setErrorMessage('Fallo al cargar las categorías. Puede que no esté autenticado.');
         } finally {
             setLoading(false);
@@ -55,8 +57,10 @@ const ShowExpenseCategories = () => {
 
     // Function to perform soft deletion
     const deleteCategory = async (id) => {
-        setErrorMessage('');
+        // Clear modal errors before submission
+        setModalError('');
         setSuccessMessage('');
+        setErrorMessage(''); // Clear global errors too
 
         try {
             const response = await axios.delete(`${endpoint}/${id}`, {
@@ -72,9 +76,14 @@ const ShowExpenseCategories = () => {
             } 
         } catch (error) {
             console.error('Deletion error:', error);
+            
             // Use the error message from the API or a fallback
             const msg = error.response?.data?.message || 'Fallo al eliminar la categoría.';
-            setErrorMessage(msg);
+            
+            // FIX: Set error message to the LOCAL modal state
+            setModalError(msg);
+            
+            // IMPORTANT: DO NOT CLOSE MODAL ON FAILURE (setShowModal(false) removed here)
         }
     };
 
@@ -87,8 +96,10 @@ const ShowExpenseCategories = () => {
     
     const confirmDeletion = (id) => {
         setCategoryToDelete(id);
+        // Clear all previous messages when opening the modal
         setErrorMessage('');
         setSuccessMessage('');
+        setModalError(''); // Clear local modal error
         toggleModal();
     };
     
@@ -133,7 +144,7 @@ const ShowExpenseCategories = () => {
                             className="btn btn-danger btn-sm" 
                             onClick={() => confirmDeletion(row.id)}
                         >
-                            Eliminar
+                            Dar de baja
                         </button>
                     )}
                 </div>
@@ -168,7 +179,8 @@ const ShowExpenseCategories = () => {
                 </div>
 
                 <div className="col-md-12 mt-4">
-                    {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
+                    {/* Only show GLOBAL errorMessage if modal is NOT visible (optional optimization) */}
+                    {errorMessage && !showModal && <div className="alert alert-danger text-center">{errorMessage}</div>}
                     {/* Assuming success message is handled globally or passed down */}
                 </div>
 
@@ -197,7 +209,10 @@ const ShowExpenseCategories = () => {
                             </button>
                         </div>
                         <div className="modal-body">
-                            <p>¿Está seguro de que desea eliminar suavemente esta categoría? Los gastos existentes permanecerán, pero esta opción ya no estará disponible para nuevos gastos.</p>
+                            <p>¿Está seguro de que desea dar de baja la categoría?</p>
+                            
+                            {/* FIX: Display LOCAL modalError here */}
+                            {modalError && <div className="alert alert-danger text-center mt-3">{modalError}</div>}
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" onClick={toggleModal}>
@@ -208,7 +223,7 @@ const ShowExpenseCategories = () => {
                                 className="btn btn-danger" 
                                 onClick={handleDeletion}
                             >
-                                Eliminar
+                                Dar de baja
                             </button>
                         </div>
                     </div>

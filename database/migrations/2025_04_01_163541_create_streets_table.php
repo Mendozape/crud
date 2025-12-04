@@ -11,12 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string('type');
-            $table->morphs('notifiable');
-            $table->text('data');
-            $table->timestamp('read_at')->nullable();
+        Schema::create('streets', function (Blueprint $table) {
+            // Primary Key
+            $table->id();
+
+            // Street Name
+            $table->string('name')->comment('Standardized name of the street.');
+
+            // SOFT DELETES: Adds the 'deleted_at' timestamp column
+            $table->softDeletes(); 
+
+            // Timestamps
             $table->timestamps();
         });
     }
@@ -26,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('streets');
     }
 };

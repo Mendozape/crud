@@ -25,6 +25,9 @@ const PaymentHistoryPage = () => {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [paymentToCancel, setPaymentToCancel] = useState(null);
     const [cancellationReason, setCancellationReason] = useState('');
+    
+    // NEW STATE: To hold the Street Name fetched using the street_id
+    const [streetName, setStreetName] = useState('Cargando...'); 
 
     const getMonthName = (monthNum) => {
         const monthNames = [
@@ -34,32 +37,40 @@ const PaymentHistoryPage = () => {
         return monthNum >= 1 && monthNum <= 12 ? monthNames[monthNum - 1] : 'N/A';
     };
     
+    // UPDATED: Now uses streetName state instead of reading 'street' directly from addressDetails.
     const getFormattedAddress = () => {
         if (!addressDetails) return 'Cargando Dirección...';
-        const { street, street_number, type } = addressDetails;
-        return `${street} #${street_number} (${type})`;
+        const { street_number, type } = addressDetails;
+        // Uses the fetched streetName
+        return `${streetName} #${street_number} (${type})`;
     };
 
     const fetchPaymentHistory = async () => {
         setLoading(true);
         try {
-            // Fetch Address details
+            // 1. Fetch Address details (Contains street_id)
             const addressResponse = await axios.get(
                 `http://localhost:8000/api/addresses/${addressId}`, 
                 axiosOptions
             );
             
-            // Handle both response formats (with or without 'data' wrapper)
             const addressData = addressResponse.data.data || addressResponse.data;
             setAddressDetails(addressData);
 
-            // Fetch payment history
+            // 2. Fetch Street Name using street_id
+            if (addressData && addressData.street_id) {
+                const streetResponse = await axios.get(`http://localhost:8000/api/streets/${addressData.street_id}`, axiosOptions);
+                setStreetName(streetResponse.data.name || 'Calle Desconocida');
+            } else {
+                setStreetName('ID de Calle no encontrado');
+            }
+            
+            // 3. Fetch payment history
             const paymentsResponse = await axios.get(
                 `http://localhost:8000/api/address_payments/history/${addressId}`, 
                 axiosOptions
             );
             
-            // Handle the response structure correctly
             const fetchedPayments = paymentsResponse.data?.data || paymentsResponse.data || [];
             
             setPayments(fetchedPayments);
@@ -67,8 +78,8 @@ const PaymentHistoryPage = () => {
             
         } catch (error) {
             console.error('Error fetching data:', error);
-            // This is a general error, keep it global
             setErrorMessage('Error al cargar el historial de pagos de la dirección.'); 
+            setStreetName('Error de Carga'); // Display error if fetching street fails
         } finally {
             setLoading(false);
         }
@@ -85,6 +96,7 @@ const PaymentHistoryPage = () => {
         
         const result = paymentsArray.filter(payment => 
             (payment.fee?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+            // NOTE: Search filter is kept active for 'description' 
             (payment.fee?.description || '').toLowerCase().includes(search.toLowerCase()) ||
             (payment.status || '').toLowerCase().includes(search.toLowerCase())
         );
@@ -154,12 +166,15 @@ const PaymentHistoryPage = () => {
             sortable: true, 
             right: true 
         },
+        // COLUMN REMOVED: The 'Descripción' column is now removed as requested.
+        /*
         { 
             name: 'Descripción', 
             selector: row => row.description || (row.fee ? row.fee.description : 'N/A'), 
             sortable: false, 
             wrap: true 
         },
+        */
         { 
             name: 'Periodo', 
             selector: row => `${getMonthName(row.month)} ${row.year}`, 
@@ -190,7 +205,8 @@ const PaymentHistoryPage = () => {
         {
             name: 'Acción',
             cell: row => (
-                row.status === 'Pagado' ? (
+                // ⭐ CRITICAL FIX: Show "Anular" button if status is 'Pagado' OR 'Condonado'
+                (row.status === 'Pagado' || row.status === 'Condonado') ? (
                     <button 
                         className="btn btn-danger btn-sm" 
                         onClick={() => confirmCancellation(row)}
@@ -213,9 +229,6 @@ const PaymentHistoryPage = () => {
                     <div className="col-12"> 
                         {/* Display SUCCESS messages globally */}
                         {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
-                        {/* CRITICAL FIX: Removed GLOBAL errorMessage display here 
-                            to prevent the modal from covering it.
-                        */}
                     </div>
                 </div>
 

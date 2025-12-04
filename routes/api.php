@@ -14,7 +14,8 @@ use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\Api\AddressController; 
+use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\StreetController; 
 use App\Http\Controllers\Api\ExpenseCategoryController; 
 use Illuminate\Support\Facades\Session;
 
@@ -43,6 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/residents/unassigned/search', [ResidentController::class, 'searchUnassigned']);
     Route::apiResource('/fees', FeeController::class);
     
+     // --- STREETS/CRUD ROUTES ---
+    Route::apiResource('/streets', StreetController::class);
+
     // --- ADDRESSES CATALOG/CRUD ROUTES ---
     Route::get('/addresses/active', [AddressController::class, 'listActive']);
     Route::apiResource('/addresses', AddressController::class);
