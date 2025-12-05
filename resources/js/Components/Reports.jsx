@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import JsPDF from "jspdf";
 import "jspdf-autotable";
 import axios from "axios";
+import * as XLSX from "xlsx"; // Import for Excel functionality
 
 // React functional component for generating reports
 const Reports = () => {
@@ -44,9 +45,9 @@ const Reports = () => {
         year: currentYear 
     });
 
-    // Constants for table column spanning in the UI table (not strictly needed for logic but helps readability)
+    // Constants for table column spanning in the UI table
     const totalMonthColumns = 12; 
-    const totalTrailingColumns = 3; 
+    const totalTrailingColumns = 4; // Changed from 3 to 4 (added Meses vencidos)
     const fullTableColSpan = 2 + totalMonthColumns + totalTrailingColumns;
 
     // Filter data based on search term (address, fee name, or comments)
@@ -258,6 +259,199 @@ const Reports = () => {
         return () => clearTimeout(delay);
     }, [gastoMonth, gastoYear]); // Dependencies: expense month/year filters
 
+    // --- EXPORT FUNCTIONS ---
+    
+    // Function to generate Excel file
+const generateExcel = () => {
+    try {
+        if (data.length === 0) {
+            alert("No hay datos para generar el Excel.");
+            return;
+        }
+
+        // Prepare data for Excel
+        const excelData = [];
+        
+        // 1. Add title and filter details
+        excelData.push([getReportTitle()]);
+        excelData.push([]); // Empty row
+        
+        const filterDetails = getFilterDetails();
+        filterDetails.forEach(detail => {
+            excelData.push([detail]);
+        });
+        excelData.push([]); // Empty row
+        
+        // 2. Add debtors table headers
+        const tableHeaders = [
+            "Dirección/Predio",
+            "Tipo de Pago",
+            "Ene", "Feb", "Mar", "Abr", "May", "Jun", 
+            "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
+            "Pagado",
+            "Meses vencidos",
+            "Deuda",
+            "Comentarios"
+        ];
+        excelData.push(tableHeaders);
+
+        // 3. Add debtors data rows
+        const monthlyCalendarTotals = Array(12).fill(0);
+        let grandTotalPaid = 0;
+        let grandTotalDebt = 0;
+        let grandTotalMonthsOverdue = 0;
+
+        filteredData.forEach(row => {
+            let rowTotalPaid = 0;
+            const feeAmount = Number(row.fee_amount || 0);
+            
+            // Calculate row data
+            for (let m = 1; m <= 12; m++) {
+                // Accumulate monthly calendar totals
+                const calendarAmount = Number(row[`total_paid_in_month_${m}`] || 0);
+                monthlyCalendarTotals[m - 1] += calendarAmount;
+                
+                // Calculate row total paid
+                if (row[`month_${m}`]) {
+                    rowTotalPaid += Number(row[`month_${m}_amount_paid`] ?? feeAmount);
+                }
+            }
+            
+            const totalDebtValue = getRowDebtUpToPrevMonth(row);
+            const rowMonthsOverdue = getRowMonthsOverdueUpToPrevMonth(row);
+            
+            // Update grand totals
+            grandTotalPaid += rowTotalPaid;
+            grandTotalDebt += totalDebtValue;
+            grandTotalMonthsOverdue += rowMonthsOverdue;
+            
+            // Create row data
+            const rowData = [
+                row.full_address || '',
+                row.fee_name || currentPaymentDisplayName,
+            ];
+            
+            // Add monthly cells (without dates)
+            for (let m = 1; m <= 12; m++) {
+                const isRegistered = !!row[`month_${m}`];
+                const amountPaid = Number(row[`month_${m}_amount_paid`] ?? 0);
+                const status = row[`month_${m}_status`];
+                const isWaived = status === 'Condonado' || amountPaid === 0;
+                
+                if (isRegistered) {
+                    if (isWaived) {
+                        rowData.push("Condonado");
+                    } else {
+                        rowData.push(formatCurrency(amountPaid));
+                    }
+                } else {
+                    const lastMonth = getLastMonthToConsider(ingresoYear);
+                    rowData.push(m <= lastMonth ? "X" : "-");
+                }
+            }
+            
+            // Add trailing columns
+            rowData.push(formatCurrency(rowTotalPaid));
+            rowData.push(rowMonthsOverdue);
+            rowData.push(formatCurrency(totalDebtValue));
+            rowData.push(row.comments || '-');
+            
+            excelData.push(rowData);
+        });
+        
+        // 4. Add debtors total row
+        const totalRow = [
+            "TOTAL INGRESOS MENSUAL (ACUMULADO " + ingresoYear + "):",
+            ""
+        ];
+        
+        // Add monthly totals
+        monthlyCalendarTotals.forEach(total => {
+            totalRow.push(total > 0 ? formatCurrency(total) : "-");
+        });
+        
+        // Add grand totals
+        totalRow.push(formatCurrency(grandTotalPaid));
+        totalRow.push(grandTotalMonthsOverdue);
+        totalRow.push(formatCurrency(grandTotalDebt));
+        totalRow.push("");
+        
+        excelData.push(totalRow);
+        excelData.push([]); // Empty row
+        
+        // 5. Add expenses section if there are expenses
+        const expensesToDisplay = currentMonthExpenses.expenses || [];
+        if (expensesToDisplay.length > 0 || currentMonthExpenses.total > 0) {
+            // Expenses header
+            excelData.push([`GASTOS / EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year})`]);
+            excelData.push([]);
+            
+            // Expenses table headers - ONLY CATEGORY AND AMOUNT
+            excelData.push([
+                "Categoría",
+                "Monto"
+            ]);
+            
+            // Expenses rows - ONLY CATEGORY AND AMOUNT
+            expensesToDisplay.forEach(exp => {
+                excelData.push([
+                    exp.category?.name || 'N/A',
+                    formatCurrency(exp.amount)
+                ]);
+            });
+            
+            // Expenses total row - ADJUSTED FOR 2 COLUMNS
+            excelData.push([
+                `TOTAL EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`,
+                formatCurrency(currentMonthExpenses.total)
+            ]);
+            
+            excelData.push([]); // Empty row
+            
+            // 6. Add balance (saldo) row
+            const monthlyTotalIndex = Number(gastoMonth) - 1;
+            const monthlyIncomeForBalance = monthlyCalendarTotals[monthlyTotalIndex] || 0;
+            const saldo = monthlyIncomeForBalance - currentMonthExpenses.total;
+            
+            const ingresoFormatted = formatCurrency(monthlyIncomeForBalance);
+            const egresoFormatted = formatCurrency(currentMonthExpenses.total);
+            const saldoFormatted = formatCurrency(saldo);
+            
+            excelData.push([
+                `SALDO (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`,
+                `${ingresoFormatted} - ${egresoFormatted} = ${saldoFormatted}`
+            ]);
+        }
+        
+        // 7. Create worksheet and workbook
+        const ws = XLSX.utils.aoa_to_sheet(excelData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte Adeudos");
+
+        // 8. Style the worksheet
+        // Define column widths for debtors table
+        const debtorsColWidths = [
+            { wch: 30 }, // Dirección/Predio
+            { wch: 15 }, // Tipo de Pago
+            { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, // Ene-Jun
+            { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, // Jul-Dic
+            { wch: 15 }, // Pagado
+            { wch: 12 }, // Meses vencidos
+            { wch: 15 }, // Deuda
+            { wch: 25 }, // Comentarios
+        ];
+        ws['!cols'] = debtorsColWidths;
+
+        // 9. Generate Excel file
+        const fileName = `reporte_adeudos_${currentPaymentDisplayName.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+
+    } catch (error) {
+        console.error("Error al generar Excel:", error);
+        alert("Ocurrió un error al generar el Excel. Por favor, verifica la consola para más detalles.");
+    }
+};
+
     // --- PDF GENERATION ---
     
     // Function to generate the PDF report using jspdf and jspdf-autotable
@@ -308,12 +502,13 @@ const Reports = () => {
             // Array to accumulate total payments for each calendar month
             const monthlyCalendarTotals = Array(12).fill(0); 
             
-            // Define main table headers
+            // Define main table headers - ADDED "Meses vencidos" column
             tableHeaders.push([
                 "Dirección/Predio",
                 "Tipo de Pago",
                 "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
                 "Pagado",
+                "Meses vencidos", // NEW COLUMN
                 "Deuda",
                 "Comentarios"
             ]);
@@ -362,10 +557,8 @@ const Reports = () => {
                         const isWaived = status === 'Condonado' || amountPaid === 0;
 
                         if (isWaived) {
-                             // 2. Si es condonado (o monto cero), poner "Condonado" en lugar del monto.
                             visualContent = [dateStr, "Condonado"].filter(Boolean).join("\n");
                         } else {
-                            // 1. Si está pagado con monto, poner monto
                             visualContent = [dateStr, amountDisplay].filter(Boolean).join("\n");
                         }
                         
@@ -378,14 +571,10 @@ const Reports = () => {
                     }
                 }
 
-                // Add trailing columns: Total Paid, Debt, Comments
+                // Add trailing columns: Total Paid, Months Overdue, Debt, Comments
                 bodyRow.push(formatCurrency(rowTotalPaid));
-
-                const debtText = totalDebtValue > 0
-                    ? `${formatCurrency(totalDebtValue)} (${rowMonthsOverdue})`
-                    : formatCurrency(totalDebtValue);
-                bodyRow.push(debtText);
-
+                bodyRow.push(rowMonthsOverdue.toString()); // NEW: Meses vencidos
+                bodyRow.push(formatCurrency(totalDebtValue));
                 bodyRow.push(row.comments || '-');
 
                 return bodyRow;
@@ -396,24 +585,21 @@ const Reports = () => {
             const grandTotalDebt = data.reduce((sum, row) => sum + getRowDebtUpToPrevMonth(row), 0);
             const grandTotalMonthsOverdue = data.reduce((sum, row) => sum + getRowMonthsOverdueUpToPrevMonth(row), 0);
 
-            const finalDebtText = grandTotalDebt > 0
-                ? `${formatCurrency(grandTotalDebt)} (${grandTotalMonthsOverdue})`
-                : formatCurrency(grandTotalDebt);
-                
             // Create the final total row for the income/debtors table
             const totalRow = ["TOTAL INGRESOS MENSUAL (ACUMULADO " + ingresoYear + "):", ""];
             
             // Add monthly total values
             monthlyCalendarTotals.forEach(total => totalRow.push(total > 0 ? formatCurrency(total) : "-"));
 
-            // Add grand totals for Paid and Debt
+            // Add grand totals for Paid, Months Overdue, and Debt
             totalRow.push(formatCurrency(grandTotalPaidDisplayed));
-            totalRow.push(finalDebtText);
+            totalRow.push(grandTotalMonthsOverdue.toString()); // NEW: Total meses vencidos
+            totalRow.push(formatCurrency(grandTotalDebt));
             totalRow.push("");
 
             processedData.push(totalRow);
             
-            // Column styles for the income/debtors table
+            // Updated column styles for the income/debtors table - ADJUSTED FOR NEW COLUMN
             const currentColumnStyles = {
                 0: { halign: "left", cellWidth: 150 }, 1: { halign: "left", cellWidth: 70 },
                 2: { halign: "center", cellWidth: 32 }, 3: { halign: "center", cellWidth: 32 },
@@ -422,9 +608,10 @@ const Reports = () => {
                 8: { halign: "center", cellWidth: 32 }, 9: { halign: "center", cellWidth: 32 },
                 10: { halign: "center", cellWidth: 32 }, 11: { halign: "center", cellWidth: 32 },
                 12: { halign: "center", cellWidth: 32 }, 13: { halign: "center", cellWidth: 32 },
-                14: { halign: "right", fontStyle: "bold", cellWidth: 60 },
-                15: { halign: "right", fontStyle: "bold", cellWidth: 70 },
-                16: { halign: "left", cellWidth: 90 }
+                14: { halign: "right", fontStyle: "bold", cellWidth: 60 }, // Pagado
+                15: { halign: "center", fontStyle: "bold", cellWidth: 40 }, // NEW: Meses vencidos
+                16: { halign: "right", fontStyle: "bold", cellWidth: 70 }, // Deuda
+                17: { halign: "left", cellWidth: 90 } // Comentarios
             };
 
             const finalRowIndex = processedData.length - 1;
@@ -463,7 +650,6 @@ const Reports = () => {
 
                     // --- Final Row Styling ---
                     if (data.row.index === finalRowIndex) { 
-                        // ... (Existing Final Row Logic) ...
                         if (data.column.index === 0) {
                             data.cell.colSpan = 2; 
                             data.cell.styles.halign = 'left';
@@ -471,7 +657,7 @@ const Reports = () => {
                             return false;
                         }
 
-                        if (data.column.index >= monthIndexStart && data.column.index < columnCount - 3) {
+                        if (data.column.index >= monthIndexStart && data.column.index < columnCount - 4) {
                             const monthNum = data.column.index - monthIndexStart + 1;
                             if (monthNum === currentMonthNum && ingresoYear === currentYear) {
                                 data.cell.styles.fillColor = [255, 255, 153]; 
@@ -479,20 +665,36 @@ const Reports = () => {
                             }
                         }
 
-                        if (data.column.index === 15 && grandTotalDebt > 0) {
+                        if (data.column.index === 16 && grandTotalDebt > 0) {
                             data.cell.styles.fillColor = [220, 53, 69]; 
                             data.cell.styles.textColor = 255;
+                        }
+
+                        // Highlight meses vencidos if greater than 0
+                        if (data.column.index === 15 && grandTotalMonthsOverdue > 0) {
+                            data.cell.styles.fillColor = [255, 193, 7]; // Amber
+                            data.cell.styles.textColor = 0;
                         }
 
                     } else { 
                         // --- Regular Data Row Styling ---
                         // Debt Column Styling
-                        const totalDebtRaw = data.row.raw[15] ? String(data.row.raw[15]).split(' ')[0].replace(/\$|,/g, '') : '0';
-                        const totalDebtValue = Number(totalDebtRaw) || 0;
+                        if (data.column.index === 16) {
+                            const totalDebtValue = getRowDebtUpToPrevMonth(data.row.raw);
+                            if (totalDebtValue > 0) {
+                                data.cell.styles.fillColor = [220, 53, 69]; 
+                                data.cell.styles.textColor = 255;
+                            }
+                        }
 
-                        if (data.column.index === 15 && totalDebtValue > 0) {
-                            data.cell.styles.fillColor = [220, 53, 69]; 
-                            data.cell.styles.textColor = 255;
+                        // Meses vencidos Column Styling - NEW
+                        if (data.column.index === 15) {
+                            const rowMonthsOverdue = getRowMonthsOverdueUpToPrevMonth(data.row.raw);
+                            if (rowMonthsOverdue > 0) {
+                                data.cell.styles.fillColor = [255, 193, 7]; // Amber
+                                data.cell.styles.textColor = 0;
+                                data.cell.styles.fontStyle = "bold";
+                            }
                         }
 
                         // Monthly Columns Styling (Index 2 to 13)
@@ -761,8 +963,9 @@ const Reports = () => {
                                                     </th>
                                                 ))}
 
-                                                {/* Trailing column headers */}
+                                                {/* Trailing column headers - UPDATED WITH NEW COLUMN */}
                                                 <th className="text-end" style={{ minWidth: '70px' }}>Ingreso anual</th>
+                                                <th className="text-center" style={{ minWidth: '60px' }}>Meses vencidos</th> {/* NEW COLUMN */}
                                                 <th className="text-end" style={{ minWidth: '90px' }}>Deuda</th>
                                                 <th className="text-left" style={{ minWidth: '100px' }}>Comentarios</th>
                                             </tr>
@@ -854,17 +1057,18 @@ const Reports = () => {
                                                         }
                                                     }
 
-                                                    // Calculate display styles for Debt column
+                                                    // Calculate display styles for columns
                                                     const debtBgClass = totalDebtValue > 0 ? "bg-danger text-white" : "text-dark";
+                                                    const monthsOverdueBgClass = rowMonthsOverdue > 0 ? "bg-warning text-dark fw-bold" : "text-dark";
 
                                                     // Total Paid cell
                                                     cells.push(<td key={`totalpaid-${i}`} className="text-end fw-bold text-success" style={{ minWidth: '70px' }}>{formatCurrency(rowTotalPaid)}</td>);
 
-                                                    // Debt cell: display amount and months overdue count
-                                                    const debtDisplay = totalDebtValue > 0
-                                                        ? `${formatCurrency(totalDebtValue)} (${rowMonthsOverdue})`
-                                                        : formatCurrency(totalDebtValue);
+                                                    // NEW: Months Overdue cell
+                                                    cells.push(<td key={`monthsOverdue-${i}`} className={`text-center fw-bold ${monthsOverdueBgClass}`} style={{ minWidth: '60px' }}>{rowMonthsOverdue}</td>);
 
+                                                    // Debt cell: display amount only
+                                                    const debtDisplay = formatCurrency(totalDebtValue);
                                                     cells.push(<td key={`totaldebt-${i}`} className={`text-end fw-bold ${debtBgClass}`} style={{ minWidth: '90px' }}>{debtDisplay}</td>);
 
                                                     // Comments cell
@@ -878,10 +1082,9 @@ const Reports = () => {
                                                 const totalDebtSum = filteredData.reduce((s, r) => s + getRowDebtUpToPrevMonth(r), 0);
                                                 const grandTotalDebtBgClass = totalDebtSum > 0 ? "bg-danger text-white" : "bg-secondary text-white";
                                                 const grandTotalMonthsOverdue = filteredData.reduce((sum, row) => sum + getRowMonthsOverdueUpToPrevMonth(row), 0);
+                                                const grandTotalMonthsOverdueBgClass = grandTotalMonthsOverdue > 0 ? "bg-warning text-dark fw-bold" : "bg-secondary text-white";
                                                 
-                                                const finalDebtDisplay = totalDebtSum > 0
-                                                    ? `${formatCurrency(totalDebtSum)} (${grandTotalMonthsOverdue})`
-                                                    : formatCurrency(totalDebtSum);
+                                                const finalDebtDisplay = formatCurrency(totalDebtSum);
 
                                                 // Final row for Income/Debtors Totals
                                                 const totalRow = (
@@ -903,6 +1106,10 @@ const Reports = () => {
                                                         <td key="gtpaid" className="text-end text-success" style={{ minWidth: '70px' }}>
                                                             {formatCurrency(grandTotalPaidDisplayed)}
                                                         </td>
+                                                        {/* Grand Total Months Overdue */}
+                                                        <td key="gtmonths" className={`text-center fw-bold ${grandTotalMonthsOverdueBgClass}`} style={{ minWidth: '60px' }}>
+                                                            {grandTotalMonthsOverdue}
+                                                        </td>
                                                         {/* Grand Total Debt */}
                                                         <td key="gtdebt" className={`text-end fw-bold ${grandTotalDebtBgClass}`} style={{ minWidth: '90px' }}>
                                                             {finalDebtDisplay}
@@ -911,7 +1118,7 @@ const Reports = () => {
                                                     </tr>
                                                 );
                                                 
-                                                // Expense rows preparation (remains unchanged)
+                                                // Expense rows preparation
                                                 const expenseRows = [];
                                                 const expensesToDisplay = (currentMonthExpenses.expenses || []);
                                                 
@@ -922,7 +1129,7 @@ const Reports = () => {
                                                     // Expense Header Row
                                                     expenseRows.push(
                                                         <tr key="expenses-header" className="fw-bold bg-dark text-white">
-                                                            <td colSpan={17} className="text-center">GASTOS ({expenseMonthDisplay.toUpperCase()} {expenseYearDisplay})</td> 
+                                                            <td colSpan={18} className="text-center">GASTOS ({expenseMonthDisplay.toUpperCase()} {expenseYearDisplay})</td> 
                                                         </tr>
                                                     );
 
@@ -932,13 +1139,13 @@ const Reports = () => {
                                                         const colsAfterMonth = (totalMonthColumns - Number(gastoMonth)) + totalTrailingColumns; 
                                                         
                                                         expenseRows.push(
-                                                            <tr key="expense-expIndex" className="text-muted" style={{ fontSize: '0.85em' }}>
+                                                            <tr key={`expense-${expIndex}`} className="text-muted" style={{ fontSize: '0.85em' }}>
                                                                 <td colSpan={2} className="text-left">
                                                                     <span className="fw-bold text-danger">➖ {expense.category?.name || expense.category || 'Gasto'}</span>
                                                                     <span className="d-block text-truncate fst-italic" style={{maxWidth: '200px'}}>{expense.description}</span>
                                                                 </td>
                                                                 {colsBeforeMonth > 0 && <td colSpan={colsBeforeMonth} className="text-center"></td>}
-                                                                <td key="exp-amount-month-expIndex" className="text-end fw-bold text-danger bg-light">
+                                                                <td key={`exp-amount-month-${expIndex}`} className="text-end fw-bold text-danger bg-light">
                                                                     {formatCurrency(expense.amount)}
                                                                     <small className="d-block text-muted" style={{fontSize: '0.65em'}}>{new Date(expense.expense_date).toLocaleDateString('es-MX', {day: '2-digit', month: '2-digit', year: 'numeric'})}</small>
                                                                 </td>
@@ -1017,13 +1224,18 @@ const Reports = () => {
                 </div>
             )}
 
-            {/* PDF Generation Button */}
+            {/* PDF and Excel Generation Buttons */}
             {paymentType && data.length > 0 && reportType === "debtors" && (
                 <div className="row mt-4">
                     <div className="col-12 text-center">
-                        <button className="btn btn-lg btn-success shadow-sm" onClick={generatePdf} disabled={loading}>
-                            ⬇️ Generar PDF
-                        </button>
+                        <div className="btn-group" role="group">
+                            <button className="btn btn-lg btn-success shadow-sm" onClick={generatePdf} disabled={loading}>
+                                ⬇️ Generar PDF
+                            </button>
+                            <button className="btn btn-lg btn-primary shadow-sm ms-2" onClick={generateExcel} disabled={loading}>
+                                📊 Descargar Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

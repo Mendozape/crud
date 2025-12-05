@@ -69,7 +69,8 @@
         "source-map-js": "^1.0.2",
         "sweetalert2": "^11.7.27",
         "to-regex-range": "^5.0.1",
-        "vite-plugin-full-reload": "^1.0.5"
+        "vite-plugin-full-reload": "^1.0.5",
+        "xlsx": "^0.18.5"
     },
     "repository": {
         "type": "git",
