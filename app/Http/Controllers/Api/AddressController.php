@@ -7,7 +7,7 @@ use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException; // Used for try-catch in destroy (optional but good practice)
+use Illuminate\Validation\ValidationException; 
 
 class AddressController extends Controller
 {
@@ -29,7 +29,7 @@ class AddressController extends Controller
     public function listActive()
     {
         // ENGLISH CODE COMMENTS
-        // Fetches only non-soft-deleted address catalog entries
+        // Fetch only non-soft-deleted address catalog entries
         $addresses = Address::select('id', 'community', 'street_id', 'street_number')
             ->whereNull('deleted_at') // Only active addresses
             ->with('street') // Eager load the street name
@@ -63,7 +63,7 @@ class AddressController extends Controller
                 'exists:residents,id',
             ],
 
-            // NEW VALIDATION: Check street_id instead of street (text)
+            // Validation for street_id
             'street_id' => [
                 'required',
                 'integer',
@@ -77,16 +77,20 @@ class AddressController extends Controller
                 'string',
                 'max:255',
                 'numeric',
-                // CRITICAL FIX: The validation check must use 'street_id' and ignore soft-deleted records.
+                // Check for uniqueness based on active records
                 Rule::unique('addresses')->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                        ->where('street_id', $request->street_id) // <-- UPDATED to street_id
+                        ->where('street_id', $request->street_id)
                         ->where('street_number', $request->street_number)
-                        ->whereNull('deleted_at'); // This makes the validation pass/fail check robust.
+                        ->whereNull('deleted_at'); // Only check against active addresses
                 }),
             ],
             'type' => 'required|string|max:255',
             'comments' => 'nullable|string',
+            
+            // ⭐ NEW VALIDATION: months_overdue field
+            'months_overdue' => 'required|integer|min:0', 
+            // ----------------------------------------
         ], [
             // --- CUSTOM ERROR MESSAGES IN SPANISH ---
             'street_number.unique' => 'La combinación de Comunidad, Calle y Número ya existe (Dirección duplicada).',
@@ -94,6 +98,9 @@ class AddressController extends Controller
             'resident_id.required' => 'Debe seleccionar un residente para asignar la dirección.',
             'street_id.required' => 'Debe seleccionar una calle válida del catálogo.',
             'street_id.exists' => 'La calle seleccionada no existe o no está activa.',
+            'months_overdue.required' => 'El número de meses atrasados es obligatorio.',
+            'months_overdue.integer' => 'El número de meses atrasados debe ser un número entero.',
+            'months_overdue.min' => 'El número de meses atrasados no puede ser negativo.',
             // ----------------------------------------
         ]);
 
@@ -106,7 +113,7 @@ class AddressController extends Controller
 
         // Create the new entry.
         try {
-            // Laravel automatically handles saving street_id if present in $request->all() and $fillable.
+            // Laravel automatically handles saving street_id and months_overdue
             $address = Address::create($request->all());
         } catch (\Illuminate\Database\QueryException $e) {
             if ($e->getCode() === '23000') {
@@ -127,8 +134,8 @@ class AddressController extends Controller
     public function show(Address $address)
     {
         // ENGLISH CODE COMMENTS
-        // Returns the data for the specific address record, eager loading street info.
-        return response()->json(['data' => $address->load('street')]);
+        // Returns the data for the specific address record, eager loading street AND resident info.
+        return response()->json(['data' => $address->load(['street', 'resident'])]);
     }
 
     /**
@@ -144,7 +151,7 @@ class AddressController extends Controller
                 'integer',
                 'exists:residents,id',
             ],
-            // NEW VALIDATION: Check street_id instead of street (text)
+            // Validation for street_id
             'street_id' => [
                 'required',
                 'integer',
@@ -157,16 +164,20 @@ class AddressController extends Controller
                 'string',
                 'max:255',
                 'numeric',
-                // FIX: Ignore current ID AND exclude soft-deleted records, and use 'street_id'
+                // Ignore current ID AND exclude soft-deleted records, and use 'street_id'
                 Rule::unique('addresses')->ignore($address->id)->where(function ($query) use ($request) {
                     return $query->where('community', $request->community)
-                        ->where('street_id', $request->street_id) // <-- UPDATED to street_id
+                        ->where('street_id', $request->street_id)
                         ->where('street_number', $request->street_number)
                         ->whereNull('deleted_at'); // Key fix for Soft Deletes
                 }),
             ],
             'type' => 'required|string|max:255',
             'comments' => 'nullable|string',
+            
+            // ⭐ NEW VALIDATION: months_overdue field
+            'months_overdue' => 'required|integer|min:0', 
+            // ----------------------------------------
         ], [
             // --- CUSTOM ERROR MESSAGES IN SPANISH ---
             'street_number.unique' => 'La combinación de Comunidad, Calle y Número ya existe (Dirección duplicada).',
@@ -174,6 +185,9 @@ class AddressController extends Controller
             'resident_id.required' => 'Debe seleccionar un residente para asignar la dirección.',
             'street_id.required' => 'Debe seleccionar una calle válida del catálogo.',
             'street_id.exists' => 'La calle seleccionada no existe o no está activa.',
+            'months_overdue.required' => 'El número de meses atrasados es obligatorio.',
+            'months_overdue.integer' => 'El número de meses atrasados debe ser un número entero.',
+            'months_overdue.min' => 'El número de meses atrasados no puede ser negativo.',
             // ----------------------------------------
         ]);
 
@@ -209,9 +223,6 @@ class AddressController extends Controller
         }
 
         // 2. CRITICAL CHECK: Block deletion only if the address has ACTIVE payments.
-        // We exclude soft-deleted payments (deleted_at IS NOT NULL).
-
-        // ⭐ AJUSTE CLAVE: Usar whereNull('deleted_at') para contar solo pagos activos.
         $activePaymentsCount = $address->payments()
             ->whereNull('deleted_at')
             ->count();

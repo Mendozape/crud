@@ -8,7 +8,8 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * Creates the addresses table with foreign keys for both resident and street.
+     * Creates the addresses table with foreign keys for both resident and street, 
+     * including the new 'months_overdue' field.
      */
     public function up(): void
     {
@@ -39,6 +40,12 @@ return new class extends Migration
             $table->text('street_number')->comment('House or lot number that is part of the unique address'); 
             $table->text('community')->comment('Standardized name of the Neighborhood or Subdivision'); 
             $table->text('comments')->nullable()->comment('General comments about this location entry'); 
+
+            // --- New Field for Overdue Payments ---
+            $table->integer('months_overdue')
+                  ->default(0)
+                  ->comment('Count of payment months currently overdue for this address.');
+            // ---------------------------------------
 
             // SOFT DELETES: Adds the 'deleted_at' timestamp column
             $table->softDeletes(); 

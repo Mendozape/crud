@@ -8,13 +8,17 @@ const residentSearchEndpoint = 'http://localhost:8000/api/reports/search-residen
 const streetsEndpoint = 'http://localhost:8000/api/streets';
 
 export default function EditAddresses() {
+    // ENGLISH CODE COMMENTS
     // State for form inputs
     const [community, setCommunity] = useState('');
-    const [streetId, setStreetId] = useState(''); // Cambiado a streetId (integer)
+    const [streetId, setStreetId] = useState(''); // Changed to streetId (integer)
     const [streetNumber, setStreetNumber] = useState('');
     const [type, setType] = useState('');
     const [comments, setComments] = useState('');
     const [formValidated, setFormValidated] = useState(false);
+    
+    // ⭐ NEW STATE: Months overdue before 2026. Can be 0 or '' temporarily.
+    const [monthsOverdue, setMonthsOverdue] = useState(0); 
 
     // States for resident assignment
     const [residentQuery, setResidentQuery] = useState('');
@@ -33,14 +37,31 @@ export default function EditAddresses() {
 
     // Handler to restrict input to only numeric digits (0-9)
     const handleNumberInput = (e) => {
+        // ENGLISH CODE COMMENTS
         const isDigit = /\d/.test(e.key);
         if (!isDigit) {
             e.preventDefault();
         }
     };
+    
+    // ⭐ ADJUSTED HANDLER: Allows the input field to be completely cleared (value = '') 
+    const handleMonthsOverdueChange = (e) => {
+        // ENGLISH CODE COMMENTS
+        const value = e.target.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+        
+        // If the resulting string is empty, set state to empty string ('')
+        // Otherwise, parse the number and cap it.
+        if (value === '') {
+            setMonthsOverdue('');
+        } else {
+            const num = parseInt(value);
+            setMonthsOverdue(Math.min(num, 100)); // Cap at 100
+        }
+    };
 
     // Fetch streets
     const fetchStreets = async () => {
+        // ENGLISH CODE COMMENTS
         try {
             const response = await axios.get(streetsEndpoint, {
                 withCredentials: true,
@@ -56,6 +77,7 @@ export default function EditAddresses() {
 
     // Effect for resident autocomplete search (Debouncing)
     useEffect(() => {
+        // ENGLISH CODE COMMENTS
         if (!residentQuery) {
             setResidentSuggestions([]);
             return;
@@ -81,15 +103,13 @@ export default function EditAddresses() {
 
     // Handler when a resident suggestion is clicked
     const handleSelectResident = (resident) => {
+        // ENGLISH CODE COMMENTS
         setResidentId(resident.id);
         setSelectedResidentName(`${resident.name} ${resident.last_name}`);
         setResidentQuery(`${resident.name} ${resident.last_name}`);
         setResidentSuggestions([]);
 
         // Check if the selected resident already has an address (excluding the current address being edited)
-        // We'll do this in the update function, but for now, set to false if it's the same resident
-        // or if the resident doesn't have an address.
-        // Note: This is a simple check. We should also check if the resident has an address other than the current one.
         if (resident.address && resident.address.id != id) {
             setHasExistingAddress(true);
         } else {
@@ -99,6 +119,7 @@ export default function EditAddresses() {
 
     // Function to fetch the existing data
     useEffect(() => {
+        // ENGLISH CODE COMMENTS
         const getAddressById = async () => {
             try {
                 // Fetch the address data using the show/edit endpoint
@@ -114,13 +135,16 @@ export default function EditAddresses() {
                 setStreetNumber(address.street_number || '');
                 setType(address.type || '');
                 setComments(address.comments || '');
+                
+                // ⭐ NEW: Set the months_overdue field. Ensure it's never NULL, but keep 0.
+                setMonthsOverdue(address.months_overdue ?? 0);
 
                 // Set resident data if exists
                 if (address.resident) {
                     setResidentId(address.resident.id);
                     setSelectedResidentName(`${address.resident.name} ${address.resident.last_name}`);
                     setResidentQuery(`${address.resident.name} ${address.resident.last_name}`);
-                    setHasExistingAddress(false); // Since this is the resident currently assigned, it's not considered as having an existing address for the purpose of this form.
+                    setHasExistingAddress(false); 
                 }
             } catch (error) {
                 setErrorMessage('Fallo al cargar los datos de dirección para editar.');
@@ -132,6 +156,7 @@ export default function EditAddresses() {
     }, [id, setErrorMessage]);
 
     const update = async (e) => {
+        // ENGLISH CODE COMMENTS
         e.preventDefault();
         const form = e.currentTarget;
 
@@ -151,6 +176,10 @@ export default function EditAddresses() {
             formData.append('type', type);
             formData.append('comments', comments);
             formData.append('resident_id', residentId);
+            
+            // ⭐ ADJUSTED: Ensure monthsOverdue is 0 if it's an empty string due to user clearing the input.
+            const finalMonthsOverdue = monthsOverdue === '' ? 0 : monthsOverdue;
+            formData.append('months_overdue', finalMonthsOverdue);
 
             try {
                 // API POST request to update the address catalog entry
@@ -273,6 +302,27 @@ export default function EditAddresses() {
                     />
                     <div className="invalid-feedback">
                         Por favor, ingrese solo números en este campo.
+                    </div>
+                </div>
+                
+                {/* ⭐ NEW FIELD: MONTHS OVERDUE BEFORE 2026 */}
+                <div className='mb-3'>
+                    <label className='form-label'>Número de meses atrasados antes del 2026 (Obligatorio) <span className="text-danger">*</span></label>
+                    <input
+                        // The value can be '' if the user cleared it, which is fine for the input
+                        value={monthsOverdue} 
+                        onChange={handleMonthsOverdueChange}
+                        type='number' 
+                        min="0"
+                        max="100"
+                        className='form-control'
+                        required
+                    />
+                    <div className="form-text">
+                        Ingrese 0 si no hay meses atrasados.
+                    </div>
+                    <div className="invalid-feedback">
+                        Por favor, ingrese un número válido de meses atrasados (0 o más).
                     </div>
                 </div>
 

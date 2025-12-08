@@ -24,6 +24,7 @@ class ReportController extends Controller
         $year = (int) $request->get('year', date('Y')); // Report Year (ingresoYear from front)
 
         try {
+            // ENGLISH CODE COMMENTS
             // Get relevant fees based on filter selection ('Todos' or specific fee name)
             $fees = [];
             if ($paymentType === 'Todos') {
@@ -36,8 +37,8 @@ class ReportController extends Controller
             }
 
             // Get all address records for mapping. 
-            // CRUCIAL FIX: Eager load the 'street' relationship to get the street name.
-            $addresses = Address::select('id', 'street_id', 'street_number', 'type', 'comments')
+            // ⭐ ADJUSTMENT: Select 'months_overdue' from the addresses table.
+            $addresses = Address::select('id', 'street_id', 'street_number', 'type', 'comments', 'months_overdue')
                 ->with('street') // Load the related Street model
                 ->get();
 
@@ -135,7 +136,8 @@ class ReportController extends Controller
                         'paid_months' => $registeredMonthsCount,
                         'fee_amount' => $feeAmount,
                         'fee_name' => $feeName,
-                        'months_overdue' => 0, // Calculated in frontend for temporal accuracy
+                        // ⭐ FIX: Use the actual value from the address model
+                        'months_overdue' => $address->months_overdue ?? 0, 
                         'total' => 0,          // Calculated in frontend for temporal accuracy
                         'comments' => $address->comments ?? '',
                     ], $monthData);
@@ -174,6 +176,7 @@ class ReportController extends Controller
      */
     public function expenses(Request $request)
     {
+        // ENGLISH CODE COMMENTS
         // Get year and month from the request, using current date as fallback.
         $year = (int) $request->get('year', now()->year);
         $month = (int) $request->get('month', now()->month);

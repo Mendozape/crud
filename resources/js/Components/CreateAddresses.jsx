@@ -5,24 +5,24 @@ import { useNavigate } from 'react-router-dom';
 
 const endpoint = 'http://localhost:8000/api/addresses';
 const residentSearchEndpoint = 'http://localhost:8000/api/reports/search-residents'; 
-const streetsEndpoint = 'http://localhost:8000/api/streets'; // <-- NEW: Endpoint to fetch streets
+const streetsEndpoint = 'http://localhost:8000/api/streets'; 
 
 export default function CreateAddresses() {
     // State for address form inputs
     const [community, setCommunity] = useState('PRADOS DE LA HUERTA'); 
-    
-    // CHANGE 1: Use streetId (integer) instead of street (string name)
     const [streetId, setStreetId] = useState(''); 
-    
     const [streetNumber, setStreetNumber] = useState('');
     const [type, setType] = useState(''); 
     const [comments, setComments] = useState('');
     const [formValidated, setFormValidated] = useState(false);
+    
+    // ⭐ NEW STATE: Months overdue before 2026
+    const [monthsOverdue, setMonthsOverdue] = useState(0); 
 
     // NEW STATE: To hold the fetched list of streets
     const [streets, setStreets] = useState([]); 
 
-    // STATES FOR RESIDENT ASSIGNMENT (Unchanged)
+    // STATES FOR RESIDENT ASSIGNMENT
     const [residentQuery, setResidentQuery] = useState('');
     const [residentId, setResidentId] = useState(null); 
     const [residentSuggestions, setResidentSuggestions] = useState([]);
@@ -42,14 +42,18 @@ export default function CreateAddresses() {
         }
     };
     
+    // ⭐ NEW HANDLER: Restricts input to numbers and handles change for monthsOverdue
+    const handleMonthsOverdueChange = (e) => {
+        const value = e.target.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+        const num = parseInt(value) || 0; 
+        setMonthsOverdue(Math.min(num, 100)); // Cap at 100 to prevent huge numbers
+    };
+    
     // -------------------------------------------------------------------
-    // ⭐ NEW EFFECT: Fetch the list of available streets
+    // EFFECT: Fetch the list of available streets
     // -------------------------------------------------------------------
     const fetchStreets = async () => {
         try {
-            // NOTE: The street controller returns all streets, including soft-deleted ones (for status check).
-            // We should filter them on the client side to only show active ones,
-            // or ensure the API endpoint is filtered. Assuming standard listing here.
             const response = await axios.get(streetsEndpoint, {
                 withCredentials: true,
                 headers: { Accept: 'application/json' },
@@ -68,7 +72,7 @@ export default function CreateAddresses() {
         fetchStreets();
     }, []);
 
-    // Effect for resident autocomplete search (Debouncing) (Unchanged)
+    // Effect for resident autocomplete search (Debouncing)
     useEffect(() => {
         // ENGLISH CODE COMMENTS
         if (!residentQuery) { 
@@ -94,7 +98,7 @@ export default function CreateAddresses() {
         return () => clearTimeout(delayDebounceFn);
     }, [residentQuery]);
 
-    // Handler when a resident suggestion is clicked (Unchanged)
+    // Handler when a resident suggestion is clicked
     const handleSelectResident = (resident) => {
         // ENGLISH CODE COMMENTS
         setResidentId(resident.id);
@@ -123,13 +127,16 @@ export default function CreateAddresses() {
             const formData = new FormData();
             formData.append('community', community);
             
-            // CHANGE 2: Send street_id instead of street name
+            // CHANGE: Send street_id 
             formData.append('street_id', streetId); 
             
             formData.append('street_number', streetNumber);
             formData.append('type', type);
             formData.append('comments', comments);
             formData.append('resident_id', residentId);
+            
+            // ⭐ NEW FIELD: Send the months_overdue field
+            formData.append('months_overdue', monthsOverdue); 
 
             try {
                 await axios.post(endpoint, formData, {
@@ -161,7 +168,7 @@ export default function CreateAddresses() {
                     )}
                 </div>
                 
-                {/* FIELD: RESIDENT ASSIGNMENT (AUTOCOMPLETE) - Unchanged */}
+                {/* FIELD: RESIDENT ASSIGNMENT (AUTOCOMPLETE) */}
                 <div className='mb-3 position-relative'>
                     <label className='form-label'>Residente Asignado (Obligatorio) <span className="text-danger">*</span></label>
                     <input
@@ -196,7 +203,7 @@ export default function CreateAddresses() {
                     {hasExistingAddress && <div className="text-danger mt-1">⚠️ Este residente ya tiene una dirección asignada (1:1). No puede crear una nueva.</div>}
                 </div>
                 
-                {/* FIELD: COMMUNITY (SELECT) - MANDATORY (Unchanged) */}
+                {/* FIELD: COMMUNITY (SELECT) - MANDATORY */}
                 <div className='mb-3'>
                     <label className='form-label'>COMUNIDAD (Obligatorio)</label>
                     <select
@@ -217,14 +224,12 @@ export default function CreateAddresses() {
                 <div className='mb-3'>
                     <label className='form-label'>CALLE (Obligatorio) <span className="text-danger">*</span></label>
                     <select
-                        // CHANGE 3: Bind to streetId
                         value={streetId}
                         onChange={(e) => setStreetId(e.target.value)}
                         className={`form-control ${formValidated && !streetId ? 'is-invalid' : ''}`}
                         required
                     >
                         <option value="" disabled>Seleccione una calle</option>
-                        {/* CHANGE 4: Map over fetched streets */}
                         {streets.map((st) => (
                             <option key={st.id} value={st.id}>
                                 {st.name}
@@ -236,7 +241,7 @@ export default function CreateAddresses() {
                     </div>
                 </div>
 
-                {/* FIELD: STREET NUMBER (INPUT) - MANDATORY (Unchanged) */}
+                {/* FIELD: STREET NUMBER (INPUT) - MANDATORY */}
                 <div className='mb-3'>
                     <label className='form-label'>Número (Obligatorio)</label>
                     <input
@@ -253,7 +258,27 @@ export default function CreateAddresses() {
                     </div>
                 </div>
                 
-                {/* FIELD: TYPE (SELECT) - MANDATORY (Unchanged) */}
+                {/* ⭐ NEW FIELD: MONTHS OVERDUE BEFORE 2026 */}
+                <div className='mb-3'>
+                    <label className='form-label'>Número de meses atrasados antes del 2026 (Obligatorio) <span className="text-danger">*</span></label>
+                    <input
+                        value={monthsOverdue}
+                        onChange={handleMonthsOverdueChange}
+                        type='number' 
+                        min="0"
+                        max="100"
+                        className='form-control'
+                        required
+                    />
+                    <div className="form-text">
+                        Ingrese 0 si no hay meses atrasados.
+                    </div>
+                    <div className="invalid-feedback">
+                        Por favor, ingrese un número válido de meses atrasados (0 o más).
+                    </div>
+                </div>
+                
+                {/* FIELD: TYPE (SELECT) - MANDATORY */}
                 <div className='mb-3'>
                     <label className='form-label'>Tipo (Obligatorio) ⚠️</label>
                     <select
@@ -271,7 +296,7 @@ export default function CreateAddresses() {
                     </div>
                 </div>
 
-                {/* FIELD: COMMENTS (TEXTAREA) - OPTIONAL (Unchanged) */}
+                {/* FIELD: COMMENTS (TEXTAREA) - OPTIONAL */}
                 <div className='mb-3'>
                     <label className='form-label'>Comentarios (Opcional)</label>
                     <textarea

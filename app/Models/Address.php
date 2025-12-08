@@ -22,17 +22,28 @@ class Address extends Model
 
     /**
      * The attributes that are mass assignable.
-     * NOTE: The 'street' text column has been replaced by the 'street_id' foreign key.
+     * Includes the new 'months_overdue' field.
      *
      * @var array<int, string>
      */
     protected $fillable = [
         'resident_id',
-        'street_id',       // <-- NEW FIELD: Foreign key referencing the 'streets' table
+        'street_id',       // <-- Foreign key referencing the 'streets' table
         'type',
         'street_number',
         'community',
         'comments',
+        'months_overdue',  // <-- NEW FIELD: Count of payment months currently overdue
+    ];
+
+    /**
+     * The attributes that should be cast.
+     * Ensures 'months_overdue' is handled as an integer.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'months_overdue' => 'integer',
     ];
 
     /**
@@ -44,7 +55,6 @@ class Address extends Model
     public function resident(): BelongsTo
     {
         // This relationship uses the 'resident_id' column on the current 'addresses' table
-        // We explicitly define the foreign key for clarity, though it follows convention.
         return $this->belongsTo(Resident::class, 'resident_id');
     }
     
@@ -57,12 +67,18 @@ class Address extends Model
     public function street(): BelongsTo
     {
         // This relationship uses the 'street_id' column on the current 'addresses' table
-        // We explicitly define the foreign key for clarity, though it follows convention.
         return $this->belongsTo(Street::class, 'street_id');
     }
+    
+    /**
+     * Get the payments associated with the Address. (1:N relationship)
+     * An Address has many payments.
+     *
+     * @return HasMany
+     */
     public function payments(): HasMany 
     {
-        // the foreign key 'address_id' exist in the table 'address_payments'
+        // Uses AddressPayment::class as the payment model, aligning with the 'addressPayments' system.
         return $this->hasMany(AddressPayment::class, 'address_id');
     }
 }

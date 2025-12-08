@@ -2,42 +2,30 @@ import React, { useState, useEffect } from "react";
 import JsPDF from "jspdf";
 import "jspdf-autotable";
 import axios from "axios";
-import * as XLSX from "xlsx"; // Import for Excel functionality
+import * as XLSX from "xlsx";
 
 // React functional component for generating reports
 const Reports = () => {
     // --- CONSTANTS & HELPERS ---
-    // Month names in Spanish for display purposes
     const monthNames = [
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
 
-    // Get current month (1-12) and year
-    const currentMonthNum = new Date().getMonth() + 1; // 1-12 
+    const currentMonthNum = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
     
     // --- STATE VARIABLES ---
-    // List of available fees/payment types
     const [fees, setFees] = useState([]);
-    // Currently selected payment type for the report filter
     const [paymentType, setPaymentType] = useState("");
-    // Current report type (e.g., "debtors")
     const [reportType, setReportType] = useState("debtors");
-    // Data fetched from the report API (debtors data)
     const [data, setData] = useState([]);
-    // Loading indicator for API calls
     const [loading, setLoading] = useState(false);
     
-    // Year filter for income/debtors report
     const [ingresoYear, setIngresoYear] = useState(currentYear);
-    // Month filter for expense report
     const [gastoMonth, setGastoMonth] = useState(currentMonthNum);
-    // Year filter for expense report
     const [gastoYear, setGastoYear] = useState(currentYear);
-    // Search term for filtering the table data
-    const [searchTerm, setSearchTerm] = useState(""); 
-    // State to hold the fetched monthly expenses and total
+    const [searchTerm, setSearchTerm] = useState("");
     const [currentMonthExpenses, setCurrentMonthExpenses] = useState({ 
         expenses: [], 
         total: 0, 
@@ -45,19 +33,16 @@ const Reports = () => {
         year: currentYear 
     });
 
-    // Constants for table column spanning in the UI table
-    const totalMonthColumns = 12; 
-    const totalTrailingColumns = 4; // Changed from 3 to 4 (added Meses vencidos)
+    const totalMonthColumns = 12;
+    const totalTrailingColumns = 5;
     const fullTableColSpan = 2 + totalMonthColumns + totalTrailingColumns;
 
-    // Filter data based on search term (address, fee name, or comments)
     const filteredData = data.filter(row => 
         row.full_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         row.fee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (row.comments || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Helper function to format currency as MXN (Mexican Pesos) with no fraction digits
     const formatCurrency = (amount) => {
         const num = Number(amount || 0);
         return num.toLocaleString("es-MX", { 
@@ -68,78 +53,66 @@ const Reports = () => {
         });
     };
 
-    // Determines the display name for the current payment type filter
     const getPaymentDisplayType = (filterValue) => {
         if (filterValue && filterValue !== "Todos") {
             return filterValue;
         }
         if (filterValue === "Todos" && fees.length > 0) {
             const uniqueNames = [...new Set(fees.map(fee => fee.name))];
-            // If all fees have the same name, use that name, otherwise use "Múltiples Cuotas"
             return uniqueNames.length === 1 ? uniqueNames[0] : "Múltiples Cuotas";
         }
         return fees.length > 0 ? "Cuota" : "Sin Cuotas";
     };
 
-    // The display name of the current payment filter
     const currentPaymentDisplayName = getPaymentDisplayType(paymentType);
 
-    // Resets report filters and data state
     const resetFilters = () => {
         setIngresoYear(currentYear);
         setData([]);
         setSearchTerm("");
     };
 
-    // Determines the last completed month to calculate debt (prev month or Dec if year is past)
     const getLastMonthToConsider = (year) => {
         const today = new Date();
         const thisYear = today.getFullYear();
-        const thisMonth = today.getMonth() + 1; // 1-12
+        const thisMonth = today.getMonth() + 1;
 
-        if (year < thisYear) return 12; // If past year, consider up to December
-        if (year > thisYear) return 0; // If future year, consider 0 months
-        return Math.max(0, thisMonth - 1); // Current year: consider up to last month
+        if (year < thisYear) return 12;
+        if (year > thisYear) return 0;
+        return Math.max(0, thisMonth - 1);
     };
 
-    // Calculates the total debt for a specific row up to the previous month
-    const getRowDebtUpToPrevMonth = (row) => {
-        const feeAmount = Number(row.fee_amount || 0);
-        const lastMonth = getLastMonthToConsider(ingresoYear); 
-        if (lastMonth <= 0) return 0;
-
-        let unpaidCount = 0;
-        // Check payment status for months 1 through 'lastMonth'
-        for (let m = 1; m <= lastMonth; m++) {
-            const isRegistered = !!row[`month_${m}`];
-            // Debt is calculated ONLY if the month is NOT registered (paid or condoned)
-            if (!isRegistered) unpaidCount++;
-        }
-        return unpaidCount * feeAmount;
-    };
-
-    // Calculates the number of months overdue for a specific row up to the previous month
     const getRowMonthsOverdueUpToPrevMonth = (row) => {
         const lastMonth = getLastMonthToConsider(ingresoYear);
         if (lastMonth <= 0) return 0;
 
         let unpaidCount = 0;
-        // Count unpaid months up to 'lastMonth'
         for (let m = 1; m <= lastMonth; m++) {
             const isRegistered = !!row[`month_${m}`];
-            // Months overdue count ONLY if the month is NOT registered (paid or condoned)
             if (!isRegistered) unpaidCount++;
         }
         return unpaidCount;
     };
+    
+    const getRowMonthsOverdueBeforeYear = (row) => {
+        return Number(row.months_overdue || 0);
+    };
 
-    // Generates the report title for the PDF
+    const getTotalMonthsOverdue = (row) => {
+        return getRowMonthsOverdueUpToPrevMonth(row) + getRowMonthsOverdueBeforeYear(row);
+    };
+
+    const getTotalDebt = (row) => {
+        const totalMonths = getTotalMonthsOverdue(row);
+        const feeAmount = Number(row.fee_amount || 0);
+        return totalMonths * feeAmount;
+    };
+
     const getReportTitle = () => {
         const baseTitle = "ADEUDOS POR PREDIO";
         return `${baseTitle} - ${currentPaymentDisplayName.toUpperCase()}`;
     };
 
-    // Collects filter details for the PDF header
     const getFilterDetails = () => {
         const details = [];
         details.push(`Tipo de Pago: ${paymentType}`);
@@ -151,7 +124,6 @@ const Reports = () => {
 
     // --- FETCH LOGIC ---
 
-    // Fetches monthly expenses data
     const fetchExpenses = async (month = gastoMonth, year = gastoYear) => {
         try {
             const url = `/api/reports/expenses?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`;
@@ -167,7 +139,6 @@ const Reports = () => {
                     year: json.year || year,
                 });
             } else {
-                // Set default state if no expenses are returned
                 setCurrentMonthExpenses({ 
                     expenses: [], 
                     total: 0, 
@@ -177,7 +148,6 @@ const Reports = () => {
             }
         } catch (err) {
             console.error("Error fetching monthly expenses:", err);
-            // Set default state on error
             setCurrentMonthExpenses({ 
                 expenses: [], 
                 total: 0, 
@@ -187,31 +157,26 @@ const Reports = () => {
         }
     };
 
-    // Fetches the main debtors report data
     const fetchReport = async () => {
-        // Skip fetch if payment type is not selected or report type is not 'debtors'
         if (!paymentType || reportType !== "debtors") {
             setData([]);
             return;
         }
 
-        // Basic year validation
         if (!ingresoYear || ingresoYear < 2000 || ingresoYear > 2100) {
-            console.error("Año inválido:", ingresoYear);
+            console.error("Invalid year:", ingresoYear);
             setData([]);
             return;
         }
 
         setLoading(true);
         const encodedPaymentType = encodeURIComponent(paymentType);
-        // Uses the addressPayments model as per user request (implicit in the endpoint structure)
         const url = `/api/reports/debtors?payment_type=${encodedPaymentType}&year=${ingresoYear}`;
 
         try {
             const res = await fetch(url, { credentials: "include" });
             const json = await res.json();
             
-            // Filter out aggregation rows named "Total"
             const filteredData = Array.isArray(json.data)
                 ? json.data.filter(row => row.name !== "Total" && row.total !== "Total")
                 : [];
@@ -224,9 +189,7 @@ const Reports = () => {
         }
     };
 
-    // useEffect hook to fetch initial data (fees and current month expenses) once on mount
     useEffect(() => {
-        // Fetch list of fees/payment types
         axios.get("/api/fees", { 
             withCredentials: true, 
             headers: { Accept: "application/json" } 
@@ -234,12 +197,10 @@ const Reports = () => {
         .then(res => setFees(Array.isArray(res.data.data) ? res.data.data : []))
         .catch(() => setFees([]));
 
-        // Fetch current month expenses
         fetchExpenses(gastoMonth, gastoYear);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // useEffect hook to fetch the debtors report when filters change (debounced)
     useEffect(() => {
         const delay = setTimeout(() => {
             if (paymentType && reportType === "debtors") {
@@ -247,214 +208,290 @@ const Reports = () => {
             } else {
                 setData([]);
             }
-        }, 400); // Debounce to prevent excessive API calls while typing/changing filters
+        }, 400);
         return () => clearTimeout(delay);
-    }, [paymentType, reportType, ingresoYear]); // Dependencies: main report filters
+    }, [paymentType, reportType, ingresoYear]);
 
-    // useEffect hook to fetch expenses when the expense filter changes (debounced)
     useEffect(() => {
         const delay = setTimeout(() => {
             fetchExpenses(gastoMonth, gastoYear);
-        }, 200); // Debounce for expense fetching
+        }, 200);
         return () => clearTimeout(delay);
-    }, [gastoMonth, gastoYear]); // Dependencies: expense month/year filters
+    }, [gastoMonth, gastoYear]);
 
     // --- EXPORT FUNCTIONS ---
     
-    // Function to generate Excel file
-const generateExcel = () => {
-    try {
-        if (data.length === 0) {
-            alert("No hay datos para generar el Excel.");
-            return;
-        }
-
-        // Prepare data for Excel
-        const excelData = [];
-        
-        // 1. Add title and filter details
-        excelData.push([getReportTitle()]);
-        excelData.push([]); // Empty row
-        
-        const filterDetails = getFilterDetails();
-        filterDetails.forEach(detail => {
-            excelData.push([detail]);
-        });
-        excelData.push([]); // Empty row
-        
-        // 2. Add debtors table headers
-        const tableHeaders = [
-            "Dirección/Predio",
-            "Tipo de Pago",
-            "Ene", "Feb", "Mar", "Abr", "May", "Jun", 
-            "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
-            "Pagado",
-            "Meses vencidos",
-            "Deuda",
-            "Comentarios"
-        ];
-        excelData.push(tableHeaders);
-
-        // 3. Add debtors data rows
-        const monthlyCalendarTotals = Array(12).fill(0);
-        let grandTotalPaid = 0;
-        let grandTotalDebt = 0;
-        let grandTotalMonthsOverdue = 0;
-
-        filteredData.forEach(row => {
-            let rowTotalPaid = 0;
-            const feeAmount = Number(row.fee_amount || 0);
-            
-            // Calculate row data
-            for (let m = 1; m <= 12; m++) {
-                // Accumulate monthly calendar totals
-                const calendarAmount = Number(row[`total_paid_in_month_${m}`] || 0);
-                monthlyCalendarTotals[m - 1] += calendarAmount;
-                
-                // Calculate row total paid
-                if (row[`month_${m}`]) {
-                    rowTotalPaid += Number(row[`month_${m}_amount_paid`] ?? feeAmount);
-                }
+    const generateExcel = () => {
+        try {
+            if (data.length === 0) {
+                alert("No hay datos para generar el Excel.");
+                return;
             }
+
+            // Prepare data for Excel
+            const excelData = [];
             
-            const totalDebtValue = getRowDebtUpToPrevMonth(row);
-            const rowMonthsOverdue = getRowMonthsOverdueUpToPrevMonth(row);
-            
-            // Update grand totals
-            grandTotalPaid += rowTotalPaid;
-            grandTotalDebt += totalDebtValue;
-            grandTotalMonthsOverdue += rowMonthsOverdue;
-            
-            // Create row data
-            const rowData = [
-                row.full_address || '',
-                row.fee_name || currentPaymentDisplayName,
-            ];
-            
-            // Add monthly cells (without dates)
-            for (let m = 1; m <= 12; m++) {
-                const isRegistered = !!row[`month_${m}`];
-                const amountPaid = Number(row[`month_${m}_amount_paid`] ?? 0);
-                const status = row[`month_${m}_status`];
-                const isWaived = status === 'Condonado' || amountPaid === 0;
-                
-                if (isRegistered) {
-                    if (isWaived) {
-                        rowData.push("Condonado");
-                    } else {
-                        rowData.push(formatCurrency(amountPaid));
-                    }
-                } else {
-                    const lastMonth = getLastMonthToConsider(ingresoYear);
-                    rowData.push(m <= lastMonth ? "X" : "-");
-                }
-            }
-            
-            // Add trailing columns
-            rowData.push(formatCurrency(rowTotalPaid));
-            rowData.push(rowMonthsOverdue);
-            rowData.push(formatCurrency(totalDebtValue));
-            rowData.push(row.comments || '-');
-            
-            excelData.push(rowData);
-        });
-        
-        // 4. Add debtors total row
-        const totalRow = [
-            "TOTAL INGRESOS MENSUAL (ACUMULADO " + ingresoYear + "):",
-            ""
-        ];
-        
-        // Add monthly totals
-        monthlyCalendarTotals.forEach(total => {
-            totalRow.push(total > 0 ? formatCurrency(total) : "-");
-        });
-        
-        // Add grand totals
-        totalRow.push(formatCurrency(grandTotalPaid));
-        totalRow.push(grandTotalMonthsOverdue);
-        totalRow.push(formatCurrency(grandTotalDebt));
-        totalRow.push("");
-        
-        excelData.push(totalRow);
-        excelData.push([]); // Empty row
-        
-        // 5. Add expenses section if there are expenses
-        const expensesToDisplay = currentMonthExpenses.expenses || [];
-        if (expensesToDisplay.length > 0 || currentMonthExpenses.total > 0) {
-            // Expenses header
-            excelData.push([`GASTOS / EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year})`]);
+            // 1. Add title and filter details
+            excelData.push([getReportTitle()]);
             excelData.push([]);
             
-            // Expenses table headers - ONLY CATEGORY AND AMOUNT
-            excelData.push([
-                "Categoría",
-                "Monto"
-            ]);
+            const filterDetails = getFilterDetails();
+            filterDetails.forEach(detail => {
+                excelData.push([detail]);
+            });
+            excelData.push([]);
             
-            // Expenses rows - ONLY CATEGORY AND AMOUNT
-            expensesToDisplay.forEach(exp => {
-                excelData.push([
-                    exp.category?.name || 'N/A',
-                    formatCurrency(exp.amount)
-                ]);
+            // 2. Add debtors table headers
+            const tableHeaders = [
+                "Dirección/Predio",
+                "Tipo de Pago",
+                "vencidos < 2026",
+                "Ene", "Feb", "Mar", "Abr", "May", "Jun", 
+                "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
+                "Ingreso anual",
+                "Meses vencidos",
+                "Deuda",
+                "Comentarios"
+            ];
+            excelData.push(tableHeaders);
+
+            // 3. Add debtors data rows
+            const monthlyCalendarTotals = Array(12).fill(0);
+            let grandTotalPaid = 0;
+            let grandTotalDebt = 0;
+            let grandTotalMonthsOverdue = 0;
+            let grandTotalMonthsOverdueBeforeYear = 0;
+
+            filteredData.forEach(row => {
+                let rowTotalPaid = 0;
+                const feeAmount = Number(row.fee_amount || 0);
+                
+                // Calculate row data
+                for (let m = 1; m <= 12; m++) {
+                    const calendarAmount = Number(row[`total_paid_in_month_${m}`] || 0);
+                    monthlyCalendarTotals[m - 1] += calendarAmount;
+                    
+                    if (row[`month_${m}`]) {
+                        rowTotalPaid += Number(row[`month_${m}_amount_paid`] ?? feeAmount);
+                    }
+                }
+                
+                const monthsOverdueBeforeYear = getRowMonthsOverdueBeforeYear(row);
+                const totalMonthsOverdue = getTotalMonthsOverdue(row);
+                const totalDebtValue = getTotalDebt(row);
+                
+                // Update grand totals
+                grandTotalPaid += rowTotalPaid;
+                grandTotalDebt += totalDebtValue;
+                grandTotalMonthsOverdue += totalMonthsOverdue;
+                grandTotalMonthsOverdueBeforeYear += monthsOverdueBeforeYear;
+                
+                // Create row data
+                const rowData = [
+                    row.full_address || '',
+                    row.fee_name || currentPaymentDisplayName,
+                    monthsOverdueBeforeYear,
+                ];
+                
+                // Add monthly cells
+                for (let m = 1; m <= 12; m++) {
+                    const isRegistered = !!row[`month_${m}`];
+                    const amountPaid = Number(row[`month_${m}_amount_paid`] ?? 0);
+                    const status = row[`month_${m}_status`];
+                    const isWaived = status === 'Condonado' || amountPaid === 0;
+                    
+                    if (isRegistered) {
+                        if (isWaived) {
+                            rowData.push("Condonado");
+                        } else {
+                            rowData.push(formatCurrency(amountPaid));
+                        }
+                    } else {
+                        const lastMonth = getLastMonthToConsider(ingresoYear);
+                        rowData.push(m <= lastMonth ? "X" : "-");
+                    }
+                }
+                
+                // Add trailing columns with formatting
+                rowData.push(formatCurrency(rowTotalPaid));
+                rowData.push(totalMonthsOverdue);
+                rowData.push(formatCurrency(totalDebtValue));
+                rowData.push(row.comments || '-');
+                
+                excelData.push(rowData);
             });
             
-            // Expenses total row - ADJUSTED FOR 2 COLUMNS
-            excelData.push([
-                `TOTAL EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`,
-                formatCurrency(currentMonthExpenses.total)
-            ]);
+            // 4. Add debtors total row
+            const totalRow = [
+                "INGRESOS (ACUMULADO " + ingresoYear + "):",
+                "",
+                grandTotalMonthsOverdueBeforeYear,
+            ];
             
-            excelData.push([]); // Empty row
+            // Add monthly totals
+            monthlyCalendarTotals.forEach(total => {
+                totalRow.push(total > 0 ? formatCurrency(total) : "-");
+            });
             
-            // 6. Add balance (saldo) row
-            const monthlyTotalIndex = Number(gastoMonth) - 1;
-            const monthlyIncomeForBalance = monthlyCalendarTotals[monthlyTotalIndex] || 0;
-            const saldo = monthlyIncomeForBalance - currentMonthExpenses.total;
+            // Add grand totals
+            totalRow.push(formatCurrency(grandTotalPaid));
+            totalRow.push(grandTotalMonthsOverdue);
+            totalRow.push(formatCurrency(grandTotalDebt));
+            totalRow.push("");
             
-            const ingresoFormatted = formatCurrency(monthlyIncomeForBalance);
-            const egresoFormatted = formatCurrency(currentMonthExpenses.total);
-            const saldoFormatted = formatCurrency(saldo);
+            excelData.push(totalRow);
+            excelData.push([]);
             
-            excelData.push([
-                `SALDO (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`,
-                `${ingresoFormatted} - ${egresoFormatted} = ${saldoFormatted}`
-            ]);
+            // 5. Add expenses section
+            const expensesToDisplay = currentMonthExpenses.expenses || [];
+            if (expensesToDisplay.length > 0 || currentMonthExpenses.total > 0) {
+                excelData.push([`GASTOS / EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year})`]);
+                excelData.push([]);
+                
+                excelData.push([
+                    "Categoría",
+                    "Monto"
+                ]);
+                
+                expensesToDisplay.forEach(exp => {
+                    excelData.push([
+                        exp.category?.name || 'N/A',
+                        formatCurrency(exp.amount)
+                    ]);
+                });
+                
+                excelData.push([
+                    `TOTAL EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`,
+                    formatCurrency(currentMonthExpenses.total)
+                ]);
+                
+                excelData.push([]);
+                
+                // 6. Add balance (saldo) row
+                const monthlyTotalIndex = Number(gastoMonth) - 1;
+                const monthlyIncomeForBalance = monthlyCalendarTotals[monthlyTotalIndex] || 0;
+                const saldo = monthlyIncomeForBalance - currentMonthExpenses.total;
+                
+                const ingresoFormatted = formatCurrency(monthlyIncomeForBalance);
+                const egresoFormatted = formatCurrency(currentMonthExpenses.total);
+                const saldoFormatted = formatCurrency(saldo);
+                
+                excelData.push([
+                    `SALDO (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`,
+                    `${ingresoFormatted} - ${egresoFormatted} = ${saldoFormatted}`
+                ]);
+            }
+            
+            // 7. Create worksheet and workbook
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte Adeudos");
+
+            // 8. Style the worksheet - Add styling for Excel
+            const debtorsColWidths = [
+                { wch: 30 },
+                { wch: 15 },
+                { wch: 10 },
+                { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
+                { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
+                { wch: 15 },
+                { wch: 12 },
+                { wch: 15 },
+                { wch: 25 },
+            ];
+            ws['!cols'] = debtorsColWidths;
+
+            // Add cell styling for Excel
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            // Style headers (row 5, zero-based index 4)
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const cellAddress = XLSX.utils.encode_cell({r: 4, c: C});
+                if (!ws[cellAddress]) continue;
+                
+                // Add bold style to headers
+                ws[cellAddress].s = {
+                    font: { bold: true },
+                    alignment: { 
+                        horizontal: C === 0 || C === 1 || C === 18 ? 'left' : 
+                                   C >= 2 && C <= 14 ? 'center' : 
+                                   C === 15 || C === 17 ? 'right' : 
+                                   C === 16 ? 'center' : 'left'
+                    }
+                };
+            }
+
+            // Style data rows
+            for (let R = 5; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
+                    if (!ws[cellAddress]) continue;
+                    
+                    const cellValue = ws[cellAddress].v;
+                    const cellStyle = { alignment: {} };
+                    
+                    // Set alignment based on column
+                    if (C === 0 || C === 1 || C === 18) {
+                        cellStyle.alignment.horizontal = 'left';
+                    } else if (C === 15 || C === 17) {
+                        cellStyle.alignment.horizontal = 'right';
+                    } else if (C === 16) {
+                        cellStyle.alignment.horizontal = 'center';
+                    } else if (C >= 2 && C <= 14) {
+                        cellStyle.alignment.horizontal = 'center';
+                    }
+                    
+                    // Apply conditional formatting for "vencidos < 2026" (column 2)
+                    if (C === 2 && cellValue > 0) {
+                        cellStyle.fill = { fgColor: { rgb: "FF0000" } };
+                        cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true };
+                    }
+                    
+                    // Apply conditional formatting for "Meses vencidos" (column 16)
+                    if (C === 16 && cellValue > 0) {
+                        cellStyle.fill = { fgColor: { rgb: "FF0000" } };
+                        cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true };
+                    }
+                    
+                    // Apply conditional formatting for "Deuda" (column 17)
+                    if (C === 17 && cellValue && cellValue > 0) {
+                        cellStyle.fill = { fgColor: { rgb: "FF0000" } };
+                        cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true };
+                    }
+                    
+                    // Style for "Pagado" column (green text)
+                    if (C === 15 && cellValue && typeof cellValue === 'string' && cellValue.includes('$')) {
+                        cellStyle.font = { color: { rgb: "28A745" }, bold: true };
+                    }
+                    
+                    // Style for "X" in monthly columns (red)
+                    if (C >= 3 && C <= 14 && cellValue === 'X') {
+                        cellStyle.fill = { fgColor: { rgb: "DC3545" } };
+                        cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true };
+                    }
+                    
+                    // Style for "Condonado" in monthly columns (blue)
+                    if (C >= 3 && C <= 14 && cellValue === 'Condonado') {
+                        cellStyle.fill = { fgColor: { rgb: "6495ED" } };
+                        cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true };
+                    }
+                    
+                    ws[cellAddress].s = cellStyle;
+                }
+            }
+
+            // 9. Generate Excel file
+            const fileName = `reporte_adeudos_${currentPaymentDisplayName.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+
+        } catch (error) {
+            console.error("Error al generar Excel:", error);
+            alert("Ocurrió un error al generar el Excel. Por favor, verifica la consola para más detalles.");
         }
-        
-        // 7. Create worksheet and workbook
-        const ws = XLSX.utils.aoa_to_sheet(excelData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Reporte Adeudos");
-
-        // 8. Style the worksheet
-        // Define column widths for debtors table
-        const debtorsColWidths = [
-            { wch: 30 }, // Dirección/Predio
-            { wch: 15 }, // Tipo de Pago
-            { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, // Ene-Jun
-            { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, // Jul-Dic
-            { wch: 15 }, // Pagado
-            { wch: 12 }, // Meses vencidos
-            { wch: 15 }, // Deuda
-            { wch: 25 }, // Comentarios
-        ];
-        ws['!cols'] = debtorsColWidths;
-
-        // 9. Generate Excel file
-        const fileName = `reporte_adeudos_${currentPaymentDisplayName.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-        XLSX.writeFile(wb, fileName);
-
-    } catch (error) {
-        console.error("Error al generar Excel:", error);
-        alert("Ocurrió un error al generar el Excel. Por favor, verifica la consola para más detalles.");
-    }
-};
+    };
 
     // --- PDF GENERATION ---
     
-    // Function to generate the PDF report using jspdf and jspdf-autotable
     const generatePdf = () => {
         try {
             if (data.length === 0) {
@@ -462,13 +499,11 @@ const generateExcel = () => {
                 return;
             }
             
-            // Check if jsPDF library is available
             if (typeof JsPDF === "undefined") {
                 alert("Error: jsPDF no está disponible.");
                 return;
             }
             
-            // Initialize jsPDF in landscape (l) mode, points (pt) unit, A4 size
             const doc = new JsPDF("l", "pt", "a4");
             const title = getReportTitle();
             const filterDetails = getFilterDetails();
@@ -478,16 +513,14 @@ const generateExcel = () => {
             // 1. Title and Filter Details setup
             doc.setFontSize(18);
             doc.setFont("helvetica", "bold");
-            doc.setTextColor(30, 144, 255); // Dodger Blue
+            doc.setTextColor(30, 144, 255);
             doc.text(title, doc.internal.pageSize.width / 2, startY, { align: "center" });
             startY += 25;
 
-            // Add filter details below the title
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(80, 80, 80);
             filterDetails.forEach(detail => {
-                // Add new page if space runs out
                 if (startY > doc.internal.pageSize.height - 50) {
                     doc.addPage();
                     startY = 40;
@@ -499,61 +532,53 @@ const generateExcel = () => {
 
             // 2. INCOME (INGRESOS) / DEBTORS TABLE GENERATION
             const tableHeaders = [];
-            // Array to accumulate total payments for each calendar month
-            const monthlyCalendarTotals = Array(12).fill(0); 
+            const monthlyCalendarTotals = Array(12).fill(0);
             
-            // Define main table headers - ADDED "Meses vencidos" column
             tableHeaders.push([
                 "Dirección/Predio",
                 "Tipo de Pago",
+                "vencidos < 2026",
                 "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
-                "Pagado",
-                "Meses vencidos", // NEW COLUMN
+                "Ingreso anual",
+                "Meses vencidos",
                 "Deuda",
                 "Comentarios"
             ]);
 
-            // Process data for the table body
             const processedData = data.map(row => {
                 let rowTotalPaid = 0;
                 const feeAmount = Number(row.fee_amount || 0);
 
-                // Calculate monthly calendar totals (total received in that month) and row total paid (total paid for that row's fee)
                 for (let m = 1; m <= 12; m++) {
-                    // Accumulate monthly calendar totals from the API response field
                     const calendarAmount = Number(row[`total_paid_in_month_${m}`] || 0);
                     monthlyCalendarTotals[m - 1] += calendarAmount;
                     
-                    // Calculate rowTotalPaid only if the month is marked as registered
                     if (row[`month_${m}`]) {
                         rowTotalPaid += Number(row[`month_${m}_amount_paid`] ?? feeAmount);
                     }
                 }
                 
-                // Calculate debt and overdue months
-                const computedDebt = getRowDebtUpToPrevMonth(row);
-                const totalDebtValue = computedDebt;
-                const rowMonthsOverdue = getRowMonthsOverdueUpToPrevMonth(row);
+                const monthsOverdueBeforeYear = getRowMonthsOverdueBeforeYear(row);
+                const totalMonthsOverdue = getTotalMonthsOverdue(row);
+                const totalDebtValue = getTotalDebt(row);
 
                 const bodyRow = [
                     row.full_address,
                     row.fee_name || currentPaymentDisplayName,
+                    monthsOverdueBeforeYear.toString(),
                 ];
 
-                // Map monthly payments to table cells
                 for (let m = 1; m <= 12; m++) {
-                    const isRegistered = !!row[`month_${m}`]; // Check if it's paid OR condoned
+                    const isRegistered = !!row[`month_${m}`];
                     const dateStr = row[`month_${m}_date`] ? 
                         new Date(row[`month_${m}_date`]).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit" }) : "";
                     const amountPaid = Number(row[`month_${m}_amount_paid`] ?? 0);
-                    const status = row[`month_${m}_status`]; // Status: 'Pagado' or 'Condonado'
+                    const status = row[`month_${m}_status`];
 
                     if (isRegistered) {
                         const amountDisplay = amountPaid > 0 ? formatCurrency(amountPaid) : '';
                         
                         let visualContent;
-                        
-                        // Determine if the month was waived (status is Condonado OR amount paid is 0)
                         const isWaived = status === 'Condonado' || amountPaid === 0;
 
                         if (isWaived) {
@@ -564,67 +589,69 @@ const generateExcel = () => {
                         
                         bodyRow.push(visualContent);
                     } else {
-                        // Mark 'X' if overdue up to the previous month, otherwise '-'
-                        const lastMonth = getLastMonthToConsider(ingresoYear); 
+                        const lastMonth = getLastMonthToConsider(ingresoYear);
                         if (m <= lastMonth) bodyRow.push("X");
                         else bodyRow.push("-");
                     }
                 }
 
-                // Add trailing columns: Total Paid, Months Overdue, Debt, Comments
                 bodyRow.push(formatCurrency(rowTotalPaid));
-                bodyRow.push(rowMonthsOverdue.toString()); // NEW: Meses vencidos
+                bodyRow.push(totalMonthsOverdue.toString());
                 bodyRow.push(formatCurrency(totalDebtValue));
                 bodyRow.push(row.comments || '-');
 
                 return bodyRow;
             });
             
-            // Calculate final grand totals
             const grandTotalPaidDisplayed = monthlyCalendarTotals.reduce((sum, val) => sum + val, 0);
-            const grandTotalDebt = data.reduce((sum, row) => sum + getRowDebtUpToPrevMonth(row), 0);
-            const grandTotalMonthsOverdue = data.reduce((sum, row) => sum + getRowMonthsOverdueUpToPrevMonth(row), 0);
+            const grandTotalDebt = data.reduce((sum, row) => sum + getTotalDebt(row), 0);
+            const grandTotalMonthsOverdue = data.reduce((sum, row) => sum + getTotalMonthsOverdue(row), 0);
+            const grandTotalMonthsOverdueBeforeYear = data.reduce((sum, row) => sum + getRowMonthsOverdueBeforeYear(row), 0);
 
-            // Create the final total row for the income/debtors table
-            const totalRow = ["TOTAL INGRESOS MENSUAL (ACUMULADO " + ingresoYear + "):", ""];
+            const totalRow = ["INGRESOS (ACUMULADO " + ingresoYear + "):", "", grandTotalMonthsOverdueBeforeYear.toString()];
             
-            // Add monthly total values
             monthlyCalendarTotals.forEach(total => totalRow.push(total > 0 ? formatCurrency(total) : "-"));
 
-            // Add grand totals for Paid, Months Overdue, and Debt
             totalRow.push(formatCurrency(grandTotalPaidDisplayed));
-            totalRow.push(grandTotalMonthsOverdue.toString()); // NEW: Total meses vencidos
+            totalRow.push(grandTotalMonthsOverdue.toString());
             totalRow.push(formatCurrency(grandTotalDebt));
             totalRow.push("");
 
             processedData.push(totalRow);
             
-            // Updated column styles for the income/debtors table - ADJUSTED FOR NEW COLUMN
+            // Updated column styles to match HTML table alignment
             const currentColumnStyles = {
-                0: { halign: "left", cellWidth: 150 }, 1: { halign: "left", cellWidth: 70 },
-                2: { halign: "center", cellWidth: 32 }, 3: { halign: "center", cellWidth: 32 },
-                4: { halign: "center", cellWidth: 32 }, 5: { halign: "center", cellWidth: 32 },
-                6: { halign: "center", cellWidth: 32 }, 7: { halign: "center", cellWidth: 32 },
-                8: { halign: "center", cellWidth: 32 }, 9: { halign: "center", cellWidth: 32 },
-                10: { halign: "center", cellWidth: 32 }, 11: { halign: "center", cellWidth: 32 },
-                12: { halign: "center", cellWidth: 32 }, 13: { halign: "center", cellWidth: 32 },
-                14: { halign: "right", fontStyle: "bold", cellWidth: 60 }, // Pagado
-                15: { halign: "center", fontStyle: "bold", cellWidth: 40 }, // NEW: Meses vencidos
-                16: { halign: "right", fontStyle: "bold", cellWidth: 70 }, // Deuda
-                17: { halign: "left", cellWidth: 90 } // Comentarios
+                0: { halign: "left", cellWidth: 120 },
+                1: { halign: "left", cellWidth: 70 },
+                2: { halign: "center", cellWidth: 40 },
+                3: { halign: "center", cellWidth: 32 },
+                4: { halign: "center", cellWidth: 32 },
+                5: { halign: "center", cellWidth: 32 },
+                6: { halign: "center", cellWidth: 32 },
+                7: { halign: "center", cellWidth: 32 },
+                8: { halign: "center", cellWidth: 32 },
+                9: { halign: "center", cellWidth: 32 },
+                10: { halign: "center", cellWidth: 32 },
+                11: { halign: "center", cellWidth: 32 },
+                12: { halign: "center", cellWidth: 32 },
+                13: { halign: "center", cellWidth: 32 },
+                14: { halign: "center", cellWidth: 32 },
+                15: { halign: "center", cellWidth: 60 }, // Changed from right to center
+                16: { halign: "center", cellWidth: 40 },
+                17: { halign: "center", cellWidth: 70 }, // Changed from right to center
+                18: { halign: "left", cellWidth: 70 }
             };
 
             const finalRowIndex = processedData.length - 1;
 
-            // Generate Income/Debtors table with custom styling for totals and overdue marks
             doc.autoTable({
                 head: tableHeaders,
                 body: processedData,
                 startY,
                 theme: "grid",
-                tableWidth: "auto", // Automatically calculate table width to fit content
+                tableWidth: "auto",
                 headStyles: {
-                    fillColor: [60, 179, 113], // Medium Sea Green
+                    fillColor: [60, 179, 113],
                     textColor: 255,
                     fontStyle: "bold",
                     fontSize: 7,
@@ -637,7 +664,7 @@ const generateExcel = () => {
                 },
                 columnStyles: currentColumnStyles,
                 rowStyles: {
-                    [finalRowIndex]: { // Style for the grand total row
+                    [finalRowIndex]: {
                         fontStyle: "bold",
                         fillColor: [220, 220, 220],
                         textColor: [0, 0, 0],
@@ -646,7 +673,7 @@ const generateExcel = () => {
                 },
                 didParseCell: function (data) {
                     const columnCount = tableHeaders[0].length;
-                    const monthIndexStart = 2; // Index where month columns start
+                    const monthIndexStart = 3;
 
                     // --- Final Row Styling ---
                     if (data.row.index === finalRowIndex) { 
@@ -656,6 +683,13 @@ const generateExcel = () => {
                         } else if (data.column.index === 1) {
                             return false;
                         }
+                        
+                        // Style for "vencidos < 2026" total row - RED when > 0
+                        if (data.column.index === 2 && grandTotalMonthsOverdueBeforeYear > 0) {
+                            data.cell.styles.fillColor = [220, 53, 69];
+                            data.cell.styles.textColor = 255;
+                            data.cell.styles.fontStyle = "bold";
+                        }
 
                         if (data.column.index >= monthIndexStart && data.column.index < columnCount - 4) {
                             const monthNum = data.column.index - monthIndexStart + 1;
@@ -664,55 +698,84 @@ const generateExcel = () => {
                                 data.cell.styles.textColor = [0, 0, 0];
                             }
                         }
-
-                        if (data.column.index === 16 && grandTotalDebt > 0) {
-                            data.cell.styles.fillColor = [220, 53, 69]; 
+                        
+                        // "Ingreso anual" total styling - green text
+                        if (data.column.index === 15) {
+                            data.cell.styles.textColor = [40, 167, 69]; // Green
+                            data.cell.styles.fontStyle = "bold";
+                        }
+                        
+                        // "Meses vencidos" total styling - RED when > 0
+                        if (data.column.index === 16 && grandTotalMonthsOverdue > 0) {
+                            data.cell.styles.fillColor = [220, 53, 69];
                             data.cell.styles.textColor = 255;
+                            data.cell.styles.fontStyle = "bold";
                         }
 
-                        // Highlight meses vencidos if greater than 0
-                        if (data.column.index === 15 && grandTotalMonthsOverdue > 0) {
-                            data.cell.styles.fillColor = [255, 193, 7]; // Amber
-                            data.cell.styles.textColor = 0;
+                        // "Deuda" total styling - RED when > 0
+                        if (data.column.index === 17 && grandTotalDebt > 0) {
+                            data.cell.styles.fillColor = [220, 53, 69];
+                            data.cell.styles.textColor = 255;
+                            data.cell.styles.fontStyle = "bold";
                         }
 
                     } else { 
                         // --- Regular Data Row Styling ---
-                        // Debt Column Styling
-                        if (data.column.index === 16) {
-                            const totalDebtValue = getRowDebtUpToPrevMonth(data.row.raw);
-                            if (totalDebtValue > 0) {
-                                data.cell.styles.fillColor = [220, 53, 69]; 
+                        
+                        // "vencidos < 2026" Column - RED when > 0
+                        if (data.column.index === 2) {
+                            const monthsOverdueBeforeYear = getRowMonthsOverdueBeforeYear(data.row.raw);
+                            if (monthsOverdueBeforeYear > 0) {
+                                data.cell.styles.fillColor = [220, 53, 69];
                                 data.cell.styles.textColor = 255;
+                                data.cell.styles.fontStyle = "bold";
                             }
                         }
-
-                        // Meses vencidos Column Styling - NEW
+                        
+                        // "Ingreso anual" Column - green text
                         if (data.column.index === 15) {
-                            const rowMonthsOverdue = getRowMonthsOverdueUpToPrevMonth(data.row.raw);
-                            if (rowMonthsOverdue > 0) {
-                                data.cell.styles.fillColor = [255, 193, 7]; // Amber
-                                data.cell.styles.textColor = 0;
+                            data.cell.styles.textColor = [40, 167, 69]; // Green
+                            data.cell.styles.fontStyle = "bold";
+                        }
+                        
+                        // "Meses vencidos" Column - RED when > 0
+                        if (data.column.index === 16) {
+                            const totalMonthsOverdue = getTotalMonthsOverdue(data.row.raw);
+                            if (totalMonthsOverdue > 0) {
+                                data.cell.styles.fillColor = [220, 53, 69];
+                                data.cell.styles.textColor = 255;
                                 data.cell.styles.fontStyle = "bold";
                             }
                         }
 
-                        // Monthly Columns Styling (Index 2 to 13)
-                        if (data.column.index >= 2 && data.column.index <= 13) {
+                        // "Deuda" Column - RED when > 0
+                        if (data.column.index === 17) {
+                            const totalDebtValue = getTotalDebt(data.row.raw);
+                            if (totalDebtValue > 0) {
+                                data.cell.styles.fillColor = [220, 53, 69];
+                                data.cell.styles.textColor = 255;
+                                data.cell.styles.fontStyle = "bold";
+                            }
+                        }
+
+                        // Monthly Columns Styling
+                        if (data.column.index >= monthIndexStart && data.column.index <= 14) {
                             const cellText = String(data.cell.text);
                             
-                            // Highlight "X" (overdue mark) cells in red
+                            // "X" cells - RED background
                             if (cellText && cellText[0] === 'X') {
-                                data.cell.styles.fillColor = [220, 53, 69]; 
+                                data.cell.styles.fillColor = [220, 53, 69];
                                 data.cell.styles.textColor = 255;
+                                data.cell.styles.fontStyle = "bold";
                             } 
-                            // Highlight Condonado in blue/info color
+                            // "Condonado" cells - BLUE background
                             else if (cellText.includes('Condonado')) {
-                                data.cell.styles.fillColor = [100, 149, 237]; // Cornflower Blue
+                                data.cell.styles.fillColor = [100, 149, 237];
                                 data.cell.styles.textColor = 255;
+                                data.cell.styles.fontStyle = "bold";
                             }
 
-                            // Adjust font size/alignment for paid cells (multi-line)
+                            // Adjust font size for multi-line cells
                             if (cellText.includes("\n")) {
                                 data.cell.styles.fontSize = 6.5;
                                 data.cell.styles.halign = "center";
@@ -722,21 +785,18 @@ const generateExcel = () => {
                     }
                 },
                 didDrawPage: function (data) {
-                    // Add page numbering
                     doc.setFontSize(10);
                     doc.text(`Página ${doc.internal.getNumberOfPages()}`, doc.internal.pageSize.width - margin, doc.internal.pageSize.height - 20, { align: "right" });
                 }
             });
 
-            // ... (3. EXPENSE TABLE GENERATION remains unchanged) ...
+            // 3. EXPENSE TABLE GENERATION
             let expenseStartY = doc.autoTable.previous.finalY + 15;
             const expensesToDisplay = (currentMonthExpenses.expenses || []);
             
-            // 3. EXPENSE (EGRESOS) TABLE GENERATION 
             if (expensesToDisplay.length > 0) {
-                // Expense table title
                 doc.setFontSize(14);
-                doc.setTextColor(220, 53, 69); // Red
+                doc.setTextColor(220, 53, 69);
                 doc.text(`GASTOS / EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year})`, margin, expenseStartY);
                 expenseStartY += 10;
 
@@ -744,7 +804,6 @@ const generateExcel = () => {
                     ["Categoría", "Descripción", "Fecha", "Monto"]
                 ];
 
-                // Map expense data to table body rows
                 const expenseTableBody = expensesToDisplay.map(exp => [
                     exp.category?.name || 'N/A', 
                     exp.description || '-', 
@@ -752,13 +811,11 @@ const generateExcel = () => {
                     formatCurrency(exp.amount)
                 ]);
                 
-                // Add total row for expenses
                 expenseTableBody.push([
                     { content: `TOTAL EGRESOS (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`, colSpan: 3, styles: { fontStyle: 'bold', halign: 'right', fillColor: [220, 220, 220] } },
                     { content: formatCurrency(currentMonthExpenses.total), styles: { fontStyle: 'bold', halign: 'right', fillColor: [220, 220, 220], textColor: [220, 53, 69] } }
                 ]);
 
-                // Generate Expenses table
                 doc.autoTable({
                     head: expenseTableHeaders,
                     body: expenseTableBody,
@@ -766,7 +823,7 @@ const generateExcel = () => {
                     theme: "grid",
                     margin: { left: margin, right: margin },
                     headStyles: {
-                        fillColor: [220, 53, 69], // Red
+                        fillColor: [220, 53, 69],
                         textColor: 255,
                         fontStyle: "bold",
                         fontSize: 8,
@@ -778,11 +835,12 @@ const generateExcel = () => {
                         halign: "left"
                     },
                     columnStyles: {
-                        0: { cellWidth: 100 }, 1: { cellWidth: 350 },
-                        2: { cellWidth: 60, halign: 'center' }, 3: { cellWidth: 80, halign: 'right' }
+                        0: { cellWidth: 100 },
+                        1: { cellWidth: 350 },
+                        2: { cellWidth: 60, halign: 'center' },
+                        3: { cellWidth: 80, halign: 'right' }
                     },
                     didDrawPage: function (data) {
-                        // Add page numbering
                         doc.setFontSize(10);
                         doc.text(`Página ${doc.internal.getNumberOfPages()}`, doc.internal.pageSize.width - margin, doc.internal.pageSize.height - 20, { align: "right" });
                     }
@@ -793,36 +851,26 @@ const generateExcel = () => {
             }
 
             // 4. BALANCE (SALDO) ROW
-            // Calculate the monthly balance
             const monthlyTotalIndex = Number(gastoMonth) - 1;
             const monthlyIncomeForBalance = monthlyCalendarTotals[monthlyTotalIndex] || 0;
             const saldo = monthlyIncomeForBalance - currentMonthExpenses.total;
             
-            // Format for display
             const ingresoFormatted = formatCurrency(monthlyIncomeForBalance);
             const egresoFormatted = formatCurrency(currentMonthExpenses.total);
             const saldoFormatted = formatCurrency(saldo);
             const formulaString = `${ingresoFormatted} - ${egresoFormatted} = ${saldoFormatted}`;
             
-            // Draw the balance row background and title
             doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
             
-            const saldoBgColor = [200, 200, 200];
+            const saldoBgColor = saldo >= 0 ? [40, 167, 69] : [220, 53, 69]; // Green for positive, Red for negative
             doc.setFillColor(saldoBgColor[0], saldoBgColor[1], saldoBgColor[2]);
-            // Draw a rectangle for the background of the SALDO row
             doc.rect(margin, expenseStartY, doc.internal.pageSize.width - (2 * margin), 25, 'F');
             
-            // Title text (SALDO) in white
             doc.setTextColor(255, 255, 255);
             doc.text(`SALDO (${currentMonthExpenses.monthName.toUpperCase()} ${currentMonthExpenses.year}):`, margin + 10, expenseStartY + 15);
-            
-            // Formula text: color-coded based on the balance amount (green for positive, red for negative)
-            const saldoTextColor = saldo >= 0 ? [255, 255, 255] : [255, 99, 71];
-            doc.setTextColor(saldoTextColor[0], saldoTextColor[1], saldoTextColor[2]);
             doc.text(formulaString, doc.internal.pageSize.width - margin - 10, expenseStartY + 15, { align: "right" });
 
-            // Save the PDF file
             const fileName = `${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`;
             doc.save(fileName);
             
@@ -848,7 +896,7 @@ const generateExcel = () => {
                             onChange={(e) => {
                                 setPaymentType(e.target.value);
                                 setReportType("debtors");
-                                resetFilters(); // Reset year and search when payment type changes
+                                resetFilters();
                             }}
                         >
                             <option value="">-- Seleccionar Tipo de Pago --</option>
@@ -862,7 +910,6 @@ const generateExcel = () => {
                     </div>
                 </div>
 
-                {/* Show date filters only when a paymentType is selected */}
                 {paymentType && (
                     <div className="border-top pt-3 mt-3">
                         <h5 className="mb-3 text-secondary">Filtros por Fecha</h5>
@@ -873,10 +920,8 @@ const generateExcel = () => {
                                 <select
                                     className="form-control"
                                     value={ingresoYear}
-                                    // Parse value as integer and default to currentYear if invalid
                                     onChange={(e) => setIngresoYear(parseInt(e.target.value) || currentYear)}
                                 >
-                                    {/* Generate options for 11 years centered around the current year */}
                                     {Array.from({ length: 11 }, (_, i) => {
                                         const year = currentYear - 5 + i;
                                         return <option key={year} value={year}>{year}</option>;
@@ -889,10 +934,8 @@ const generateExcel = () => {
                                 <select
                                     className="form-control"
                                     value={gastoMonth}
-                                    // Parse value as integer and default to currentMonthNum if invalid
                                     onChange={(e) => setGastoMonth(parseInt(e.target.value) || currentMonthNum)}
                                 >
-                                    {/* Generate month options */}
                                     {monthNames.map((m, idx) => <option key={idx + 1} value={idx + 1}>{m}</option>)}
                                 </select>
                             </div>
@@ -902,10 +945,8 @@ const generateExcel = () => {
                                 <select
                                     className="form-control"
                                     value={gastoYear}
-                                    // Parse value as integer and default to currentYear if invalid
                                     onChange={(e) => setGastoYear(parseInt(e.target.value) || currentYear)}
                                 >
-                                    {/* Generate options for 11 years centered around the current year */}
                                     {Array.from({ length: 11 }, (_, i) => {
                                         const year = currentYear - 5 + i;
                                         return <option key={year} value={year}>{year}</option>;
@@ -917,13 +958,11 @@ const generateExcel = () => {
                 )}
             </div>
 
-            {/* Display table/results card only when a paymentType is selected */}
             {paymentType && (
                 <div className="card shadow">
                     <div className="card-header bg-dark text-white fw-bold text-center">
                         {reportType === "debtors"
-                            ? // Report header displaying current filters and date
-                            `Resultados del Reporte: ADEUDOS POR PREDIO - ${currentPaymentDisplayName.toUpperCase()} - Año ${ingresoYear} - Al día: ${new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}`
+                            ? `Resultados del Reporte: ADEUDOS POR PREDIO - ${currentPaymentDisplayName.toUpperCase()} - Año ${ingresoYear} - Al día: ${new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}`
                             : "Seleccione un Tipo de Pago para generar el Reporte."}
                     </div>
 
@@ -934,7 +973,6 @@ const generateExcel = () => {
                             <div className="p-4 text-center text-muted">No hay datos disponibles para los filtros seleccionados.</div>
                         ) : reportType === "debtors" ? (
                             <>
-                                {/* Search Input */}
                                 <div className="p-3 border-bottom">
                                     <input
                                         type="text"
@@ -951,71 +989,60 @@ const generateExcel = () => {
                                             <tr>
                                                 <th className="text-left" style={{ minWidth: '250px' }}>Dirección/Predio</th>
                                                 <th className="text-left" style={{ minWidth: '80px' }}>Tipo de Pago</th>
-
-                                                {/* Monthly column headers */}
+                                                <th className="text-center" style={{ minWidth: '60px' }}>
+                                                    vencidos &lt; 2026
+                                                </th>
                                                 {Array.from({ length: 12 }, (_, i) => i + 1).map(monthNum => (
                                                     <th key={monthNum} className="text-center" style={{ width: '50px' }}>
-                                                        {/* Down arrow indicator for the current month */}
                                                         {(monthNum === currentMonthNum && ingresoYear === currentYear) &&
                                                             <div className="fw-bold text-danger pb-1" style={{ fontSize: '1.1em', lineHeight: '0.8' }}>⬇️</div>
                                                         }
                                                         {monthNames[monthNum - 1].substring(0, 3)}
                                                     </th>
                                                 ))}
-
-                                                {/* Trailing column headers - UPDATED WITH NEW COLUMN */}
-                                                <th className="text-end" style={{ minWidth: '70px' }}>Ingreso anual</th>
-                                                <th className="text-center" style={{ minWidth: '60px' }}>Meses vencidos</th> {/* NEW COLUMN */}
-                                                <th className="text-end" style={{ minWidth: '90px' }}>Deuda</th>
+                                                <th className="text-center" style={{ minWidth: '70px' }}>Ingreso anual</th>
+                                                <th className="text-center" style={{ minWidth: '60px' }}>Meses vencidos</th>
+                                                <th className="text-center" style={{ minWidth: '90px' }}>Deuda</th>
                                                 <th className="text-left" style={{ minWidth: '100px' }}>Comentarios</th>
                                             </tr>
                                         </thead>
 
                                         <tbody>
                                             {(() => {
-                                                // Calculate monthly calendar totals for display in the footer
-                                                const monthlyCalendarTotals = Array(12).fill(0); 
-                                                
-                                                // Map and filter data rows
+                                                const monthlyCalendarTotals = Array(12).fill(0);
                                                 const rows = filteredData.map((row, i) => {
                                                     let rowTotalPaid = 0;
                                                     const feeAmount = Number(row.fee_amount || 0);
-                                                    const totalDebtValue = getRowDebtUpToPrevMonth(row);
-                                                    const rowMonthsOverdue = getRowMonthsOverdueUpToPrevMonth(row);
+                                                    const totalMonthsOverdue = getTotalMonthsOverdue(row);
+                                                    const totalDebtValue = getTotalDebt(row);
+                                                    const monthsOverdueBeforeYear = getRowMonthsOverdueBeforeYear(row);
 
                                                     const cells = [
                                                         <td key={`addr-${i}`} className="text-left">{row.full_address}</td>,
                                                         <td key={`type-${i}`} className="text-left">{row.fee_name || currentPaymentDisplayName}</td>,
+                                                        <td key={`overdue-before-${i}`} className={`text-center fw-bold ${monthsOverdueBeforeYear > 0 ? "bg-danger text-white" : "text-muted"}`} style={{ minWidth: '60px' }}>{monthsOverdueBeforeYear}</td>,
                                                     ];
 
-                                                    // Generate monthly cells
                                                     for (let m = 1; m <= 12; m++) {
-                                                        const isRegistered = !!row[`month_${m}`]; // Check if it's paid OR condoned
+                                                        const isRegistered = !!row[`month_${m}`];
                                                         const paymentDateStr = row[`month_${m}_date`];
                                                         const amountPaid = Number(row[`month_${m}_amount_paid`] ?? feeAmount);
-                                                        const status = row[`month_${m}_status`]; // Status: 'Pagado' or 'Condonado'
+                                                        const status = row[`month_${m}_status`];
 
                                                         if (isRegistered) {
-                                                            rowTotalPaid += amountPaid; // Accumulate row total paid
+                                                            rowTotalPaid += amountPaid;
                                                         }
                                                         
-                                                        // Accumulate monthly total paid (calendar total)
                                                         const calendarAmount = Number(row[`total_paid_in_month_${m}`] || 0);
-                                                        monthlyCalendarTotals[m - 1] += calendarAmount; 
+                                                        monthlyCalendarTotals[m - 1] += calendarAmount;
                                                         
                                                         if (isRegistered) {
-                                                            
                                                             let content;
                                                             let cellClass = 'text-center';
-                                                            
-                                                            // Determine if the month was waived (status is Condonado OR amount paid is 0)
                                                             const isWaived = status === 'Condonado' || amountPaid === 0;
 
                                                             if (isWaived) {
-                                                                // Condonado: Show date and the word "condonado"
                                                                 const dateText = paymentDateStr ? new Date(paymentDateStr).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' }) : '';
-                                                                
-                                                                // Usar small para el tamaño de la cantidad y texto en minúsculas
                                                                 const statusText = <small className="d-block text-white fw-bold" style={{ fontSize: '0.65em' }}>condonado</small>;
 
                                                                 content = (
@@ -1025,11 +1052,8 @@ const generateExcel = () => {
                                                                         {statusText}
                                                                     </div>
                                                                 );
-                                                                // Clase para fondo azul (info)
-                                                                cellClass = 'text-center bg-info text-white'; 
-                                                                
+                                                                cellClass = 'text-center bg-info text-white';
                                                             } else {
-                                                                // Pagado: Show date and amount
                                                                 const dateText = paymentDateStr ? new Date(paymentDateStr).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' }) : '';
                                                                 const amountText = formatCurrency(amountPaid);
                                                                 
@@ -1040,12 +1064,11 @@ const generateExcel = () => {
                                                                         {amountText && <small className="d-block" style={{ fontSize: '0.65em' }}>{amountText}</small>}
                                                                     </div>
                                                                 );
-                                                                cellClass = 'text-center'; 
+                                                                cellClass = 'text-center';
                                                             }
 
                                                             cells.push(<td key={`m${m}-${i}`} className={cellClass} style={{ width: '50px' }}>{content}</td>);
                                                         } else {
-                                                            // Unpaid cell: '✗' if overdue, '-' if not due yet
                                                             const lastMonth = getLastMonthToConsider(ingresoYear);
                                                             const isTrulyOverdue = m <= lastMonth;
 
@@ -1057,40 +1080,31 @@ const generateExcel = () => {
                                                         }
                                                     }
 
-                                                    // Calculate display styles for columns
                                                     const debtBgClass = totalDebtValue > 0 ? "bg-danger text-white" : "text-dark";
-                                                    const monthsOverdueBgClass = rowMonthsOverdue > 0 ? "bg-warning text-dark fw-bold" : "text-dark";
+                                                    const monthsOverdueBgClass = totalMonthsOverdue > 0 ? "bg-danger text-dark fw-bold" : "text-dark";
 
-                                                    // Total Paid cell
-                                                    cells.push(<td key={`totalpaid-${i}`} className="text-end fw-bold text-success" style={{ minWidth: '70px' }}>{formatCurrency(rowTotalPaid)}</td>);
-
-                                                    // NEW: Months Overdue cell
-                                                    cells.push(<td key={`monthsOverdue-${i}`} className={`text-center fw-bold ${monthsOverdueBgClass}`} style={{ minWidth: '60px' }}>{rowMonthsOverdue}</td>);
-
-                                                    // Debt cell: display amount only
-                                                    const debtDisplay = formatCurrency(totalDebtValue);
-                                                    cells.push(<td key={`totaldebt-${i}`} className={`text-end fw-bold ${debtBgClass}`} style={{ minWidth: '90px' }}>{debtDisplay}</td>);
-
-                                                    // Comments cell
+                                                    cells.push(<td key={`totalpaid-${i}`} className="text-center fw-bold text-success" style={{ minWidth: '70px' }}>{formatCurrency(rowTotalPaid)}</td>);
+                                                    cells.push(<td key={`monthsOverdue-${i}`} className={`text-center fw-bold ${monthsOverdueBgClass}`} style={{ minWidth: '60px' }}>{totalMonthsOverdue}</td>);
+                                                    cells.push(<td key={`totaldebt-${i}`} className={`text-center fw-bold ${debtBgClass}`} style={{ minWidth: '90px' }}>{formatCurrency(totalDebtValue)}</td>);
                                                     cells.push(<td key={`comments-${i}`} className="text-left text-wrap" style={{ minWidth: '100px' }}>{row.comments || '-'}</td>);
 
                                                     return <tr key={i}>{cells}</tr>;
                                                 });
 
-                                                // Calculate final totals for the footer row
                                                 const grandTotalPaidDisplayed = monthlyCalendarTotals.reduce((sum, val) => sum + val, 0);
-                                                const totalDebtSum = filteredData.reduce((s, r) => s + getRowDebtUpToPrevMonth(r), 0);
-                                                const grandTotalDebtBgClass = totalDebtSum > 0 ? "bg-danger text-white" : "bg-secondary text-white";
-                                                const grandTotalMonthsOverdue = filteredData.reduce((sum, row) => sum + getRowMonthsOverdueUpToPrevMonth(row), 0);
-                                                const grandTotalMonthsOverdueBgClass = grandTotalMonthsOverdue > 0 ? "bg-warning text-dark fw-bold" : "bg-secondary text-white";
-                                                
+                                                const totalDebtSum = filteredData.reduce((s, r) => s + getTotalDebt(r), 0);
+                                                const grandTotalDebtBgClass = totalDebtSum > 0 ? "bg-danger text-dark fw-bold" : "text-dark";
+                                                const grandTotalMonthsOverdue = filteredData.reduce((sum, row) => sum + getTotalMonthsOverdue(row), 0);
+                                                const grandTotalMonthsOverdueBeforeYear = filteredData.reduce((sum, row) => sum + getRowMonthsOverdueBeforeYear(row), 0);
+                                                const grandTotalMonthsOverdueBgClass = grandTotalMonthsOverdue > 0 ? "bg-danger text-dark fw-bold" : "text-dark";
                                                 const finalDebtDisplay = formatCurrency(totalDebtSum);
 
-                                                // Final row for Income/Debtors Totals
                                                 const totalRow = (
                                                     <tr key="final-totals" className="fw-bold bg-light">
                                                         <td colSpan={2} className="text-left text-primary">INGRESOS (ACUMULADO {ingresoYear}):</td>
-                                                        {/* Monthly totals display */}
+                                                        <td key="gt-before-2026" className={`text-center fw-bold ${grandTotalMonthsOverdueBeforeYear > 0 ? "bg-danger text-white" : "text-muted"}`} style={{ minWidth: '60px' }}>
+                                                            {grandTotalMonthsOverdueBeforeYear}
+                                                        </td>
                                                         {monthlyCalendarTotals.map((total, index) => {
                                                             const monthNum = index + 1;
                                                             const isCurrentMonth = monthNum === currentMonthNum && ingresoYear === currentYear;
@@ -1102,49 +1116,42 @@ const generateExcel = () => {
                                                                 </td>
                                                             );
                                                         })}
-                                                        {/* Grand Total Paid */}
-                                                        <td key="gtpaid" className="text-end text-success" style={{ minWidth: '70px' }}>
+                                                        <td key="gtpaid" className="text-center fw-bold text-success" style={{ minWidth: '70px' }}>
                                                             {formatCurrency(grandTotalPaidDisplayed)}
                                                         </td>
-                                                        {/* Grand Total Months Overdue */}
                                                         <td key="gtmonths" className={`text-center fw-bold ${grandTotalMonthsOverdueBgClass}`} style={{ minWidth: '60px' }}>
                                                             {grandTotalMonthsOverdue}
                                                         </td>
-                                                        {/* Grand Total Debt */}
-                                                        <td key="gtdebt" className={`text-end fw-bold ${grandTotalDebtBgClass}`} style={{ minWidth: '90px' }}>
+                                                        <td key="gtdebt" className={`text-center fw-bold ${grandTotalDebtBgClass}`} style={{ minWidth: '90px' }}>
                                                             {finalDebtDisplay}
                                                         </td>
                                                         <td key="gtcomments" className="text-left text-muted" style={{ minWidth: '100px' }}></td>
                                                     </tr>
                                                 );
                                                 
-                                                // Expense rows preparation
                                                 const expenseRows = [];
                                                 const expensesToDisplay = (currentMonthExpenses.expenses || []);
-                                                
                                                 const expenseMonthDisplay = currentMonthExpenses.monthName;
                                                 const expenseYearDisplay = currentMonthExpenses.year;
                                                 
                                                 if ((expensesToDisplay.length > 0) || (currentMonthExpenses.total && currentMonthExpenses.total > 0)) {
-                                                    // Expense Header Row
                                                     expenseRows.push(
                                                         <tr key="expenses-header" className="fw-bold bg-dark text-white">
-                                                            <td colSpan={18} className="text-center">GASTOS ({expenseMonthDisplay.toUpperCase()} {expenseYearDisplay})</td> 
+                                                            <td colSpan={fullTableColSpan} className="text-center">GASTOS ({expenseMonthDisplay.toUpperCase()} {expenseYearDisplay})</td>
                                                         </tr>
                                                     );
 
-                                                    // Individual Expense Rows (only display amount in the corresponding month column)
                                                     expensesToDisplay.forEach((expense, expIndex) => {
-                                                        const colsBeforeMonth = Number(gastoMonth) - 1; 
-                                                        const colsAfterMonth = (totalMonthColumns - Number(gastoMonth)) + totalTrailingColumns; 
+                                                        const colsBeforeMonth = 2 + 1 + (Number(gastoMonth) - 1);
+                                                        const colsAfterMonth = (totalMonthColumns - Number(gastoMonth)) + totalTrailingColumns;
                                                         
                                                         expenseRows.push(
                                                             <tr key={`expense-${expIndex}`} className="text-muted" style={{ fontSize: '0.85em' }}>
-                                                                <td colSpan={2} className="text-left">
+                                                                <td colSpan={3} className="text-left">
                                                                     <span className="fw-bold text-danger">➖ {expense.category?.name || expense.category || 'Gasto'}</span>
                                                                     <span className="d-block text-truncate fst-italic" style={{maxWidth: '200px'}}>{expense.description}</span>
                                                                 </td>
-                                                                {colsBeforeMonth > 0 && <td colSpan={colsBeforeMonth} className="text-center"></td>}
+                                                                {colsBeforeMonth > 3 && <td colSpan={colsBeforeMonth - 3} className="text-center"></td>}
                                                                 <td key={`exp-amount-month-${expIndex}`} className="text-end fw-bold text-danger bg-light">
                                                                     {formatCurrency(expense.amount)}
                                                                     <small className="d-block text-muted" style={{fontSize: '0.65em'}}>{new Date(expense.expense_date).toLocaleDateString('es-MX', {day: '2-digit', month: '2-digit', year: 'numeric'})}</small>
@@ -1154,9 +1161,8 @@ const generateExcel = () => {
                                                         );
                                                     });
                                                     
-                                                    // Expense Total Row
-                                                    const totalTextColSpan = 2 + (Number(gastoMonth) - 1); 
-                                                    const totalAmountColSpan = 1; 
+                                                    const totalTextColSpan = 3 + (Number(gastoMonth) - 1);
+                                                    const totalAmountColSpan = 1;
                                                     const totalTailColSpan = totalMonthColumns - Number(gastoMonth) + totalTrailingColumns;
 
                                                     expenseRows.push(
@@ -1168,8 +1174,7 @@ const generateExcel = () => {
                                                             <td colSpan={totalTailColSpan} className="text-left"></td>
                                                         </tr>
                                                     );
-                                                } else if (paymentType) { 
-                                                    // Show 'no expenses' message if filters are active but no data is returned
+                                                } else if (paymentType) {
                                                     const selectedGastoMonthName = monthNames[Number(gastoMonth) - 1];
 
                                                     expenseRows.push(
@@ -1181,7 +1186,6 @@ const generateExcel = () => {
                                                     );
                                                 }
 
-                                                // SALDO (BALANCE) ROW
                                                 const monthlyIncomeForBalance = monthlyCalendarTotals[Number(gastoMonth) - 1] || 0;
                                                 const saldo = monthlyIncomeForBalance - currentMonthExpenses.total;
 
@@ -1190,8 +1194,7 @@ const generateExcel = () => {
                                                 const saldoFormatted = formatCurrency(saldo);
                                                 const formulaString = `${ingresoFormatted} - ${egresoFormatted} = ${saldoFormatted}`;
                                                 
-                                                // Apply custom blue background class for the SALDO row
-                                                const saldoBgClass = saldo >= 0 ? 'bg-success' : 'bg-danger'; 
+                                                const saldoBgClass = saldo >= 0 ? 'bg-success' : 'bg-danger';
 
                                                 const saldoRow = (
                                                     <tr key="saldo-total" className={`fw-bold ${saldoBgClass} text-white`}>
@@ -1199,19 +1202,16 @@ const generateExcel = () => {
                                                             SALDO ({expenseMonthDisplay.toUpperCase()} {expenseYearDisplay}):
                                                         </td>
                                                         <td colSpan={fullTableColSpan - 2} className="text-end pe-4">
-                                                            {/* Apply green or red color based on the balance result */}
                                                             <span className='text-white'>{formulaString}</span>
                                                         </td>
                                                     </tr>
                                                 );
                                                 
-                                                // Combine all rows for rendering
                                                 return rows.concat(totalRow, expenseRows, saldoRow);
                                             })()}
                                         </tbody>
                                     </table>
 
-                                    {/* No search results message */}
                                     {filteredData.length === 0 && searchTerm && (
                                         <div className="text-center p-4 text-muted">
                                             No se encontraron registros que coincidan con "{searchTerm}"
@@ -1224,7 +1224,6 @@ const generateExcel = () => {
                 </div>
             )}
 
-            {/* PDF and Excel Generation Buttons */}
             {paymentType && data.length > 0 && reportType === "debtors" && (
                 <div className="row mt-4">
                     <div className="col-12 text-center">
