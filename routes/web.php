@@ -28,15 +28,11 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified'
 ])->group(function () {
-
-    
-
     // -------------------------
     // Profile management
     // -------------------------
     Route::put('/user/profile-information', [ProfileController::class, 'updateProfileInformation'])
         ->name('user.profile.update');
-
     Route::put('/user/password', [ProfileController::class, 'updatePassword'])
         ->name('user.password.update');
 
@@ -47,7 +43,7 @@ Route::middleware([
     
     //Route::resource('client', ClientController::class);
     //Route::resource('usuarios', UsuariosController::class);
-    Route::resource('select', SelectController::class);
+    //Route::resource('select', SelectController::class);
 
     // -------------------------
     // File export / import
@@ -60,9 +56,9 @@ Route::middleware([
     // -------------------------
     // Notifications
     // -------------------------
-    Route::get('/notifications', [NotificationsController::class, 'email'])->name('email');
-    Route::get('/NotiUpdate/{id}', [NotificationsController::class, 'NotiUpdate'])->name('NotiUpdate');
-    Route::get('/api', [NotificationsController::class, 'api'])->name('api');
+    //Route::get('/notifications', [NotificationsController::class, 'email'])->name('email');
+    //Route::get('/NotiUpdate/{id}', [NotificationsController::class, 'NotiUpdate'])->name('NotiUpdate');
+    //Route::get('/api', [NotificationsController::class, 'api'])->name('api');
 
     // -------------------------
     // SPA catch-all (React Router)
