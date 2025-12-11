@@ -11,6 +11,11 @@ use Carbon\Carbon;
 
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:reports', ['only' => ['debtors', 'expenses']]);
+    }
+    
     /**
      * Income Report (Debtors / Adeudos)
      * Filters by year and calculates totals by calendar payment month (payment_date).

@@ -10,6 +10,13 @@ use Illuminate\Validation\ValidationException;
 
 class ExpenseController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-expenses', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-expenses', ['only' => ['store']]);
+        $this->middleware('permission:edit-expenses', ['only' => ['update']]);
+        $this->middleware('permission:delete-expenses', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      * Returns ALL expenses (including soft deleted) for ALL users.

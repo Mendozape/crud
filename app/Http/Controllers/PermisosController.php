@@ -9,10 +9,10 @@ class PermisosController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:ver-permiso|crear-permiso|editar-permiso|borrar-permiso', ['only' => ['index', 'show']]);
-        $this->middleware('permission:crear-permiso', ['only' => ['store']]);
-        $this->middleware('permission:editar-permiso', ['only' => ['update']]);
-        $this->middleware('permission:borrar-permiso', ['only' => ['destroy']]);
+        $this->middleware('permission:view-permissions', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-permissions', ['only' => ['store']]);
+        $this->middleware('permission:edit-permissions', ['only' => ['update']]);
+        $this->middleware('permission:delete-permissions', ['only' => ['destroy']]);
     }
 
     /**

@@ -19,26 +19,67 @@ class RoleSeeder extends Seeder
         Manager=> Ver listado de usuarios y ver usuario
         Developer=>dashboard
         */
-        $admin=Role::create(['name'=>'Admin']);
-        $developer=Role::create(['name'=>'Developer']);
-        Permission::create(['name'=>'bienvenida-cliente'])->syncRoles([$admin,$developer]);
-        Permission::create(['name'=>'crear-cliente'])->syncRoles([$admin]);
-        Permission::create(['name'=>'editar-cliente'])->syncRoles([$admin]);
-        Permission::create(['name'=>'borrar-cliente'])->syncRoles([$admin]);
+        $presidente=Role::create(['name'=>'Presidente']);
+        $secretario=Role::create(['name'=>'Secretario']);
+        $tesorero=Role::create(['name'=>'Tesorero']);
+        $residente=Role::create(['name'=>'Residente']);
+             
+        Permission::create(['name'=>'view-users'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-users'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-users'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-users'])->syncRoles([$presidente,$secretario,$tesorero]);
 
-        Permission::create(['name'=>'Ver-rol'])->syncRoles([$admin,$developer]);
-        Permission::create(['name'=>'crear-rol'])->syncRoles([$admin]);
-        Permission::create(['name'=>'editar-rol'])->syncRoles([$admin]);
-        Permission::create(['name'=>'borrar-rol'])->syncRoles([$admin]);
+        Permission::create(['name'=>'view-roles'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-roles'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-roles'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-roles'])->syncRoles([$presidente,$secretario,$tesorero]);
 
-        Permission::create(['name'=>'ver-permiso'])->syncRoles([$admin]);
-        Permission::create(['name'=>'crear-permiso'])->syncRoles([$admin]);
-        Permission::create(['name'=>'editar-permiso'])->syncRoles([$admin,$developer]);
-        Permission::create(['name'=>'borrar-permiso'])->syncRoles([$admin]);
+        Permission::create(['name'=>'view-permissions'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-permissions'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-permissions'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-permissions'])->syncRoles([$presidente,$secretario,$tesorero]);
 
-        Permission::create(['name'=>'ver-usuario'])->syncRoles([$admin]);
-        Permission::create(['name'=>'crear-usuario'])->syncRoles([$admin]);
-        Permission::create(['name'=>'editar-usuario'])->syncRoles([$admin,$developer]);
-        Permission::create(['name'=>'borrar-usuario'])->syncRoles([$admin]);
+        Permission::create(['name'=>'view-streets'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-streets'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-streets'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-streets'])->syncRoles([$presidente,$secretario,$tesorero]);
+        
+        Permission::create(['name'=>'view-fees'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-fees'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-fees'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-fees'])->syncRoles([$presidente,$secretario,$tesorero]);
+
+        Permission::create(['name'=>'view-expenses-catalog'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-expenses-catalog'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-expenses-catalog'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-expenses-catalog'])->syncRoles([$presidente,$secretario,$tesorero]);
+
+        Permission::create(['name'=>'view-expenses'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-expenses'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-expenses'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-expenses'])->syncRoles([$presidente,$secretario,$tesorero]);
+
+        Permission::create(['name'=>'view-residents'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-residents'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-residents'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-residents'])->syncRoles([$presidente,$secretario,$tesorero]);
+
+        Permission::create(['name'=>'view-properties'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-properties'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-properties'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-properties'])->syncRoles([$presidente,$secretario,$tesorero]);
+
+        Permission::create(['name'=>'view-addresses'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-addresses'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-addresses'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-addresses'])->syncRoles([$presidente,$secretario,$tesorero]);
+
+        Permission::create(['name'=>'view-payments'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'create-payments'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'edit-payments'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'delete-payments'])->syncRoles([$presidente,$secretario,$tesorero]);
+
+        Permission::create(['name'=>'reports'])->syncRoles([$presidente,$secretario,$tesorero]);
+        Permission::create(['name'=>'stats'])->syncRoles([$presidente,$secretario,$tesorero]);
     }
 }

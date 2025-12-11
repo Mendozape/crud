@@ -1,85 +1,25 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\ImportUser;
-use App\Exports\ExportUser;
 use App\Models\User;
 use App\Models\Resident;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
-use App\Notifications\DataBase;
-use App\Events\UserRegistered;
-use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     public function __construct()
     {
         // General Authentication (Applies to all methods if no specific permission is set)
-        $this->middleware('auth');
-        
-        // CRUD Permissions (From UsuariosController)
-        $this->middleware('permission:ver-usuario|crear-usuario|editar-usuario|borrar-usuario', ['only' => ['index', 'show']]);
-        $this->middleware('permission:crear-usuario', ['only' => ['store']]);
-        $this->middleware('permission:editar-usuario', ['only' => ['update']]);
-        $this->middleware('permission:borrar-usuario', ['only' => ['destroy']]);
+        $this->middleware('permission:view-users', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-users', ['only' => ['store']]);
+        $this->middleware('permission:edit-users', ['only' => ['update']]);
+        $this->middleware('permission:delete-users', ['only' => ['destroy']]);
+        $this->middleware('permission:stats', ['only' => ['count']]);
     }
-
-    // ====================================================================
-    // 1. STATS, NOTIFICATIONS & EXCEL METHODS (From original UserController)
-    // ====================================================================
-
-    public function count()
-    {
-        $userCount = User::count();
-        $residentCount = Resident::count(); // Renamed from clientCount to residentCount for clarity
-        $roleCount = Role::count();
-        return response()->json([
-            'userCount' => $userCount,
-            'residentCount' => $residentCount,
-            'roleCount' => $roleCount,
-        ]);
-    }
-
-    public function countNotis()
-    {
-        $countNotis = auth()->user()->unreadNotifications;
-        return response()->json([
-            'countNotis' => $countNotis
-        ]);
-    }
-
-    public function notis ($id) 
-    {
-        $noti = auth()->user()->unreadNotifications->where('id',$id);
-        return response()->json(['noti' => $noti]);
-    }
-
-    public function importView(Request $request)
-    {
-        return view('excel.importFile');
-    }
-
-    public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|file |mimes:xlsx,csv|max:2048'
-        ]);
-        Excel::import(new ImportUser, $request->file('file')->store('files'));
-        return redirect()->back()->with('users_added','The users have been added');
-    }
-
-    public function exportUsers(Request $request)
-    {
-        return Excel::download(new ExportUser, 'users.xlsx');
-    }
-
     // ====================================================================
     // 2. USER CRUD OPERATIONS (From UsuariosController)
     // ====================================================================
@@ -196,11 +136,23 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
-
         $user->delete();
-
         return response()->json([
             'message' => 'User deleted successfully'
+        ]);
+    }
+    // ====================================================================
+    // 1. STATS, NOTIFICATIONS & EXCEL METHODS (From original UserController)
+    // ====================================================================
+    public function count()
+    {
+        $userCount = User::count();
+        $residentCount = Resident::count(); 
+        $roleCount = Role::count();
+        return response()->json([
+            'userCount' => $userCount,
+            'residentCount' => $residentCount,
+            'roleCount' => $roleCount,
         ]);
     }
 }

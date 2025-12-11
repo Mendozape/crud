@@ -13,6 +13,13 @@ use \Exception;
 
 class ResidentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-residents', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-residents', ['only' => ['store']]);
+        $this->middleware('permission:edit-residents', ['only' => ['update']]);
+        $this->middleware('permission:delete-residents', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */

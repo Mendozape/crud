@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Auth; // Needed for audit (who deleted it)
 
 class FeeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-fees', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-fees', ['only' => ['store']]);
+        $this->middleware('permission:edit-fees', ['only' => ['update']]);
+        $this->middleware('permission:delete-fees', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      * Fetches ALL fees, including those that are soft-deleted (deactivated).

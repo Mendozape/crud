@@ -4,8 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Pages
 import Stats from "./pages/Stats";
-//import NotiPage from "./pages/Notfications/NotiPage";
-//import NotiProfile from "./pages/Notfications/NotiProfile";
 import Profile from "./pages/Profile";
 
 // Chat Pages & Components
@@ -62,7 +60,7 @@ import EditExpenseCategory from './components/EditExpenseCategory';
 import Reports from "./components/Reports";
 
 // Components
-import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
+//import NotificationBadgeUpdater from "./components/NotificationBadgeUpdater";
 import ChatBadgeUpdater from "./components/ChatBadgeUpdater";
 
 const App = () => {
@@ -72,13 +70,10 @@ const App = () => {
 
     return (
         <>
-            <NotificationBadgeUpdater />
             <ChatBadgeUpdater />
-
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Navigate to="/home" replace />} />
-
                     {/* Main routes */}
                     <Route path="/home" element={<Stats user={user} />} />
                     <Route path="/profile" element={<Profile user={user} />} />

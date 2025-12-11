@@ -11,6 +11,14 @@ use Illuminate\Validation\ValidationException;
 
 class AddressController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-addresses', ['only' => ['index', 'show', 'listActive']]);
+        $this->middleware('permission:create-addresses', ['only' => ['store']]);
+        $this->middleware('permission:edit-addresses', ['only' => ['update']]);
+        $this->middleware('permission:delete-addresses', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of the resource (Index).
      * Fetches all address records, including soft-deleted ones (withTrashed).
@@ -22,7 +30,7 @@ class AddressController extends Controller
         $addresses = Address::withTrashed()->with(['resident', 'street'])->get();
         return response()->json(['data' => $addresses]);
     }
-
+    
     /**
      * Get a list of active addresses for selection in forms.
      */
@@ -48,6 +56,7 @@ class AddressController extends Controller
 
         return response()->json(['data' => $formattedAddresses]);
     }
+
 
     /**
      * Store a newly created resource in storage (Create).

@@ -28,42 +28,10 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified'
 ])->group(function () {
-    // -------------------------
-    // Profile management
-    // -------------------------
     Route::put('/user/profile-information', [ProfileController::class, 'updateProfileInformation'])
         ->name('user.profile.update');
     Route::put('/user/password', [ProfileController::class, 'updatePassword'])
         ->name('user.password.update');
-
-    // -------------------------
-    // API resource routes
-    // -------------------------
-    
-    
-    //Route::resource('client', ClientController::class);
-    //Route::resource('usuarios', UsuariosController::class);
-    //Route::resource('select', SelectController::class);
-
-    // -------------------------
-    // File export / import
-    // -------------------------
-    //Route::get('/pdfUserList', [UsuariosController::class, 'pdfUserListado'])->name('pdfList');
-    /*Route::get('/excel/importFile', [UserController::class,'importView'])->name('import-view');
-    Route::post('/import', [UserController::class,'import'])->name('import');
-    Route::get('/export-users', [UserController::class,'exportUsers'])->name('export-users');*/
-
-    // -------------------------
-    // Notifications
-    // -------------------------
-    //Route::get('/notifications', [NotificationsController::class, 'email'])->name('email');
-    //Route::get('/NotiUpdate/{id}', [NotificationsController::class, 'NotiUpdate'])->name('NotiUpdate');
-    //Route::get('/api', [NotificationsController::class, 'api'])->name('api');
-
-    // -------------------------
-    // SPA catch-all (React Router)
-    // Must be the LAST route
-    // -------------------------
     Route::get('/{any}', [SpaController::class, 'index'])
         ->where('any', '.*');
 });

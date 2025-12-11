@@ -10,6 +10,13 @@ use Illuminate\Validation\Rule; // <-- Make sure this is imported
 
 class StreetController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-streets', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-streets', ['only' => ['store']]);
+        $this->middleware('permission:edit-streets', ['only' => ['update']]);
+        $this->middleware('permission:delete-streets', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      * Includes soft-deleted records to manage 'status' on the frontend table.
