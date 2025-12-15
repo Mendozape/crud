@@ -9,7 +9,7 @@ const CreateUser = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    
+
     // State for role selection
     const [roles, setRoles] = useState([]);
     const [selectedRole, setSelectedRole] = useState("");
@@ -31,7 +31,7 @@ const CreateUser = () => {
     useEffect(() => {
         setSuccessMessage("");
         setErrorMessage("");
-    }, [setSuccessMessage, setErrorMessage]); 
+    }, [setSuccessMessage, setErrorMessage]);
 
     // Function to clear all form fields and inline errors
     const resetForm = () => {
@@ -63,8 +63,8 @@ const CreateUser = () => {
         e.preventDefault();
 
         // FIX 2: Clear global messages from the previous attempt before a new submission
-        setSuccessMessage(""); 
-        setErrorMessage(""); 
+        setSuccessMessage("");
+        setErrorMessage("");
 
         // Reset inline errors before validation
         setNameError("");
@@ -109,23 +109,33 @@ const CreateUser = () => {
             );
 
             setSuccessMessage("Usuario creado exitosamente."); // User created successfully.
-            
-            resetForm(); 
-            
+
+            resetForm();
+
             navigate("/users");
-            
+
         } catch (err) {
             console.error(err);
-            const errorMsg = err.response?.data?.message || "Error al crear el usuario.";
-            
-            // Set the error message
-            setErrorMessage(errorMsg); 
-            
-            // *** FIX 3: Automatically clear the error message after 5 seconds ***
+
+            let errorMsg = "Error al crear el usuario.";
+
+            if (err.response) {
+                // Priority:
+                // 1. Custom permission error (403)
+                // 2. Laravel validation message
+                // 3. Generic fallback
+                errorMsg =
+                    err.response.data.error ||
+                    err.response.data.message ||
+                    errorMsg;
+            }
+
+            setErrorMessage(errorMsg);
+
+            // Clear error message after 5 seconds
             setTimeout(() => {
-                // Clear the error message to prevent it from lingering
-                setErrorMessage(""); 
-            }, 5000); // 5000 milliseconds = 5 seconds
+                setErrorMessage("");
+            }, 5000);
         }
     };
 
@@ -146,7 +156,7 @@ const CreateUser = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         // Disable browser autofill for name
-                        autoComplete="off" 
+                        autoComplete="off"
                     />
                     {nameError && <div className="invalid-feedback">{nameError}</div>}
                 </div>
@@ -159,7 +169,7 @@ const CreateUser = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         // Disable browser autofill for email
-                        autoComplete="off" 
+                        autoComplete="off"
                     />
                     {emailError && <div className="invalid-feedback">{emailError}</div>}
                 </div>
@@ -172,7 +182,7 @@ const CreateUser = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         // Use 'new-password' to hint the browser not to autofill with login credentials
-                        autoComplete="new-password" 
+                        autoComplete="new-password"
                     />
                 </div>
 
@@ -184,7 +194,7 @@ const CreateUser = () => {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         // Use 'new-password' to hint the browser not to autofill with login credentials
-                        autoComplete="new-password" 
+                        autoComplete="new-password"
                     />
                     {passwordError && <div className="invalid-feedback">{passwordError}</div>}
                 </div>

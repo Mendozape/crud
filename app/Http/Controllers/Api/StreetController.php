@@ -12,10 +12,10 @@ class StreetController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:view-streets', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-streets', ['only' => ['store']]);
-        $this->middleware('permission:edit-streets', ['only' => ['update']]);
-        $this->middleware('permission:delete-streets', ['only' => ['destroy']]);
+        $this->middleware('permission:Ver-calles', ['only' => ['index', 'show']]);
+        $this->middleware('permission:Crear-calles', ['only' => ['store']]);
+        $this->middleware('permission:Editar-calles', ['only' => ['update']]);
+        $this->middleware('permission:Eliminar-calles', ['only' => ['destroy']]);
     }
     /**
      * Display a listing of the resource.

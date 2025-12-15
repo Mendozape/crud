@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Resident;
@@ -13,62 +14,68 @@ class UserController extends Controller
 {
     public function __construct()
     {
-        // General Authentication (Applies to all methods if no specific permission is set)
-        $this->middleware('permission:view-users', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-users', ['only' => ['store']]);
-        $this->middleware('permission:edit-users', ['only' => ['update']]);
-        $this->middleware('permission:delete-users', ['only' => ['destroy']]);
-        $this->middleware('permission:stats', ['only' => ['count']]);
+        // General authentication middleware per permission
+        $this->middleware('permission:Ver-usuarios', ['only' => ['index', 'show', 'count']]);
+        $this->middleware('permission:Crear-usuarios', ['only' => ['store']]);
+        $this->middleware('permission:Editar-usuarios', ['only' => ['update']]);
+        $this->middleware('permission:Eliminar-usuarios', ['only' => ['destroy']]);
     }
-    // ====================================================================
-    // 2. USER CRUD OPERATIONS (From UsuariosController)
-    // ====================================================================
-    
+
+    // ==========================================================
+    // USER CRUD OPERATIONS
+    // ==========================================================
+
     /**
-     * GET /api/usuarios - Returns a paginated list of users with roles and permissions.
+     * GET /api/usuarios
+     * Returns a paginated list of users with roles and permissions
      */
     public function index(Request $request)
     {
         try {
             $usuarios = User::with('roles')->paginate(5);
 
-            // Add permissions to each user
+            // Append permissions to each user
             $usuarios->getCollection()->transform(function ($user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'roles' => $user->roles, // already loaded
-                    'permissions' => $user->getAllPermissions(), // collection of Permission objects
+                    'roles' => $user->roles, // roles already loaded
+                    'permissions' => $user->getAllPermissions(), // permission collection
                 ];
             });
 
             return response()->json($usuarios);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Unable to fetch users',
+                'error' => 'No se pudieron obtener los usuarios',
                 'details' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * GET /api/usuarios/{id} - Returns a single user with roles and permissions.
+     * GET /api/usuarios/{id}
+     * Returns a single user with roles and permissions
      */
     public function show($id)
     {
         $user = User::with('roles', 'permissions')->find($id);
+
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
+
         return response()->json($user);
     }
 
     /**
-     * POST /api/usuarios - Creates a new user, assigns roles, and sends notification.
+     * POST /api/usuarios
+     * Creates a new user and assigns roles
      */
     public function store(Request $request)
     {
+        // Validate incoming request data
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
@@ -77,78 +84,102 @@ class UserController extends Controller
         ]);
 
         $input = $request->all();
-        $input['password'] = Hash::make($input['password']); // Hash the password
-        $user = User::create($input);
-        $user->assignRole($request->input('roles')); // Assign selected roles
 
-        //$admins = User::role('Admin')->get();
-        //Notification::send($admins, new DataBase($user)); // Notify all admins
-        //event(new UserRegistered($user->name)); // Fire registered event
+        // Hash user password
+        $input['password'] = Hash::make($input['password']);
+
+        // Create user
+        $user = User::create($input);
+
+        // Assign selected roles
+        $user->assignRole($request->input('roles'));
 
         return response()->json([
-            'message' => 'User created successfully',
+            'message' => 'Usuario creado correctamente',
             'user' => $user
         ], 201);
     }
 
     /**
-     * PUT /api/usuarios/{id} - Updates user info and roles.
+     * PUT /api/usuarios/{id}
+     * Updates user data and roles
      */
     public function update(Request $request, $id)
     {
+        // Validate incoming request data
         $request->validate([
-            'name'=>'required',
-            'email'=>'required|email|unique:users,email,'.$id,
-            'password'=>'nullable|same:password_confirmation', // Assuming frontend sends 'password_confirmation' or nothing
-            'roles'=>'required|min:1'
+            'name'  => 'required|string',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'password' => 'nullable|confirmed',
+            'roles' => 'required|array|min:1',
+            'roles.0' => 'required|exists:roles,id',
         ]);
 
-        $input = $request->all();
-        
-        if (!empty($input['password'])) {
-            $input['password'] = Hash::make($input['password']); // Hash if password provided
-        } else {
-            // Keep existing password if input is empty
-            $input = Arr::except($input, ['password', 'password_confirmation']); 
-        }
-
+        // Find user by ID
         $user = User::find($id);
+
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
 
-        $user->update($input);
-        DB::table('model_has_roles')->where('model_id', $id)->delete(); // Remove old roles
-        $user->assignRole($request->input('roles')); // Assign new roles
+        // Prepare data for update (excluding password by default)
+        $data = $request->only(['name', 'email']);
+
+        // Update password only if provided
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        // Update user basic information
+        $user->update($data);
+
+        // Update roles only if roles exist in the request
+        if ($request->has('roles')) {
+            DB::table('model_has_roles')
+                ->where('model_id', $id)
+                ->delete();
+
+            $user->assignRole($request->input('roles'));
+        }
 
         return response()->json([
-            'message' => 'User updated successfully',
+            'message' => 'Usuario actualizado correctamente',
             'user' => $user
         ]);
     }
 
     /**
-     * DELETE /api/usuarios/{id} - Deletes the user.
+     * DELETE /api/usuarios/{id}
+     * Deletes a user
      */
     public function destroy($id)
     {
         $user = User::find($id);
+
         if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
+
         $user->delete();
+
         return response()->json([
-            'message' => 'User deleted successfully'
+            'message' => 'Usuario eliminado correctamente'
         ]);
     }
-    // ====================================================================
-    // 1. STATS, NOTIFICATIONS & EXCEL METHODS (From original UserController)
-    // ====================================================================
+
+    // ==========================================================
+    // STATS
+    // ==========================================================
+
+    /**
+     * Returns system statistics
+     */
     public function count()
     {
         $userCount = User::count();
-        $residentCount = Resident::count(); 
+        $residentCount = Resident::count();
         $roleCount = Role::count();
+
         return response()->json([
             'userCount' => $userCount,
             'residentCount' => $residentCount,

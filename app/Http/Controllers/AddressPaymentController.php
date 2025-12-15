@@ -15,10 +15,10 @@ class AddressPaymentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:view-payments', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-payments', ['only' => ['store']]);
-        $this->middleware('permission:edit-payments', ['only' => ['update']]);
-        $this->middleware('permission:delete-payments', ['only' => ['destroy']]);
+        $this->middleware('permission:Ver-pagos', ['only' => ['index', 'show']]);
+        $this->middleware('permission:Crear-pagos', ['only' => ['store']]);
+        $this->middleware('permission:Editar-pagos', ['only' => ['update']]);
+        $this->middleware('permission:Eliminar-pagos', ['only' => ['destroy']]);
     }
 
     public function index()

@@ -12,10 +12,10 @@ class ExpenseCategoryController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:view-expenses-catalog', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-expenses-catalog', ['only' => ['store']]);
-        $this->middleware('permission:edit-expenses-catalog', ['only' => ['update']]);
-        $this->middleware('permission:delete-expenses-catalog', ['only' => ['destroy']]);
+        $this->middleware('permission:Ver-catalogo-gastos', ['only' => ['index', 'show']]);
+        $this->middleware('permission:Crear-catalogo-gastos', ['only' => ['store']]);
+        $this->middleware('permission:Editar-catalogo-gastos', ['only' => ['update']]);
+        $this->middleware('permission:Eliminar-catalogo-gastos', ['only' => ['destroy']]);
     }
     /**
      * Display a listing of the resource (including soft-deleted records for management).

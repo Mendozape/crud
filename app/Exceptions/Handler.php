@@ -6,7 +6,6 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Illuminate\Http\Request;
 
 class Handler extends ExceptionHandler
 {
@@ -51,9 +50,26 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
-        // Handle CSRF token mismatch (session expired)
+        // Handle CSRF token mismatch (expired session)
         if ($exception instanceof TokenMismatchException) {
-            return redirect()->route('login')->with('message', 'Your session has expired. Please log in again.');
+            return redirect()->route('login')->with(
+                'message',
+                'Tu sesión ha expirado. Por favor inicia sesión nuevamente.'
+            );
+        }
+
+        // Handle permission denied errors (Spatie Permission - 403)
+        if ($exception instanceof HttpException && $exception->getStatusCode() === 403) {
+
+            // API / React request
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'No tienes permisos para realizar esta acción.'
+                ], 403);
+            }
+
+            // Web request (Blade)
+            abort(403, 'No tienes permisos para realizar esta acción.');
         }
 
         return parent::render($request, $exception);

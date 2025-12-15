@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Models\User;
-use GuzzleHttp\Psr7\Response;
 use Spatie\Permission\Models\Role;
-use spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
 
 class SelectController extends Controller
 {
     function __construct()
     {
-        $this->middleware('permission:ver-select',['only'=>['index','create','store','edit','update','destroy']]);
+        //$this->middleware('permission:ver-select',['only'=>['index','create','store','edit','update','destroy']]);
     }
     /**
      * Display a listing of the resource.

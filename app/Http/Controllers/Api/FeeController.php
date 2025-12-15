@@ -14,10 +14,10 @@ class FeeController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:view-fees', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-fees', ['only' => ['store']]);
-        $this->middleware('permission:edit-fees', ['only' => ['update']]);
-        $this->middleware('permission:delete-fees', ['only' => ['destroy']]);
+        $this->middleware('permission:Ver-cuotas', ['only' => ['index', 'show']]);
+        $this->middleware('permission:Crear-cuotas', ['only' => ['store']]);
+        $this->middleware('permission:Editar-cuotas', ['only' => ['update']]);
+        $this->middleware('permission:Eliminar-cuotas', ['only' => ['destroy']]);
     }
     /**
      * Display a listing of the resource.

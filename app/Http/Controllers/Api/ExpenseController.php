@@ -12,10 +12,10 @@ class ExpenseController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:view-expenses', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-expenses', ['only' => ['store']]);
-        $this->middleware('permission:edit-expenses', ['only' => ['update']]);
-        $this->middleware('permission:delete-expenses', ['only' => ['destroy']]);
+        $this->middleware('permission:Ver-gastos', ['only' => ['index', 'show']]);
+        $this->middleware('permission:Crear-gastos', ['only' => ['store']]);
+        $this->middleware('permission:Editar-gastos', ['only' => ['update']]);
+        $this->middleware('permission:Eliminar-gastos', ['only' => ['destroy']]);
     }
     /**
      * Display a listing of the resource.

@@ -13,10 +13,10 @@ class AddressController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:view-addresses', ['only' => ['index', 'show', 'listActive']]);
-        $this->middleware('permission:create-addresses', ['only' => ['store']]);
-        $this->middleware('permission:edit-addresses', ['only' => ['update']]);
-        $this->middleware('permission:delete-addresses', ['only' => ['destroy']]);
+        $this->middleware('permission:Ver-predios', ['only' => ['index', 'show', 'listActive']]);
+        $this->middleware('permission:Crear-predios', ['only' => ['store']]);
+        $this->middleware('permission:Editar-predios', ['only' => ['update']]);
+        $this->middleware('permission:Eliminar-predios', ['only' => ['destroy']]);
     }
 
     /**

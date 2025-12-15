@@ -16,8 +16,12 @@ const ShowUsers = () => {
   const [showModal, setShowModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  const { successMessage, setSuccessMessage, errorMessage, setErrorMessage } =
-    useContext(MessageContext);
+  const {
+    successMessage,
+    setSuccessMessage,
+    errorMessage,
+    setErrorMessage,
+  } = useContext(MessageContext);
 
   const navigate = useNavigate();
 
@@ -31,18 +35,28 @@ const ShowUsers = () => {
       setFilteredUsers(data);
     } catch (err) {
       console.error("Error fetching users:", err);
-      setErrorMessage("Fallo al cargar los usuarios");
+
+      let errorMsg = "Fallo al cargar los usuarios";
+
+      if (err.response) {
+        errorMsg =
+          err.response.data.error ||
+          err.response.data.message ||
+          errorMsg;
+      }
+
+      setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load users on component mount
+  // Load users on mount
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Filter users based on search input
+  // Filter users by search
   useEffect(() => {
     const result = users.filter((u) =>
       u.name.toLowerCase().includes(search.toLowerCase())
@@ -50,50 +64,75 @@ const ShowUsers = () => {
     setFilteredUsers(result);
   }, [search, users]);
 
-  // Prepare deletion confirmation modal
+  // Prepare delete modal
   const confirmDelete = (id) => {
     setUserToDelete(id);
     setShowModal(true);
   };
 
-  // Delete selected user
+  // Delete user
   const deleteUser = async () => {
     if (!userToDelete) return;
+
     try {
       await axios.delete(`${endpoint}/${userToDelete}`, axiosOptions);
       setShowModal(false);
+      setUserToDelete(null);
       fetchUsers();
       setSuccessMessage("Usuario eliminado exitosamente");
     } catch (err) {
       console.error(err);
-      setErrorMessage("Error al eliminar usuario");
+
+      // Close modal so error message can be seen
+      setShowModal(false);
+      setUserToDelete(null);
+
+      let errorMsg = "Error al eliminar usuario";
+
+      if (err.response) {
+        errorMsg =
+          err.response.data.error ||
+          err.response.data.message ||
+          errorMsg;
+      }
+
+      setErrorMessage(errorMsg);
     }
   };
 
-  // Auto-clear success message after 5 seconds
+  // Auto-clear success message
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(null), 5000);
       return () => clearTimeout(timer);
     }
-  }, [successMessage]);
+  }, [successMessage, setSuccessMessage]);
 
-  // Auto-clear error message after 5 seconds
+  // Auto-clear error message
   useEffect(() => {
     if (errorMessage) {
       const timer = setTimeout(() => setErrorMessage(null), 5000);
       return () => clearTimeout(timer);
     }
-  }, [errorMessage]);
+  }, [errorMessage, setErrorMessage]);
 
-  // Define DataTable columns
+  // DataTable columns
   const columns = [
-    { name: "Nombre", selector: (u) => u.name, sortable: true, width: "150px" }, // Fixed width for name
-    { name: "Email", selector: (u) => u.email || "-", sortable: true, width: "200px" }, // Fixed width for email
+    {
+      name: "Nombre",
+      selector: (u) => u.name,
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "Email",
+      selector: (u) => u.email || "-",
+      sortable: true,
+      width: "200px",
+    },
     {
       name: "Roles",
       cell: (u) => (
-        // Display roles horizontally with wrapping
         <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
           {u.roles && u.roles.length > 0
             ? u.roles.map((r, idx) => (
@@ -108,13 +147,12 @@ const ShowUsers = () => {
             : "-"}
         </div>
       ),
-      grow: 1, // Allow column to grow if needed
+      grow: 1,
       minWidth: "200px",
     },
     {
       name: "Permisos",
       cell: (u) => (
-        // Display permissions horizontally with wrapping
         <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
           {u.permissions && u.permissions.length > 0
             ? u.permissions.map((p, idx) => (
@@ -129,13 +167,12 @@ const ShowUsers = () => {
             : "-"}
         </div>
       ),
-      grow: 2, // Allow this column to take more space
+      grow: 2,
     },
     {
       name: "Acciones",
       right: true,
       cell: (u) => (
-        // Keep buttons in one line using nowrap
         <div
           className="d-flex gap-2 justify-content-end"
           style={{ whiteSpace: "nowrap" }}
@@ -154,13 +191,13 @@ const ShowUsers = () => {
           </button>
         </div>
       ),
-      width: "150px", // Fixed width for actions
+      width: "150px",
     },
   ];
 
   return (
     <div className="mb-4 border border-primary rounded p-3">
-      {/* Top controls: New User button + Search */}
+      {/* Top controls */}
       <div className="d-flex justify-content-between mb-2">
         <button
           className="btn btn-warning btn-sm"
@@ -177,15 +214,19 @@ const ShowUsers = () => {
         />
       </div>
 
-      {/* Display messages */}
+      {/* Messages */}
       {successMessage && (
-        <div className="alert alert-success text-center">{successMessage}</div>
+        <div className="alert alert-success text-center">
+          {successMessage}
+        </div>
       )}
       {errorMessage && (
-        <div className="alert alert-danger text-center">{errorMessage}</div>
+        <div className="alert alert-danger text-center">
+          {errorMessage}
+        </div>
       )}
 
-      {/* Users DataTable */}
+      {/* Table */}
       <DataTable
         title="Lista de Usuarios"
         columns={columns}
@@ -196,13 +237,12 @@ const ShowUsers = () => {
         striped
       />
 
-      {/* Bootstrap Modal for delete confirmation */}
+      {/* Delete modal */}
       <div
         className={`modal fade ${showModal ? "show d-block" : "d-none"}`}
         tabIndex="-1"
-        role="dialog"
       >
-        <div className="modal-dialog" role="document">
+        <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">Confirmar Eliminación</h5>
@@ -219,14 +259,12 @@ const ShowUsers = () => {
             </div>
             <div className="modal-footer">
               <button
-                type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowModal(false)}
               >
                 Cancelar
               </button>
               <button
-                type="button"
                 className="btn btn-danger"
                 onClick={deleteUser}
               >

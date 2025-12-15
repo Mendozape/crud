@@ -11,23 +11,9 @@ class FeesTableSeeder extends Seeder
     {
         DB::table('fees')->insert([
             [
-                'name' => 'Monthly Maintenance',
-                'amount' => 100.00,
-                'description' => 'Monthly maintenance fee',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Parking Fee',
-                'amount' => 50.00,
-                'description' => 'Monthly parking spot fee',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Late Payment Penalty',
-                'amount' => 25.00,
-                'description' => 'Penalty for late payment',
+                'name' => 'Mantenimiento',
+                'amount' => 500.00,
+                'description' => 'Mantenimiento del fraccionamiento',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
