@@ -14,15 +14,16 @@ class SpaController extends Controller
     {
         // Get the authenticated user
         $user = Auth::user();
-
         // Check if the user is authenticated before attempting to retrieve permissions
         if ($user) {
+            $freshUser = $user->fresh();
             // 🚨 CRITICAL CHANGE: Include the user's permissions array 
             // We pluck('name') to get a simple array of strings, which is what React expects.
             $userData = [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'profile_photo_path' => $freshUser->profile_photo_path,
                 // Add permissions array here
                 'permissions' => $user->getAllPermissions()->pluck('name')->toArray(), 
                 // Optionally include roles' names as well

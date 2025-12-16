@@ -18,10 +18,15 @@ use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\StreetController; 
 use App\Http\Controllers\Api\ExpenseCategoryController; 
 use Illuminate\Support\Facades\Session;
+use App\Http\Controllers\ProfileController;
+use App\Models\User;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    $userId = $request->user()->id;
+    $user = User::findOrFail($userId); 
+    return response()->json($user);
 });
+
 Route::post('/login', [ApiController::class, 'login']);
 Route::middleware('auth:sanctum')->get('/get-token', function (Request $request) {
     return response()->json([
@@ -33,10 +38,11 @@ Route::middleware('auth:sanctum')->get('/get-token', function (Request $request)
 Route::middleware('auth:sanctum')->group(function () {
     
     // --- GENERAL RESOURCES ---
-    Route::apiResource('/articles', ArticleController::class);
+    Route::post('/profile/update', [ProfileController::class, 'updateProfileInformation']);
+    //Route::apiResource('/articles', ArticleController::class);
     Route::get('/users', [ApiController::class, 'users']);
     Route::get('/users/count', [UserController::class, 'count']);
-    Route::get('/clients/count', [ClientController::class, 'count']);
+    //Route::get('/clients/count', [ClientController::class, 'count']);
     Route::get('/roles/count', [RolesController::class, 'count']);
     
     // --- RESIDENTS, FEES, ADDRESSES ---

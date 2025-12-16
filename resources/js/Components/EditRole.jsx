@@ -8,18 +8,24 @@ export default function EditRole() {
   const [name, setName] = useState("");
   const [permissions, setPermissions] = useState([]);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
-  const { setSuccessMessage, setErrorMessage } = useContext(MessageContext); // include success
+  const { setSuccessMessage, setErrorMessage } = useContext(MessageContext);
   const navigate = useNavigate();
   const axiosOptions = { withCredentials: true, headers: { Accept: "application/json" } };
+
+  // 🚨 State for the "Select All" checkbox
+  const [selectAll, setSelectAll] = useState(false);
 
   // Fetch role and permissions on mount
   useEffect(() => {
     const fetchRole = async () => {
       try {
+        // Fetch specific role data
         const resRole = await axios.get(`/api/roles/${id}`, axiosOptions);
         setName(resRole.data.name);
+        // Map permissions to IDs for initial selection
         setSelectedPermissions(resRole.data.permissions.map(p => p.id));
 
+        // Fetch all available permissions
         const resPerms = await axios.get("/api/permisos", axiosOptions);
         setPermissions(resPerms.data);
       } catch (err) {
@@ -30,11 +36,35 @@ export default function EditRole() {
     fetchRole();
   }, [id, setErrorMessage]);
 
+  // 🚨 Sync "Select All" state with individual selections
+  useEffect(() => {
+    // Only run if both arrays are populated
+    if (permissions.length > 0) {
+        // Check if the number of selected permissions equals the total number of permissions
+        const isAllSelected = selectedPermissions.length === permissions.length;
+        setSelectAll(isAllSelected);
+    }
+  }, [selectedPermissions, permissions]);
+
+
   // Toggle permission selection
   const togglePermission = (id) => {
     setSelectedPermissions(prev =>
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     );
+  };
+  
+  // 🚨 Function to handle the "Select All" checkbox change
+  const toggleSelectAll = () => {
+      // If currently all selected, deselect all (set to empty array)
+      if (selectAll) {
+          setSelectedPermissions([]);
+      } else {
+          // If not all selected, select all (map all permission IDs)
+          const allPermissionIds = permissions.map((p) => p.id);
+          setSelectedPermissions(allPermissionIds);
+      }
+      setSelectAll(!selectAll);
   };
 
   // Handle form submission
@@ -63,7 +93,7 @@ export default function EditRole() {
     <div className="row mb-4">
       <div className="col-md-8 offset-md-2">
         <div className="border rounded p-4 bg-white shadow-sm">
-          <h2 className="text-center mb-4 text-2xl font-bold">Editar Rol</h2>
+          <h2 className="text-center mb-4 text-2xl font-bold">Editar Rol: {name}</h2>
 
           {/* Role name input */}
           <div className="mb-3">
@@ -79,6 +109,24 @@ export default function EditRole() {
           {/* Permissions checkboxes */}
           <div className="mb-3">
             <label className="form-label font-semibold">Permisos:</label>
+
+            {/* 🚨 Select All Checkbox */}
+            {permissions.length > 0 && (
+                <div className="form-check mb-2 p-3 border rounded bg-light">
+                    <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="selectAll"
+                        checked={selectAll}
+                        onChange={toggleSelectAll}
+                    />
+                    <label className="form-check-label font-weight-bold" htmlFor="selectAll">
+                        Seleccionar Todos los Permisos ({selectedPermissions.length}/{permissions.length})
+                    </label>
+                </div>
+            )}
+            
+            {/* Individual Permissions */}
             {permissions.map(p => (
               <div key={p.id} className="form-check">
                 <input
@@ -99,7 +147,7 @@ export default function EditRole() {
           {/* Submit button */}
           <div className="d-flex justify-content-end">
             <button className="btn btn-primary text-white" onClick={handleSubmit}>
-              Guardar
+              Guardar Cambios
             </button>
           </div>
         </div>
