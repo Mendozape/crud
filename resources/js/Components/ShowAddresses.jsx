@@ -1,12 +1,15 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react';
 import DataTable from 'react-data-table-component';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+// 🚨 Import the hook
+import usePermission from "../hooks/usePermission"; 
 
-const endpoint = 'http://localhost:8000/api/addresses';
+const endpoint = '/api/addresses';
 
-const ShowAddresses = () => {
+// 🚨 Receive 'user' as a prop from App.jsx
+const ShowAddresses = ({ user }) => {
     // State variables
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -18,44 +21,45 @@ const ShowAddresses = () => {
     const [addressToDeactivate, setAddressToDeactivate] = useState(null);
     const [deactivationReason, setDeactivationReason] = useState('');
 
+    // 🚨 Initialize the permission hook
+    const { can } = usePermission(user);
+
+    // 🛡️ Extraction to constants for stable permission evaluation
+    const canCreate = user ? can('Crear-predios') : false;
+    const canEdit = user ? can('Editar-predios') : false;
+    const canDeactivate = user ? can('Eliminar-predios') : false;
+    const canCreatePayment = user ? can('Crear-pagos') : false;
+    const canViewPayments = user ? can('Ver-pagos') : false;
+
     // Context hook for global messages
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    // Function to fetch all addresses (including soft-deleted ones)
+    // Function to fetch all addresses
     const fetchAddresses = async () => {
         try {
-            // ENGLISH CODE COMMENTS
-            // Controller now uses with(['resident', 'street']) to fetch the assigned resident and the street name
             const response = await axios.get(endpoint, {
                 withCredentials: true,
                 headers: { Accept: 'application/json' },
             });
-            // The API returns all addresses, including soft-deleted ones
             setAddresses(response.data.data || []);
             setFilteredAddresses(response.data.data || []);
         } catch (error) {
             console.error('Error fetching addresses:', error);
-            // User-facing error message in Spanish
-            setErrorMessage('Fallo al cargar el catálogo de direcciones. Puede que no esté autenticado.');
+            setErrorMessage('Fallo al cargar el catálogo de direcciones.');
         } finally {
             setLoading(false);
         }
     };
 
-    // Initial data load on component mount
     useEffect(() => {
         fetchAddresses();
     }, []);
 
-    // Filter addresses based on search input (by community, street name, or resident name)
+    // Filter addresses based on search input
     useEffect(() => {
-        // ENGLISH CODE COMMENTS
         const result = addresses.filter(addr => {
-            // FIX: Access street name using optional chaining (addr.street?.name)
             const streetName = addr.street?.name || ''; 
-            
-            // Build searchable text string
             const addressText = `${addr.community} ${streetName} ${addr.street_number} ${addr.type}`;
             const residentName = addr.resident ? `${addr.resident.name} ${addr.resident.last_name}` : '';
             const searchText = search.toLowerCase();
@@ -66,26 +70,20 @@ const ShowAddresses = () => {
         setFilteredAddresses(result);
     }, [search, addresses]);
 
-
-    // Function to perform soft deletion (Dar de Baja)
     const deactivateAddress = async (id, reason) => {
-        // ENGLISH CODE COMMENTS
         try {
-            // Use axios.delete, passing 'reason' in the data object for the audit trail
             const response = await axios.delete(`${endpoint}/${id}`, {
                 withCredentials: true,
                 headers: { Accept: 'application/json' },
-                data: { reason: reason } // Sending the reason in the DELETE body
+                data: { reason: reason } 
             });
 
             if (response.status === 200) {
-                // User-facing success message in Spanish
                 setSuccessMessage('Entrada de catálogo dada de baja exitosamente.');
-                fetchAddresses(); // Refresh list to show 'Inactive' status
+                fetchAddresses(); 
             }
         } catch (error) {
             console.error('Deactivation error:', error);
-            // User-facing error message in Spanish
             const msg = error.response?.data?.message || 'Fallo al dar de baja la entrada del catálogo.';
             setErrorMessage(msg);
         } finally {
@@ -94,147 +92,134 @@ const ShowAddresses = () => {
         }
     };
 
-    // Navigation handlers
     const editAddress = (id) => navigate(`/addresses/edit/${id}`);
     const createAddress = () => navigate('/addresses/create');
-
-    // NEW HANDLERS: Payments linked to ADDRESS ID
     const createPayment = (id) => navigate(`/addresses/payment/${id}`);
     const viewPaymentHistory = (id) => navigate(`/addresses/payments/history/${id}`);
 
-    // Modal handlers
     const toggleModal = () => setShowModal(!showModal);
 
-    // Opens the modal to confirm deactivation and capture reason
     const confirmDeactivation = (id) => {
         setAddressToDeactivate(id);
         toggleModal();
     };
 
-    // Calls the deactivation function with the captured reason
     const handleDeactivation = () => deactivateAddress(addressToDeactivate, deactivationReason);
 
-
-    // DataTable column definitions
-    const columns = [
-
-        // NEW: Combined Address Column
+    // 🚨 UseMemo for columns to handle button visibility based on permissions
+    const columns = useMemo(() => [
         {
             name: 'Dirección',
-            // FIX: Use optional chaining to access the street name for sorting
             selector: row => row.street?.name || '', 
             sortable: true,
             cell: row => (
-                // Combine street name (from relationship), street_number, and type into a single display string
                 <div style={{ lineHeight: '1.2' }}>
-                    {/* Calle #Número, Comunidad */}
-                    {/* FIX: Display street name from row.street.name */}
                     <span className="d-block">{`${row.street?.name || 'N/A'} #${row.street_number}`}</span>
-                    {/* Tipo */}
                     <span className="badge bg-secondary">{row.type}</span>
                 </div>
             ),
-            minWidth: '280px',
+            minWidth: '250px',
         },
-        // NEW: Resident Column (Name + Last Name combined)
         {
             name: 'Residente Asignado',
             selector: row => row.resident ? `${row.resident.name} ${row.resident.last_name}` : 'Vacante',
             sortable: true,
             cell: row => (
-                // Display name and last name, or 'Vacante' if resident is null
                 <span className={row.resident ? 'fw-bold' : 'text-muted'}>
                     {row.resident ? `${row.resident.name} ${row.resident.last_name}` : 'Vacante'}
                 </span>
             ),
             minWidth: '180px',
         },
-
         { name: 'Comentarios', selector: row => row.comments, sortable: true },
-
         {
-            name: 'Estado', // Status label in Spanish
+            name: 'Estado', 
             selector: row => row.deleted_at ? 'Inactivo' : 'Activo',
             sortable: true,
             cell: row => (
                 <span className={`badge ${row.deleted_at ? 'bg-danger' : 'bg-info'}`}>
-                    {/* Display status in Spanish */}
                     {row.deleted_at ? 'Inactivo' : 'Activo'}
                 </span>
             ),
         },
-
         {
-            name: 'Acciones', // Actions label in Spanish
+            name: 'Acciones', 
             cell: row => (
-                // Actions depend on the address status
-                <div style={{ display: 'flex', gap: '5px' }}>
-
-                    {/* NEW ACTIONS: Payment and History (Available only if ACTIVE) */}
+                <div className="d-flex gap-1">
                     {!row.deleted_at && (
                         <>
-                            <button
-                                className="btn btn-primary btn-sm"
-                                onClick={() => createPayment(row.id)}
-                            >
-                                Pagar
-                            </button>
-                            <button
-                                className="btn btn-warning btn-sm"
-                                onClick={() => viewPaymentHistory(row.id)}
-                            >
-                                <i className="fas fa-history"></i> Historial
-                            </button>
+                            {/* 🛡️ Permission check: Crear-pagos */}
+                            {canCreatePayment && (
+                                <button className="btn btn-primary btn-sm" onClick={() => createPayment(row.id)}>
+                                    Pagar
+                                </button>
+                            )}
+                            {/* 🛡️ Permission check: Ver-pagos */}
+                            {canViewPayments && (
+                                <button className="btn btn-warning btn-sm" onClick={() => viewPaymentHistory(row.id)}>
+                                    <i className="fas fa-history"></i> Historial
+                                </button>
+                            )}
                         </>
                     )}
 
-                    {/* Edit and Delete Actions */}
-                    <button className="btn btn-info btn-sm" onClick={() => editAddress(row.id)} disabled={!!row.deleted_at}>Editar</button>
+                    {/* 🛡️ Permission check: Editar-predios */}
+                    {canEdit && (
+                        <button className="btn btn-info btn-sm" onClick={() => editAddress(row.id)} disabled={!!row.deleted_at}>
+                            Editar
+                        </button>
+                    )}
 
-                    {row.deleted_at ? (
-                        // If inactive, show disabled button
-                        <button className="btn btn-secondary btn-sm" disabled>Dada de Baja</button>
-                    ) : (
-                        // If active, show the Deactivate button
-                        <button className="btn btn-danger btn-sm" onClick={() => confirmDeactivation(row.id)}>Dar de baja</button>
+                    {/* 🛡️ Permission check: Eliminar-predios */}
+                    {canDeactivate && (
+                        <>
+                            {row.deleted_at ? (
+                                <button className="btn btn-secondary btn-sm" disabled>Dada de Baja</button>
+                            ) : (
+                                <button className="btn btn-danger btn-sm" onClick={() => confirmDeactivation(row.id)}>Dar de baja</button>
+                            )}
+                        </>
                     )}
                 </div>
             ),
-            minWidth: '320px', // Increased width to fit 4 buttons
+            minWidth: '350px', 
         },
-    ];
+    ], [canEdit, canDeactivate, canCreatePayment, canViewPayments, navigate]);
+
     const NoDataComponent = () => (
         <div style={{ padding: '24px', textAlign: 'center', fontSize: '1.1em', color: '#6c757d' }}>
             No hay registros para mostrar.
         </div>
     );
 
-    // Effects to clear messages
     useEffect(() => {
         if (successMessage) {
             const timer = setTimeout(() => setSuccessMessage(null), 5000);
             return () => clearTimeout(timer);
         }
-    }, [successMessage]);
+    }, [successMessage, setSuccessMessage]);
 
     useEffect(() => {
         if (errorMessage) {
             const timer = setTimeout(() => setErrorMessage(null), 5000);
             return () => clearTimeout(timer);
         }
-    }, [errorMessage]);
+    }, [errorMessage, setErrorMessage]);
 
     return (
         <div className="row mb-4 border border-primary rounded p-3">
             <div className="col-md-6">
-                {/* Create button in Spanish */}
-                <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createAddress}>Crear Dirección</button>
+                {/* 🛡️ Permission check for Create button */}
+                {canCreate ? (
+                    <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createAddress}>
+                        Crear Dirección
+                    </button>
+                ) : <div />}
             </div>
             <div className="col-md-6 d-flex justify-content-end align-items-center">
                 <input
                     type="text"
-                    className="col-md-3 form-control form-control-sm mt-2 mb-2"
-                    // Placeholder in Spanish
+                    className="col-md-5 form-control form-control-sm mt-2 mb-2"
                     placeholder="Buscar por dirección o residente"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -248,37 +233,30 @@ const ShowAddresses = () => {
 
             <div className="col-md-12 mt-4">
                 <DataTable
-                    // Title in Spanish
                     title="Lista de direcciones"
                     columns={columns}
                     data={filteredAddresses}
                     progressPending={loading}
                     noDataComponent={<NoDataComponent />}
                     pagination
-                    paginationPerPage={10}
-                    paginationRowsPerPageOptions={[5, 10, 15, 20]}
                     highlightOnHover
                     striped
                 />
             </div>
 
-            {/* Modal for Deactivation Confirmation (Soft Delete) */}
+            {/* Modal for Deactivation */}
             <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header bg-danger text-white">
-                            {/* Modal title in Spanish */}
                             <h5 className="modal-title">Confirmar Baja de Catálogo</h5>
-                            <button type="button" className="close" aria-label="Cerrar" onClick={toggleModal}>
-                                <span aria-hidden="true">&times;</span>
+                            <button type="button" className="close" onClick={toggleModal}>
+                                <span>&times;</span>
                             </button>
                         </div>
                         <div className="modal-body">
-                            {/* Confirmation text in Spanish */}
-                            <p>¿Está seguro de que desea dar de baja esta entrada del catálogo de direcciones? No podrá ser usada para nuevos residentes, pero los registros históricos permanecerán vinculados.</p>
-
+                            <p>¿Está seguro de que desea dar de baja esta entrada del catálogo de direcciones?</p>
                             <div className="form-group mt-3">
-                                {/* Label in Spanish */}
                                 <label htmlFor="reason">Motivo de la Baja <span className="text-danger">*</span></label>
                                 <textarea
                                     id="reason"
@@ -286,19 +264,17 @@ const ShowAddresses = () => {
                                     rows="3"
                                     value={deactivationReason}
                                     onChange={(e) => setDeactivationReason(e.target.value)}
-                                    // Placeholder in Spanish
-                                    placeholder="Ingrese la razón de la baja (Ej: Error de escritura, dirección ya no existe, etc.)"
+                                    placeholder="Ingrese la razón de la baja"
                                 />
                             </div>
                         </div>
                         <div className="modal-footer">
-                            {/* Buttons in Spanish */}
                             <button type="button" className="btn btn-secondary" onClick={toggleModal}>Cancelar</button>
                             <button
                                 type="button"
                                 className="btn btn-danger"
                                 onClick={handleDeactivation}
-                                disabled={!deactivationReason.trim()} // Disabled if no reason is provided
+                                disabled={!deactivationReason.trim()}
                             >
                                 Dar de baja
                             </button>
@@ -307,7 +283,6 @@ const ShowAddresses = () => {
                 </div>
             </div>
             {showModal && <div className="modal-backdrop fade show"></div>}
-            {/* End Modal */}
         </div>
     );
 };

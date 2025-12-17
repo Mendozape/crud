@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const endpoint = 'http://localhost:8000/api/fees/';
+const endpoint = '/api/fees/';
 
 const axiosOptions = {
     withCredentials: true,

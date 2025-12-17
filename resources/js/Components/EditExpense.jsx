@@ -5,8 +5,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const endpoint = 'http://localhost:8000/api/expenses/';
-const categoriesEndpoint = 'http://localhost:8000/api/expense_categories'; // Endpoint for catalog data
+const endpoint = '/api/expenses/';
+const categoriesEndpoint = '/api/expense_categories'; // Endpoint for catalog data
 
 // Configuration for Axios requests (omitted)
 const axiosOptions = {

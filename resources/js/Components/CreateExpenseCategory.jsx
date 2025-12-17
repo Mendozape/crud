@@ -3,7 +3,7 @@ import axios from 'axios';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
-const endpoint = 'http://localhost:8000/api/expense_categories';
+const endpoint = '/api/expense_categories';
 
 export default function CreateExpenseCategory() {
     // State for the category name

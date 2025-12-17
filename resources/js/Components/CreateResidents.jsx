@@ -3,7 +3,7 @@ import axios from 'axios';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
-const endpoint = 'http://localhost:8000/api/residents';
+const endpoint = '/api/residents';
 
 // Axios options with credentials
 const axiosOptions = {

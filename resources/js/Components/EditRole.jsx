@@ -93,11 +93,11 @@ export default function EditRole() {
     <div className="row mb-4">
       <div className="col-md-8 offset-md-2">
         <div className="border rounded p-4 bg-white shadow-sm">
-          <h2 className="text-center mb-4 text-2xl font-bold">Editar Rol: {name}</h2>
+          <h2 className="text-center mb-4 text-2xl font-bold">Editar Role: {name}</h2>
 
           {/* Role name input */}
           <div className="mb-3">
-            <label className="form-label font-semibold">Nombre del Rol</label>
+            <label className="form-label font-semibold">Nombre del Role</label>
             <input
               type="text"
               value={name}

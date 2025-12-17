@@ -6,8 +6,8 @@ import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
 
-const endpoint = 'http://localhost:8000/api/expenses';
-const categoriesEndpoint = 'http://localhost:8000/api/expense_categories'; // Endpoint for catalog
+const endpoint = '/api/expenses';
+const categoriesEndpoint = '/api/expense_categories'; // Endpoint for catalog
 
 // Helper function to get today's date in YYYY-MM-DD format
 const getTodayDate = () => {

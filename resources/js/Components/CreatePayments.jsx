@@ -47,13 +47,13 @@ const PaymentForm = () => {
         const fetchAddressDetails = async () => {
             try {
                 // 1. Fetch Address Details (which now contains street_id)
-                const addressResponse = await axios.get(`http://localhost:8000/api/addresses/${addressId}`, axiosOptions);
+                const addressResponse = await axios.get(`/api/addresses/${addressId}`, axiosOptions);
                 const details = addressResponse.data.data;
                 setAddressDetails(details);
                 
                 // 2. Fetch Street Name using street_id
                 if (details && details.street_id) {
-                    const streetResponse = await axios.get(`http://localhost:8000/api/streets/${details.street_id}`, axiosOptions);
+                    const streetResponse = await axios.get(`/api/streets/${details.street_id}`, axiosOptions);
                     setStreetName(streetResponse.data.name || 'Calle Desconocida');
                 } else {
                      setStreetName('ID de Calle no encontrado');
@@ -70,7 +70,7 @@ const PaymentForm = () => {
     useEffect(() => {
         const fetchFees = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/fees', axiosOptions);
+                const response = await axios.get('/api/fees', axiosOptions);
                 const activeFees = (response.data.data || []).filter(fee => !fee.deleted_at);
                 setFees(activeFees);
             } catch (error) {
@@ -86,7 +86,7 @@ const PaymentForm = () => {
             if (!year || !feeId) return;
             try {
                 const response = await axios.get(
-                    `http://localhost:8000/api/address_payments/paid-months/${addressId}/${year}?fee_id=${feeId}`,
+                    `/api/address_payments/paid-months/${addressId}/${year}?fee_id=${feeId}`,
                     axiosOptions
                 );
                 // Asumimos que el backend devuelve un array de objetos {month: X, status: Y}
@@ -196,7 +196,7 @@ const PaymentForm = () => {
 
         try {
             // NOTE: Using 'addressPayments' model as per saved user info.
-            await axios.post('http://localhost:8000/api/address_payments', paymentData, axiosOptions);
+            await axios.post('/api/address_payments', paymentData, axiosOptions);
             setSuccessMessage('Registro de movimiento(s) exitoso.');
             setShowModal(false);
             

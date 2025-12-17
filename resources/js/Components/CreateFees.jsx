@@ -3,7 +3,7 @@ import axios from 'axios';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 
-const endpoint = 'http://localhost:8000/api/fees';
+const endpoint = '/api/fees';
 
 export default function CreateResidents() {
     const [name, setName] = useState('');

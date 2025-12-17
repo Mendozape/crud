@@ -43,7 +43,7 @@ class RolesController extends Controller
             return response()->json($role);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Rol no encontrado.', // User message in Spanish
+                'message' => 'Role no encontrado.', // User message in Spanish
                 'error' => $e->getMessage()
             ], 404);
         }
@@ -77,13 +77,13 @@ class RolesController extends Controller
             app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
             return response()->json([
-                'message' => 'Rol creado correctamente.', // User message in Spanish
+                'message' => 'Role creado correctamente.', // User message in Spanish
                 'role' => $role
             ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Fallo al crear el rol.', // User message in Spanish
+                'message' => 'Fallo al crear el role.', // User message in Spanish
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -118,12 +118,12 @@ class RolesController extends Controller
             app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
             return response()->json([
-                'message' => 'Rol actualizado correctamente.', // User message in Spanish
+                'message' => 'Role actualizado correctamente.', // User message in Spanish
                 'role' => $role
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Fallo al actualizar el rol.', // User message in Spanish
+                'message' => 'Fallo al actualizar el role.', // User message in Spanish
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -142,11 +142,11 @@ class RolesController extends Controller
             app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
             return response()->json([
-                'message' => 'Rol eliminado correctamente.' // User message in Spanish
+                'message' => 'Role eliminado correctamente.' // User message in Spanish
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Fallo al eliminar el rol.', // User message in Spanish
+                'message' => 'Fallo al eliminar el role.', // User message in Spanish
                 'error' => $e->getMessage()
             ], 500);
         }

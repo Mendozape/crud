@@ -3,7 +3,7 @@ import axios from 'axios';
 import { MessageContext } from './MessageContext'; // Assuming MessageContext is available
 import { useNavigate } from 'react-router-dom';
 
-const endpoint = 'http://localhost:8000/api/streets';
+const endpoint = '/api/streets';
 
 export default function CreateStreet() {
     const [name, setName] = useState('');

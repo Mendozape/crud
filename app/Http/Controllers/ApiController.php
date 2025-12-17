@@ -19,14 +19,13 @@ class ApiController extends Controller
         // Read the JSON in the body request
         $data = $request->json()->all(); 
         
-        // 🛑 CRITICAL FIX: Explicitly select all columns, including the photo path.
-        // This prevents the possibility of the ORM skipping the column during lookup.
+        // CRITICAL FIX: Explicitly select all columns, including the photo path.
         $user = User::select('*')->where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
             return response()->json([
                 'status' => 0,
-                'message' => 'Credenciales inválidas' // Message in Spanish
+                'message' => 'Credenciales inválidas'
             ], 401);
         }
         
@@ -35,10 +34,11 @@ class ApiController extends Controller
 
         $token = $user->createToken('example')->plainTextToken;
         
-        // 🛑 CRITICAL FIX: Manually serialize the User object
+        // 🛑 CRITICAL FIX: Added permissions and roles to the response
+        // This ensures the React state has the required data for the 'can' hook immediately.
         return response()->json([
             'status' => 1,
-            'message' => 'Inicio de sesión exitoso', // Message in Spanish
+            'message' => 'Inicio de sesión exitoso',
             'token' => $token,
             'user' => [
                 'id' => $user->id,
@@ -46,8 +46,10 @@ class ApiController extends Controller
                 'email' => $user->email,
                 'email_verified_at' => $user->email_verified_at,
                 // Force the raw database attribute to be visible
-                'profile_photo_path' => $user->getAttributes()['profile_photo_path'] ?? null, 
-                // Add any other necessary fields here (e.g., roles, updated_at)
+                'profile_photo_path' => $user->getAttributes()['profile_photo_path'] ?? null,
+                // 🛡️ PERMISSIONS & ROLES: Needed for the frontend 'can' hook
+                'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                'roles' => $user->getRoleNames()->toArray(),
             ]
         ]);
     }

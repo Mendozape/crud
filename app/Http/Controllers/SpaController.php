@@ -12,35 +12,30 @@ class SpaController extends Controller
      */
     public function index()
     {
-        // Get the authenticated user
         $user = Auth::user();
-        // Check if the user is authenticated before attempting to retrieve permissions
+
         if ($user) {
-            $freshUser = $user->fresh();
-            // 🚨 CRITICAL CHANGE: Include the user's permissions array 
-            // We pluck('name') to get a simple array of strings, which is what React expects.
+            // Eager load permissions and roles to avoid issues
             $userData = [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'profile_photo_path' => $freshUser->profile_photo_path,
-                // Add permissions array here
+                // Accessing raw attribute to avoid accessor conflicts
+                'profile_photo_path' => $user->getAttributes()['profile_photo_path'] ?? null,
+                // Use getAllPermissions to get direct and inherited permissions (via roles)
                 'permissions' => $user->getAllPermissions()->pluck('name')->toArray(), 
-                // Optionally include roles' names as well
                 'roles' => $user->getRoleNames()->toArray(), 
             ];
         } else {
-            // Handle guest scenario
             $userData = null;
         }
 
-        // Prepare the data array for the Blade view
         $data = [
             'user' => $userData,
             'logout_url' => route('logout'),
         ];
         
-        // Pass the data to your main Blade view (app.blade.php)
+        // Ensure app.blade.php does: window.Laravel = {!! json_encode($data) !!};
         return view('app')->with('data', $data);
     }
 }

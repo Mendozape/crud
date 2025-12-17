@@ -3,11 +3,14 @@ import DataTable from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MessageContext } from "./MessageContext";
+// 🚨 Import the hook
+import usePermission from "../hooks/usePermission"; 
 
 const endpoint = "/api/usuarios";
 const axiosOptions = { withCredentials: true };
 
-const ShowUsers = () => {
+// 🚨 Receive 'user' as a prop
+const ShowUsers = ({ user }) => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +18,19 @@ const ShowUsers = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  // 🚨 Initialize the permission hook
+  const { can } = usePermission(user);
+
+  // 🛡️ EXTRACTION TO CONSTANTS: This mimics the stable pattern from Stats.jsx
+  const canCreate = can('Crear-usuarios');
+  const canEdit = can('Editar-usuarios');
+  const canDelete = can('Eliminar-usuarios');
+
+  // 🚨 DIAGNOSTIC LOGS
+  console.log("1. Full User Object:", user);
+  console.log("2. Permissions Array:", user?.permissions);
+  console.log("3. Result of can('Crear-usuarios'):", canCreate);
 
   const {
     successMessage,
@@ -35,16 +51,10 @@ const ShowUsers = () => {
       setFilteredUsers(data);
     } catch (err) {
       console.error("Error fetching users:", err);
-
       let errorMsg = "Fallo al cargar los usuarios";
-
       if (err.response) {
-        errorMsg =
-          err.response.data.error ||
-          err.response.data.message ||
-          errorMsg;
+        errorMsg = err.response.data.error || err.response.data.message || errorMsg;
       }
-
       setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
@@ -73,7 +83,6 @@ const ShowUsers = () => {
   // Delete user
   const deleteUser = async () => {
     if (!userToDelete) return;
-
     try {
       await axios.delete(`${endpoint}/${userToDelete}`, axiosOptions);
       setShowModal(false);
@@ -82,39 +91,15 @@ const ShowUsers = () => {
       setSuccessMessage("Usuario eliminado exitosamente");
     } catch (err) {
       console.error(err);
-
-      // Close modal so error message can be seen
       setShowModal(false);
       setUserToDelete(null);
-
       let errorMsg = "Error al eliminar usuario";
-
       if (err.response) {
-        errorMsg =
-          err.response.data.error ||
-          err.response.data.message ||
-          errorMsg;
+        errorMsg = err.response.data.error || err.response.data.message || errorMsg;
       }
-
       setErrorMessage(errorMsg);
     }
   };
-
-  // Auto-clear success message
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage, setSuccessMessage]);
-
-  // Auto-clear error message
-  useEffect(() => {
-    if (errorMessage) {
-      const timer = setTimeout(() => setErrorMessage(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [errorMessage, setErrorMessage]);
 
   // DataTable columns
   const columns = [
@@ -136,11 +121,7 @@ const ShowUsers = () => {
         <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
           {u.roles && u.roles.length > 0
             ? u.roles.map((r, idx) => (
-                <span
-                  key={idx}
-                  className="btn btn-primary btn-sm"
-                  style={{ cursor: "default" }}
-                >
+                <span key={idx} className="btn btn-primary btn-sm" style={{ cursor: "default" }}>
                   {r.name}
                 </span>
               ))
@@ -156,11 +137,7 @@ const ShowUsers = () => {
         <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
           {u.permissions && u.permissions.length > 0
             ? u.permissions.map((p, idx) => (
-                <span
-                  key={idx}
-                  className="btn btn-info btn-sm"
-                  style={{ cursor: "default" }}
-                >
+                <span key={idx} className="btn btn-info btn-sm" style={{ cursor: "default" }}>
                   {p.name}
                 </span>
               ))
@@ -173,22 +150,26 @@ const ShowUsers = () => {
       name: "Acciones",
       right: true,
       cell: (u) => (
-        <div
-          className="d-flex gap-2 justify-content-end"
-          style={{ whiteSpace: "nowrap" }}
-        >
-          <button
-            className="btn btn-info btn-sm"
-            onClick={() => navigate(`/users/edit/${u.id}`)}
-          >
-            Editar
-          </button>
-          <button
-            className="btn btn-danger btn-sm"
-            onClick={() => confirmDelete(u.id)}
-          >
-            Eliminar
-          </button>
+        <div className="d-flex gap-2 justify-content-end" style={{ whiteSpace: "nowrap" }}>
+          {/* 🛡️ USE CONSTANT: canEdit */}
+          {canEdit && (
+            <button
+              className="btn btn-info btn-sm"
+              onClick={() => navigate(`/users/edit/${u.id}`)}
+            >
+              Editar
+            </button>
+          )}
+          
+          {/* 🛡️ USE CONSTANT: canDelete */}
+          {canDelete && (
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => confirmDelete(u.id)}
+            >
+              Eliminar
+            </button>
+          )}
         </div>
       ),
       width: "150px",
@@ -199,12 +180,18 @@ const ShowUsers = () => {
     <div className="mb-4 border border-primary rounded p-3">
       {/* Top controls */}
       <div className="d-flex justify-content-between mb-2">
-        <button
-          className="btn btn-warning btn-sm"
-          onClick={() => navigate("/users/create")}
-        >
-          Crear usuario
-        </button>
+        {/* 🛡️ USE CONSTANT: canCreate */}
+        {canCreate ? (
+          <button
+            className="btn btn-warning btn-sm"
+            onClick={() => navigate("/users/create")}
+          >
+            Crear usuario
+          </button>
+        ) : (
+          <div></div> // Spacer to maintain layout
+        )}
+        
         <input
           type="text"
           placeholder="Buscar por nombre"
@@ -215,16 +202,8 @@ const ShowUsers = () => {
       </div>
 
       {/* Messages */}
-      {successMessage && (
-        <div className="alert alert-success text-center">
-          {successMessage}
-        </div>
-      )}
-      {errorMessage && (
-        <div className="alert alert-danger text-center">
-          {errorMessage}
-        </div>
-      )}
+      {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
+      {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
 
       {/* Table */}
       <DataTable
@@ -238,38 +217,19 @@ const ShowUsers = () => {
       />
 
       {/* Delete modal */}
-      <div
-        className={`modal fade ${showModal ? "show d-block" : "d-none"}`}
-        tabIndex="-1"
-      >
+      <div className={`modal fade ${showModal ? "show d-block" : "d-none"}`} tabIndex="-1">
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">Confirmar Eliminación</h5>
-              <button
-                type="button"
-                className="close"
-                onClick={() => setShowModal(false)}
-              >
+              <button type="button" className="close" onClick={() => setShowModal(false)}>
                 <span>&times;</span>
               </button>
             </div>
-            <div className="modal-body">
-              ¿Está seguro de eliminar el usuario?
-            </div>
+            <div className="modal-body">¿Está seguro de eliminar el usuario?</div>
             <div className="modal-footer">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowModal(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={deleteUser}
-              >
-                Eliminar
-              </button>
+              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
+              <button className="btn btn-danger" onClick={deleteUser}>Eliminar</button>
             </div>
           </div>
         </div>
