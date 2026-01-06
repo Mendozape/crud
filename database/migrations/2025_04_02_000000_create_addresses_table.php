@@ -7,53 +7,43 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
-     * Creates the addresses table with foreign keys for both resident and street, 
-     * including the new 'months_overdue' field.
+     * Run the migrations to create the 'addresses' table.
+     * Updated to link directly to 'users' instead of 'residents'.
      */
     public function up(): void
     {
         Schema::create('addresses', function (Blueprint $table) {
-            // Primary Key
             $table->id();
 
-            // --- Foreign Key: Resident (1:N) ---
-            // Links an address to a resident. Multiple addresses can link to the same resident (1:N).
-            $table->foreignId('resident_id')
+            // --- FOREIGN KEYS ---
+            
+            // Link to the User who is the resident (Owner of the account)
+            $table->foreignId('user_id')
                 ->nullable()
-                ->constrained('residents')
+                ->constrained('users')
                 ->onDelete('set null')
-                ->comment('ID of the assigned resident. Allows duplicates (1:N) and can be NULL.');
+                ->comment('Links the address to a specific user/resident account.');
 
-            // --- Foreign Key: Street (1:N) ---
-            // Links an address to a standardized street entry.
+            // Link to the standardized street catalog
             $table->foreignId('street_id')
-                ->nullable() // Decide if an address must have a street ID
+                ->nullable()
                 ->constrained('streets')
-                ->onDelete('set null') // If the referenced street is soft deleted, set this ID to NULL
-                ->comment('ID of the street. Foreign key to the streets table (1:N).');
-            // ------------------------------------
+                ->onDelete('set null');
 
-            // Address fields
-            $table->string('type', 50)->nullable()->comment('Type of property (e.g., CASA, TERRENO)');
-            $table->string('street_number', 20)->comment('House or lot number that is part of the unique address');
-            $table->string('community', 250)->comment('Standardized name of the Neighborhood or Subdivision');
-            $table->text('comments')->nullable()->comment('General comments about this location entry');
+            // --- ADDRESS DATA ---
+            $table->string('type', 50)->nullable()->comment('CASA or TERRENO');
+            $table->string('street_number', 20);
+            $table->string('community', 250);
+            $table->text('comments')->nullable();
+            
+            // Financial audit field
+            $table->integer('months_overdue')->default(0);
 
-            // --- New Field for Overdue Payments ---
-            $table->integer('months_overdue')
-                ->default(0)
-                ->comment('Count of payment months currently overdue for this address.');
-            // ---------------------------------------
-
-            // SOFT DELETES: Adds the 'deleted_at' timestamp column
+            // --- SYSTEM FIELDS ---
             $table->softDeletes();
-
-            // Timestamps
             $table->timestamps();
 
-            // UNIQUE CONSTRAINT: Ensures no two catalog entries have the same Community, Street (by ID), and Number.
-            // NOTE: The constraint is updated to use 'street_id' instead of 'street'.
+            // Unique constraint: prevent duplicate house numbers on the same street
             $table->unique(['community', 'street_id', 'street_number', 'deleted_at'], 'unique_full_address_v2');
         });
     }

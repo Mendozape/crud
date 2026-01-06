@@ -13,11 +13,8 @@ import Profile from "./pages/Profile";
 import ChatPage from "./pages/Chat/ChatPage";
 
 // Residents SPA
-import ShowResidents from "./components/ShowResidents";
-import CreateResidents from "./components/CreateResidents";
-import EditResidents from "./components/EditResidents";
 import CreatePayments from "./components/CreatePayments";
-import PaymentHistoryPage from "./components/PaymentHistoryPage"; 
+import PaymentHistoryPage from "./components/PaymentHistoryPage";
 
 // Fees SPA
 import ShowFees from "./components/ShowFees";
@@ -62,12 +59,14 @@ import EditExpenseCategory from './components/EditExpenseCategory';
 // Reports SPA
 import Reports from "./components/Reports";
 
+import ResidentStatement from "./components/ResidentStatement";
+
 // Components
 import ChatBadgeUpdater from "./components/ChatBadgeUpdater";
 
 const App = () => {
     const rootEl = document.getElementById("react-container");
-    
+
     /**
      * 🛡️ ROBUST USER DETECTION
      * Checks both window.Laravel.user and window.Laravel.data.user
@@ -110,163 +109,154 @@ const App = () => {
                     <Route path="/chat" element={<ChatPage user={user} />} />
 
                     {/* --------------------------------------------------- */}
-                    {/* 🛡️ RESIDENTS SPA routes */}
-                    {/* --------------------------------------------------- */}
                     <Route
-                        path="/residents"
-                        element={can('Ver-residentes') ? <ShowResidents user={user} /> : <Navigate to="/home" replace />}
-                    />
-                    <Route
-                        path="/residents/create"
-                        element={can('Crear-residentes') ? <CreateResidents /> : <Navigate to="/residents" replace />}
-                    />
-                    <Route
-                        path="/residents/edit/:id"
-                        element={can('Editar-residentes') ? <EditResidents /> : <Navigate to="/residents" replace />}
-                    />
-                    <Route 
-                        path="/addresses/payment/:id" 
+                        path="/addresses/payment/:id"
                         element={can('Crear-pagos') ? <CreatePayments /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/addresses/payments/history/:id" 
+                    <Route
+                        path="/addresses/payments/history/:id"
                         element={can('Ver-pagos') ? <PaymentHistoryPage user={user} /> : <Navigate to="/home" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ FEES SPA routes */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/fees" 
+                    <Route
+                        path="/fees"
                         element={can('Ver-cuotas') ? <ShowFees user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/fees/create" 
+                    <Route
+                        path="/fees/create"
                         element={can('Crear-cuotas') ? <CreateFees /> : <Navigate to="/fees" replace />}
                     />
-                    <Route 
-                        path="/fees/edit/:id" 
+                    <Route
+                        path="/fees/edit/:id"
                         element={can('Editar-cuotas') ? <EditFees /> : <Navigate to="/fees" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ ADDRESSES SPA routes */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/addresses" 
+                    <Route
+                        path="/addresses"
                         element={can('Ver-predios') ? <ShowAddresses user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/addresses/create" 
+                    <Route
+                        path="/addresses/create"
                         element={can('Crear-predios') ? <CreateAddresses /> : <Navigate to="/addresses" replace />}
                     />
-                    <Route 
-                        path="/addresses/edit/:id" 
+                    <Route
+                        path="/addresses/edit/:id"
                         element={can('Editar-predios') ? <EditAddresses /> : <Navigate to="/addresses" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ STREETS SPA ROUTES */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/streets" 
+                    <Route
+                        path="/streets"
                         element={can('Ver-calles') ? <ShowStreets user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/streets/create" 
+                    <Route
+                        path="/streets/create"
                         element={can('Crear-calles') ? <CreateStreets /> : <Navigate to="/streets" replace />}
                     />
-                    <Route 
-                        path="/streets/edit/:id" 
+                    <Route
+                        path="/streets/edit/:id"
                         element={can('Editar-calles') ? <EditStreets /> : <Navigate to="/streets" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ PERMISSIONS SPA routes */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/permissions" 
+                    <Route
+                        path="/permissions"
                         element={can('Ver-permisos') ? <ShowPermissions user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/permissions/create" 
+                    <Route
+                        path="/permissions/create"
                         element={can('Crear-permisos') ? <CreatePermission /> : <Navigate to="/permissions" replace />}
                     />
-                    <Route 
-                        path="/permissions/edit/:id" 
+                    <Route
+                        path="/permissions/edit/:id"
                         element={can('Editar-permisos') ? <EditPermission /> : <Navigate to="/permissions" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ ROLES SPA routes */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/roles" 
+                    <Route
+                        path="/roles"
                         element={can('Ver-roles') ? <ShowRoles user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/roles/create" 
+                    <Route
+                        path="/roles/create"
                         element={can('Crear-roles') ? <CreateRole /> : <Navigate to="/roles" replace />}
                     />
-                    <Route 
-                        path="/roles/edit/:id" 
+                    <Route
+                        path="/roles/edit/:id"
                         element={can('Editar-roles') ? <EditRole /> : <Navigate to="/roles" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ USERS SPA routes */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/users" 
+                    <Route
+                        path="/users"
                         element={can('Ver-usuarios') ? <ShowUsers user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/users/create" 
+                    <Route
+                        path="/users/create"
                         element={can('Crear-usuarios') ? <CreateUser /> : <Navigate to="/users" replace />}
                     />
-                    <Route 
-                        path="/users/edit/:id" 
+                    <Route
+                        path="/users/edit/:id"
                         element={can('Editar-usuarios') ? <EditUser /> : <Navigate to="/users" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ EXPENSE CATEGORIES SPA ROUTES */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/expense_categories" 
+                    <Route
+                        path="/expense_categories"
                         element={can('Ver-catalogo-gastos') ? <ShowExpenseCategories user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/expense_categories/create" 
+                    <Route
+                        path="/expense_categories/create"
                         element={can('Crear-catalogo-gastos') ? <CreateExpenseCategory /> : <Navigate to="/expense_categories" replace />}
                     />
-                    <Route 
-                        path="/expense_categories/edit/:id" 
+                    <Route
+                        path="/expense_categories/edit/:id"
                         element={can('Editar-catalogo-gastos') ? <EditExpenseCategory /> : <Navigate to="/expense_categories" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ EXPENSES SPA routes */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/expenses" 
+                    <Route
+                        path="/expenses"
                         element={can('Ver-gastos') ? <ExpensesTable user={user} /> : <Navigate to="/home" replace />}
                     />
-                    <Route 
-                        path="/expenses/create" 
+                    <Route
+                        path="/expenses/create"
                         element={can('Crear-gastos') ? <CreateExpense /> : <Navigate to="/expenses" replace />}
                     />
-                    <Route 
-                        path="/expenses/edit/:id" 
+                    <Route
+                        path="/expenses/edit/:id"
                         element={can('Editar-gastos') ? <EditExpense /> : <Navigate to="/expenses" replace />}
                     />
 
                     {/* --------------------------------------------------- */}
                     {/* 🛡️ REPORTS SPA routes */}
                     {/* --------------------------------------------------- */}
-                    <Route 
-                        path="/reports" 
+                    <Route
+                        path="/reports"
                         element={can('Reportes') ? <Reports user={user} /> : <Navigate to="/home" replace />}
+                    />
+
+                    <Route
+                        path="/resident-access"
+                        element={<ResidentStatement user={user} />}
                     />
 
                     {/* Catch-all: Redirects any unknown route to the home page */}

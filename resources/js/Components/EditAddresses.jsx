@@ -4,69 +4,59 @@ import { MessageContext } from './MessageContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const endpoint = '/api/addresses';
-const residentSearchEndpoint = '/api/reports/search-residents';
+// UPDATED: Now searches in the unified Users table
+const userSearchEndpoint = '/api/usuarios'; 
 const streetsEndpoint = '/api/streets';
 
 export default function EditAddresses() {
-    // ENGLISH CODE COMMENTS
-    // State for form inputs
+    // --- STATE FOR FORM INPUTS ---
     const [community, setCommunity] = useState('');
-    const [streetId, setStreetId] = useState(''); // Changed to streetId (integer)
+    const [streetId, setStreetId] = useState('');
     const [streetNumber, setStreetNumber] = useState('');
     const [type, setType] = useState('');
     const [comments, setComments] = useState('');
+    const [monthsOverdue, setMonthsOverdue] = useState(0);
     const [formValidated, setFormValidated] = useState(false);
-    
-    // ⭐ NEW STATE: Months overdue before 2026. Can be 0 or '' temporarily.
-    const [monthsOverdue, setMonthsOverdue] = useState(0); 
 
-    // States for resident assignment
-    const [residentQuery, setResidentQuery] = useState('');
-    const [residentId, setResidentId] = useState(null);
-    const [residentSuggestions, setResidentSuggestions] = useState([]);
-    const [selectedResidentName, setSelectedResidentName] = useState('');
+    // --- STATES FOR USER (RESIDENT) ASSIGNMENT ---
+    const [userQuery, setUserQuery] = useState('');
+    const [userId, setUserId] = useState(null);
+    const [userSuggestions, setUserSuggestions] = useState([]);
+    const [selectedUserName, setSelectedUserName] = useState('');
     const [hasExistingAddress, setHasExistingAddress] = useState(false);
 
-    // State for streets
+    // --- STATE FOR STREETS ---
     const [streets, setStreets] = useState([]);
 
-    // Context, navigation, and params hooks
     const { setSuccessMessage, setErrorMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
-    const { id } = useParams(); // Get ID from URL
+    const { id } = useParams();
 
-    // Handler to restrict input to only numeric digits (0-9)
-    const handleNumberInput = (e) => {
-        // ENGLISH CODE COMMENTS
-        const isDigit = /\d/.test(e.key);
-        if (!isDigit) {
-            e.preventDefault();
-        }
+    const axiosOptions = {
+        withCredentials: true,
+        headers: { Accept: 'application/json' },
     };
-    
-    // ⭐ ADJUSTED HANDLER: Allows the input field to be completely cleared (value = '') 
+
+    // Restrict input to only numeric digits
+    const handleNumberInput = (e) => {
+        if (!/\d/.test(e.key)) e.preventDefault();
+    };
+
+    // Handle months overdue logic
     const handleMonthsOverdueChange = (e) => {
-        // ENGLISH CODE COMMENTS
-        const value = e.target.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
-        
-        // If the resulting string is empty, set state to empty string ('')
-        // Otherwise, parse the number and cap it.
+        const value = e.target.value.replace(/[^0-9]/g, '');
         if (value === '') {
             setMonthsOverdue('');
         } else {
             const num = parseInt(value);
-            setMonthsOverdue(Math.min(num, 100)); // Cap at 100
+            setMonthsOverdue(Math.min(num, 100));
         }
     };
 
-    // Fetch streets
+    // Fetch streets catalog
     const fetchStreets = async () => {
-        // ENGLISH CODE COMMENTS
         try {
-            const response = await axios.get(streetsEndpoint, {
-                withCredentials: true,
-                headers: { Accept: 'application/json' },
-            });
+            const response = await axios.get(streetsEndpoint, axiosOptions);
             const activeStreets = response.data.data.filter(s => !s.deleted_at);
             setStreets(activeStreets || []);
         } catch (error) {
@@ -75,289 +65,174 @@ export default function EditAddresses() {
         }
     };
 
-    // Effect for resident autocomplete search (Debouncing)
+    // User autocomplete logic (Debounce)
     useEffect(() => {
-        // ENGLISH CODE COMMENTS
-        if (!residentQuery) {
-            setResidentSuggestions([]);
+        if (!userQuery || userId) {
+            setUserSuggestions([]);
             return;
         }
-
         const delayDebounceFn = setTimeout(async () => {
             try {
-                const response = await axios.get(`${residentSearchEndpoint}?search=${residentQuery}`, {
-                    withCredentials: true,
-                    headers: { Accept: 'application/json' },
-                });
-
-                const suggestions = Array.isArray(response.data.data) ? response.data.data : [];
-                setResidentSuggestions(suggestions);
+                // We search users (neighbors) to assign them to the property
+                const response = await axios.get(`${userSearchEndpoint}?search=${userQuery}`, axiosOptions);
+                const data = response.data.data || response.data;
+                setUserSuggestions(Array.isArray(data) ? data : []);
             } catch (error) {
-                console.error('Error fetching resident search results:', error);
-                setResidentSuggestions([]);
+                console.error('Error searching users:', error);
             }
         }, 300);
-
         return () => clearTimeout(delayDebounceFn);
-    }, [residentQuery]);
+    }, [userQuery, userId]);
 
-    // Handler when a resident suggestion is clicked
-    const handleSelectResident = (resident) => {
-        // ENGLISH CODE COMMENTS
-        setResidentId(resident.id);
-        setSelectedResidentName(`${resident.name} ${resident.last_name}`);
-        setResidentQuery(`${resident.name} ${resident.last_name}`);
-        setResidentSuggestions([]);
-
-        // Check if the selected resident already has an address (excluding the current address being edited)
-        if (resident.address && resident.address.id != id) {
-            setHasExistingAddress(true);
-        } else {
-            setHasExistingAddress(false);
-        }
+    const handleSelectUser = (userSelected) => {
+        setUserId(userSelected.id);
+        setSelectedUserName(userSelected.name);
+        setUserQuery(userSelected.name);
+        setUserSuggestions([]);
+        // 1:1 check: ensure user doesn't have another address (excluding current one)
+        setHasExistingAddress(userSelected.address && userSelected.address.id != id);
     };
 
-    // Function to fetch the existing data
+    // Fetch initial data on mount
     useEffect(() => {
-        // ENGLISH CODE COMMENTS
         const getAddressById = async () => {
             try {
-                // Fetch the address data using the show/edit endpoint
-                const response = await axios.get(`${endpoint}/${id}`, {
-                    withCredentials: true,
-                    headers: { Accept: 'application/json' },
-                });
+                const response = await axios.get(`${endpoint}/${id}`, axiosOptions);
                 const address = response.data.data;
 
-                // Set states with fetched data
                 setCommunity(address.community || 'PRADOS DE LA HUERTA');
                 setStreetId(address.street_id || '');
                 setStreetNumber(address.street_number || '');
                 setType(address.type || '');
                 setComments(address.comments || '');
-                
-                // ⭐ NEW: Set the months_overdue field. Ensure it's never NULL, but keep 0.
                 setMonthsOverdue(address.months_overdue ?? 0);
-
-                // Set resident data if exists
-                if (address.resident) {
-                    setResidentId(address.resident.id);
-                    setSelectedResidentName(`${address.resident.name} ${address.resident.last_name}`);
-                    setResidentQuery(`${address.resident.name} ${address.resident.last_name}`);
-                    setHasExistingAddress(false); 
+                
+                if (address.user) {
+                    setUserId(address.user.id);
+                    setSelectedUserName(address.user.name);
+                    setUserQuery(address.user.name);
                 }
             } catch (error) {
-                setErrorMessage('Fallo al cargar los datos de dirección para editar.');
-                console.error('Error fetching address data:', error);
+                setErrorMessage('Error al cargar datos del predio.');
             }
         };
         getAddressById();
         fetchStreets();
-    }, [id, setErrorMessage]);
+    }, [id]);
 
     const update = async (e) => {
-        // ENGLISH CODE COMMENTS
         e.preventDefault();
         const form = e.currentTarget;
 
-        // Check form validity before submission
-        if (form.checkValidity() === false || !residentId || !streetId) {
+        if (form.checkValidity() === false || !userId || !streetId) {
             e.stopPropagation();
-            setErrorMessage('Por favor, complete todos los campos obligatorios, incluyendo la asignación de Residente y Calle.');
+            setErrorMessage('Complete todos los campos obligatorios.');
         } else if (hasExistingAddress) {
             e.stopPropagation();
-            setErrorMessage('El residente seleccionado ya tiene una dirección asignada (1:1).');
+            setErrorMessage('Este usuario ya tiene otro predio asignado.');
         } else {
-            const formData = new FormData();
-            formData.append('_method', 'PUT'); // Laravel requires PUT method spoofing
-            formData.append('community', community);
-            formData.append('street_id', streetId);
-            formData.append('street_number', streetNumber);
-            formData.append('type', type);
-            formData.append('comments', comments);
-            formData.append('resident_id', residentId);
-            
-            // ⭐ ADJUSTED: Ensure monthsOverdue is 0 if it's an empty string due to user clearing the input.
-            const finalMonthsOverdue = monthsOverdue === '' ? 0 : monthsOverdue;
-            formData.append('months_overdue', finalMonthsOverdue);
-
             try {
-                // API POST request to update the address catalog entry
-                await axios.post(`${endpoint}/${id}`, formData, {
-                    withCredentials: true,
-                    headers: { Accept: 'application/json' },
-                });
+                // Note: We use PUT or POST with _method spoofing depending on your backend
+                await axios.put(`${endpoint}/${id}`, {
+                    community,
+                    street_id: streetId,
+                    street_number: streetNumber,
+                    type,
+                    comments,
+                    user_id: userId, // New unified field
+                    months_overdue: monthsOverdue === '' ? 0 : monthsOverdue
+                }, axiosOptions);
 
-                // User-facing success message in Spanish
-                setSuccessMessage('Entrada de Catálogo de Direcciones actualizada exitosamente.');
-                setErrorMessage('');
+                setSuccessMessage('Predio actualizado exitosamente.');
                 navigate('/addresses');
             } catch (error) {
-                // Error handling (e.g., unique constraint violation)
-                const errorMsg = error.response?.data?.message || 'Fallo al actualizar la entrada de catálogo de direcciones.';
-                setErrorMessage(errorMsg);
-                console.error('Error updating address:', error);
+                setErrorMessage(error.response?.data?.message || 'Error al actualizar.');
             }
         }
         setFormValidated(true);
     };
 
     return (
-        <div>
-            {/* Title in Spanish */}
-            <h2>Editar Dirección</h2>
-            <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
-                <div className="col-md-12 mt-4">
-                    {errorMessage && (
-                        <div className="alert alert-danger text-center">
-                            {errorMessage}
+        <div className="container mt-4">
+            <div className="card shadow-sm">
+                <div className="card-header bg-primary text-white">
+                    <h2 className="mb-0 h4">Editar Predio</h2>
+                </div>
+                <div className="card-body">
+                    <form onSubmit={update} noValidate className={formValidated ? 'was-validated' : ''}>
+                        
+                        {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
+
+                        {/* USER ASSIGNMENT (AUTOCOMPLETE) */}
+                        <div className='mb-4 position-relative'>
+                            <label className='form-label fw-bold'>Usuario / Residente <span className="text-danger">*</span></label>
+                            <input
+                                type='text'
+                                className={`form-control ${formValidated && (!userId || hasExistingAddress) ? 'is-invalid' : ''}`}
+                                value={userQuery}
+                                onChange={(e) => {
+                                    setUserQuery(e.target.value);
+                                    setUserId(null);
+                                }}
+                                placeholder="Buscar usuario por nombre..."
+                                required
+                                autoComplete="off"
+                            />
+                            {userSuggestions.length > 0 && (
+                                <ul className="list-group position-absolute w-100 shadow-lg" style={{ zIndex: 100 }}>
+                                    {userSuggestions.map((u) => (
+                                        <li key={u.id} className="list-group-item list-group-item-action" onClick={() => handleSelectUser(u)}>
+                                            <strong>{u.name}</strong> <small className="text-muted">({u.email})</small>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            {hasExistingAddress && <div className="text-danger small mt-1">⚠️ Este usuario ya tiene un predio vinculado.</div>}
                         </div>
-                    )}
-                </div>
 
-                {/* FIELD: RESIDENT ASSIGNMENT (AUTOCOMPLETE) */}
-                <div className='mb-3 position-relative'>
-                    <label className='form-label'>Residente Asignado (Obligatorio) <span className="text-danger">*</span></label>
-                    <input
-                        type='text'
-                        className={`form-control ${formValidated && (!residentId || hasExistingAddress) ? 'is-invalid' : (residentId && !hasExistingAddress ? 'is-valid' : '')}`}
-                        value={residentQuery}
-                        onChange={(e) => {
-                            setResidentQuery(e.target.value);
-                            setResidentId(null);
-                            setSelectedResidentName('');
-                            setHasExistingAddress(false);
-                        }}
-                        placeholder="Buscar por nombre o apellido..."
-                        required
-                    />
-                    <input type="hidden" value={residentId || ''} required />
-                    {residentSuggestions?.length > 0 && (
-                        <ul className="list-group position-absolute w-100 shadow-lg" style={{ zIndex: 10 }}>
-                            {residentSuggestions.map((res) => (
-                                <li
-                                    key={res.id}
-                                    className="list-group-item list-group-item-action cursor-pointer"
-                                    onClick={() => handleSelectResident(res)}
-                                >
-                                    {res.name} {res.last_name} ({res.email})
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                    {residentId && !hasExistingAddress && <small className="text-success">Residente seleccionado: {selectedResidentName}</small>}
-                    {formValidated && !residentId && <div className="invalid-feedback d-block">Por favor, seleccione un residente de la lista.</div>}
-                    {hasExistingAddress && <div className="text-danger mt-1">⚠️ Este residente ya tiene una dirección asignada (1:1). No puede crear una nueva.</div>}
-                </div>
+                        <div className="row">
+                            <div className='col-md-6 mb-3'>
+                                <label className='form-label fw-bold'>Calle <span className="text-danger">*</span></label>
+                                <select value={streetId} onChange={(e) => setStreetId(e.target.value)} className='form-control' required>
+                                    <option value="">Seleccione calle</option>
+                                    {streets.map(st => <option key={st.id} value={st.id}>{st.name}</option>)}
+                                </select>
+                            </div>
 
-                {/* FIELD: COMMUNITY (SELECT) - MANDATORY */}
-                <div className='mb-3'>
-                    <label className='form-label'>COMUNIDAD (Obligatorio)</label>
-                    <select
-                        value={community}
-                        onChange={(e) => setCommunity(e.target.value)}
-                        className='form-control'
-                        required
-                        disabled // Disabled as only one option is allowed
-                    >
-                        <option value="PRADOS DE LA HUERTA">PRADOS DE LA HUERTA</option>
-                    </select>
-                    <div className="invalid-feedback">
-                        Por favor, seleccione una comunidad.
-                    </div>
-                </div>
+                            <div className='col-md-6 mb-3'>
+                                <label className='form-label fw-bold'>Número <span className="text-danger">*</span></label>
+                                <input value={streetNumber} onChange={(e) => setStreetNumber(e.target.value)} onKeyPress={handleNumberInput} type='text' className='form-control' required />
+                            </div>
+                        </div>
 
-                {/* FIELD: STREET (SELECT) - MANDATORY */}
-                <div className='mb-3'>
-                    <label className='form-label'>CALLE (Obligatorio) <span className="text-danger">*</span></label>
-                    <select
-                        value={streetId}
-                        onChange={(e) => setStreetId(e.target.value)}
-                        className={`form-control ${formValidated && !streetId ? 'is-invalid' : ''}`}
-                        required
-                    >
-                        <option value="" disabled>Seleccione una calle</option>
-                        {streets.map((st) => (
-                            <option key={st.id} value={st.id}>
-                                {st.name}
-                            </option>
-                        ))}
-                    </select>
-                    <div className="invalid-feedback">
-                        Por favor, seleccione una calle.
-                    </div>
-                </div>
+                        <div className="row">
+                            <div className='col-md-6 mb-3'>
+                                <label className='form-label fw-bold'>Tipo <span className="text-danger">*</span></label>
+                                <select value={type} onChange={(e) => setType(e.target.value)} className='form-control' required>
+                                    <option value="">Seleccione tipo</option>
+                                    <option value="CASA">CASA</option>
+                                    <option value="TERRENO">TERRENO</option>
+                                </select>
+                            </div>
 
-                {/* FIELD: STREET NUMBER (INPUT) - NUMERIC ONLY AND MANDATORY */}
-                <div className='mb-3'>
-                    <label className='form-label'>Número (Obligatorio)</label>
-                    <input
-                        value={streetNumber}
-                        onChange={(e) => setStreetNumber(e.target.value)}
-                        onKeyPress={handleNumberInput}
-                        type='text'
-                        className='form-control'
-                        required
-                        pattern="[0-9]*"
-                    />
-                    <div className="invalid-feedback">
-                        Por favor, ingrese solo números en este campo.
-                    </div>
-                </div>
-                
-                {/* ⭐ NEW FIELD: MONTHS OVERDUE BEFORE 2026 */}
-                <div className='mb-3'>
-                    <label className='form-label'>Número de meses atrasados antes del 2026 (Obligatorio) <span className="text-danger">*</span></label>
-                    <input
-                        // The value can be '' if the user cleared it, which is fine for the input
-                        value={monthsOverdue} 
-                        onChange={handleMonthsOverdueChange}
-                        type='number' 
-                        min="0"
-                        max="100"
-                        className='form-control'
-                        required
-                    />
-                    <div className="form-text">
-                        Ingrese 0 si no hay meses atrasados.
-                    </div>
-                    <div className="invalid-feedback">
-                        Por favor, ingrese un número válido de meses atrasados (0 o más).
-                    </div>
-                </div>
+                            <div className='col-md-6 mb-3'>
+                                <label className='form-label fw-bold'>Meses Atrasados (Previo 2026)</label>
+                                <input value={monthsOverdue} onChange={handleMonthsOverdueChange} type='number' className='form-control' required />
+                            </div>
+                        </div>
 
-                {/* FIELD: TYPE (SELECT) - MANDATORY */}
-                <div className='mb-3'>
-                    <label className='form-label'>Tipo (Obligatorio)</label>
-                    <select
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
-                        className='form-control'
-                        required
-                    >
-                        <option value="" disabled>Seleccione un tipo</option>
-                        <option value="CASA">CASA</option>
-                        <option value="TERRENO">TERRENO</option>
-                    </select>
-                    <div className="invalid-feedback">
-                        Por favor, seleccione si es Casa o Terreno.
-                    </div>
-                </div>
+                        <div className='mb-4'>
+                            <label className='form-label fw-bold'>Comentarios Internos</label>
+                            <textarea value={comments} onChange={(e) => setComments(e.target.value)} className='form-control' rows='2' />
+                        </div>
 
-                {/* FIELD: COMMENTS (TEXTAREA) - OPTIONAL */}
-                <div className='mb-3'>
-                    <label className='form-label'>Comentarios (Opcional)</label>
-                    <textarea
-                        value={comments}
-                        onChange={(e) => setComments(e.target.value)}
-                        className='form-control'
-                        rows='3'
-                    />
+                        <div className="d-flex gap-2">
+                            <button type='submit' className='btn btn-primary px-4'>Actualizar Datos</button>
+                            <button type='button' className='btn btn-secondary' onClick={() => navigate('/addresses')}>Cancelar</button>
+                        </div>
+                    </form>
                 </div>
-
-                {/* Button in Spanish */}
-                <button type='submit' className='btn btn-info'>Actualizar</button>
-            </form>
+            </div>
         </div>
     );
 }

@@ -7,8 +7,8 @@ use App\Models\Fee;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException; 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Models\AddressPayment; // Correct Model: AddressPayment
-use Illuminate\Support\Facades\Auth; // Needed for audit (who deleted it)
+use App\Models\AddressPayment; 
+use Illuminate\Support\Facades\Auth;
 
 class FeeController extends Controller
 {
@@ -19,13 +19,12 @@ class FeeController extends Controller
         $this->middleware('permission:Editar-cuotas', ['only' => ['update']]);
         $this->middleware('permission:Eliminar-cuotas', ['only' => ['destroy']]);
     }
+
     /**
      * Display a listing of the resource.
-     * Fetches ALL fees, including those that are soft-deleted (deactivated).
      */
     public function index()
     {
-        // Use withTrashed() to include soft-deleted fees in the list for the UI.
         $fees = Fee::withTrashed()->get();
         
         return response()->json([
@@ -40,15 +39,27 @@ class FeeController extends Controller
     public function store(Request $request)
     {
         try {
-            // NOTE: Validation logic omitted for brevity but should be included here.
-            $input = $request->all();
-            $fee = Fee::create($input);
+            // UPDATED: Added validation for the two new amount fields
+            $validated = $request->validate([
+                'name' => 'required|string|unique:fees,name|max:255',
+                'amount_house' => 'required|numeric|min:0',
+                'amount_land' => 'required|numeric|min:0',
+                'description' => 'nullable|string|max:500',
+            ]);
+
+            $fee = Fee::create($validated);
             
             return response()->json([
                 'success' => true,
                 'message' => 'Tarifa creada exitosamente',
                 'data' => $fee
             ], 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -60,23 +71,19 @@ class FeeController extends Controller
 
     /**
      * Display the specified resource.
-     * Includes soft-deleted records if found.
      */
     public function show($id)
     {
-        // Use withTrashed() to allow viewing details of an inactive fee.
         $fee = Fee::withTrashed()->findOrFail($id); 
         return response()->json($fee);
     }
 
     /**
      * Update the specified resource in storage.
-     * Includes a security check to prevent modification of soft-deleted fees.
      */
     public function update(Request $request, Fee $fee)
     {
         try {
-            // SECURITY CHECK: If the fee is logically deleted, forbid updates.
             if ($fee->deleted_at !== null) {
                  return response()->json([
                      'success' => false,
@@ -84,14 +91,18 @@ class FeeController extends Controller
                  ], 403); 
             }
             
+            // UPDATED: Replaced 'amount' with 'amount_house' and 'amount_land'
             $request->validate([
-                'name' => 'required|string|max:255',
-                'amount' => 'required|numeric',
-                'description' => 'required|string|max:255',
+                'name' => 'required|string|max:255|unique:fees,name,' . $fee->id,
+                'amount_house' => 'required|numeric|min:0',
+                'amount_land' => 'required|numeric|min:0',
+                'description' => 'nullable|string|max:255',
             ]);
             
+            // UPDATED: Direct assignment of new fields
             $fee->name = $request->name;
-            $fee->amount = $request->amount;
+            $fee->amount_house = $request->amount_house;
+            $fee->amount_land = $request->amount_land;
             $fee->description = $request->description;
             $fee->save();
             
@@ -116,33 +127,30 @@ class FeeController extends Controller
     }
 
     /**
-     * Performs a SOFT DELETE (Dar de Baja) on the fee record.
-     * Requires 'reason' in the DELETE request body for audit.
+     * Performs a SOFT DELETE.
      */
     public function destroy($id, Request $request) 
     {
         try {
             $fee = Fee::findOrFail($id);
             
-            // CHECK 1: Integrity Check - Uses the corrected addressPayments() relationship
+            // Checks if there are any associated address payments before deleting
             if ($fee->addressPayments()->count() > 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No se puede dar de baja la tarifa porque hay pagos de predios asociados.'
-                ], 409); // 409 Conflict
+                ], 409); 
             }
 
-            // CHECK 2: Validate the required reason for deactivation (audit trail)
             $request->validate([
                 'reason' => 'required|string|min:1|max:255',
             ]);
             
-            // 1. Save audit data before soft delete
+            // Audit logic remains the same
             $fee->deletion_reason = $request->reason;
-            $fee->deleted_by_user_id = Auth::id(); // Get the ID of the logged-in user
+            $fee->deleted_by_user_id = Auth::id(); 
             $fee->save(); 
 
-            // 2. Perform the Soft Delete (sets deleted_at)
             $fee->delete(); 
 
             return response()->json(['message' => 'Tarifa dada de baja exitosamente.'], 200);
@@ -151,7 +159,6 @@ class FeeController extends Controller
         } catch (ValidationException $e) {
             return response()->json(['message' => 'Motivo de baja requerido y debe ser válido.'], 422);
         } catch (\Exception $e) {
-            // Generic 500 error message (debug message removed)
             return response()->json(['message' => 'Fallo al dar de baja la tarifa.'], 500);
         }
     }

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'title' => 'MY LARAVEL',
+    'title' => 'PRADOS DE LA HUERTA',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -394,15 +394,6 @@ return [
             'can'  => 'Ver-gastos',
         ],
 
-        // --- RESIDENTS MODULE ---
-        [
-            'text' => 'RESIDENTES',
-            'url'  => 'residents',
-            'icon' => 'fas fa-fw fa-users',
-            // Permission to view the Residents list.
-            'can'  => 'Ver-residentes',
-        ],
-
         // --- ADDRESSES/PAYMENTS MODULE ---
         [
             'text' => 'PREDIOS Y PAGOS',
@@ -419,6 +410,13 @@ return [
             'icon' => 'fas fa-fw fa-chart-bar',
             // Permission to view Reports (using the specific permission name defined).
             'can'  => 'Reportes',
+        ],
+        // ---
+        [
+            'text' => 'ESTADO DE CUENTA',
+            'url'  => 'resident-access', 
+            'icon' => 'fas fa-fw fa-user-check',
+           'can'  => 'Ver-estado-cuenta',
         ],
     ],
 
@@ -574,5 +572,5 @@ return [
     |
     */
 
-    'livewire' => true,
+    'livewire' => false,
 ];

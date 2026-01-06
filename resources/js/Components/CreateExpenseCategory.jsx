@@ -77,6 +77,7 @@ export default function CreateExpenseCategory() {
                         onChange={(e) => setName(e.target.value)}
                         type='text'
                         className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                        placeholder="Ej. Internet"
                         required
                     />
                     {errors.name && <div className="invalid-feedback">{errors.name[0]}</div>}

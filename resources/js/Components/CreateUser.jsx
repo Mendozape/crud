@@ -4,17 +4,20 @@ import { useNavigate } from "react-router-dom";
 import { MessageContext } from "./MessageContext";
 
 const CreateUser = () => {
-    // State for form data
+    // --- STATE FOR FORM DATA ---
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    // NEW: Unified fields for residents/users
+    const [phone, setPhone] = useState("");
+    const [comments, setComments] = useState("");
 
-    // State for role selection
+    // --- STATE FOR ROLE SELECTION ---
     const [roles, setRoles] = useState([]);
     const [selectedRole, setSelectedRole] = useState("");
 
-    // State for inline validation errors
+    // --- STATE FOR INLINE VALIDATION ERRORS ---
     const [nameError, setNameError] = useState("");
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
@@ -27,18 +30,22 @@ const CreateUser = () => {
 
     const axiosOptions = { withCredentials: true, headers: { Accept: "application/json" } };
 
-    // FIX 1: Clear global messages on component mount/load
+    // Clear global messages on component mount
     useEffect(() => {
         setSuccessMessage("");
         setErrorMessage("");
     }, [setSuccessMessage, setErrorMessage]);
 
-    // Function to clear all form fields and inline errors
+    /**
+     * Resets all form fields and error states to initial values
+     */
     const resetForm = () => {
         setName("");
         setEmail("");
         setPassword("");
         setConfirmPassword("");
+        setPhone("");
+        setComments("");
         setSelectedRole("");
         setNameError("");
         setEmailError("");
@@ -46,55 +53,58 @@ const CreateUser = () => {
         setRoleError("");
     };
 
-    // Fetch available roles on component mount
+    /**
+     * Fetches available roles from the API to populate the select dropdown
+     */
     useEffect(() => {
         const fetchRoles = async () => {
             try {
                 const res = await axios.get("/api/roles", axiosOptions);
                 setRoles(res.data);
             } catch (err) {
-                setErrorMessage("Error al cargar los roles."); // Error loading roles.
+                setErrorMessage("Error al cargar los roles.");
             }
         };
         fetchRoles();
     }, []);
 
+    /**
+     * Handles the form submission logic
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // FIX 2: Clear global messages from the previous attempt before a new submission
+        // Clear previous messages
         setSuccessMessage("");
         setErrorMessage("");
-
-        // Reset inline errors before validation
         setNameError("");
         setEmailError("");
         setPasswordError("");
         setRoleError("");
 
-        // --- Client-side Validations ---
+        // --- CLIENT-SIDE VALIDATIONS ---
         if (!name.trim()) {
-            setNameError("El Nombre es obligatorio"); // Name is required
+            setNameError("El Nombre es obligatorio");
             return;
         }
         if (!email.trim()) {
-            setEmailError("El Correo Electrónico es obligatorio"); // Email is required
+            setEmailError("El Correo Electrónico es obligatorio");
             return;
         }
         if (!password) {
-            setPasswordError("La Contraseña es obligatoria"); // Password is required
+            setPasswordError("La Contraseña es obligatoria");
             return;
         }
         if (password !== confirmPassword) {
-            setPasswordError("Las Contraseñas no coinciden"); // Passwords do not match
+            setPasswordError("Las Contraseñas no coinciden");
             return;
         }
         if (!selectedRole) {
-            setRoleError("Por favor, seleccione un rol"); // Please select a role
+            setRoleError("Por favor, seleccione un rol");
             return;
         }
 
-        // --- API Submission ---
+        // --- API SUBMISSION ---
         try {
             await axios.post(
                 "/api/usuarios",
@@ -102,123 +112,157 @@ const CreateUser = () => {
                     name,
                     email,
                     password,
-                    password_confirmation: confirmPassword, // Key required by Laravel
-                    roles: [selectedRole],
+                    password_confirmation: confirmPassword,
+                    phone,
+                    comments,
+                    roles: [selectedRole], // Laravel expects an array of role names or IDs
                 },
                 axiosOptions
             );
 
-            setSuccessMessage("Usuario creado exitosamente."); // User created successfully.
-
+            setSuccessMessage("Usuario/Residente creado exitosamente.");
             resetForm();
-
             navigate("/users");
 
         } catch (err) {
             console.error(err);
-
             let errorMsg = "Error al crear el usuario.";
 
             if (err.response) {
-                // Priority:
-                // 1. Custom permission error (403)
-                // 2. Laravel validation message
-                // 3. Generic fallback
-                errorMsg =
-                    err.response.data.error ||
-                    err.response.data.message ||
-                    errorMsg;
+                // Priority: Backend custom error -> Laravel message -> Fallback
+                errorMsg = err.response.data.error || err.response.data.message || errorMsg;
             }
 
             setErrorMessage(errorMsg);
-
-            // Clear error message after 5 seconds
-            setTimeout(() => {
-                setErrorMessage("");
-            }, 5000);
+            // Auto-hide error after 5 seconds
+            setTimeout(() => setErrorMessage(""), 5000);
         }
     };
 
     return (
         <div className="container mt-4">
-            <h2>Crear Usuario</h2>
-
-            {/* Global messages */}
-            {successMessage && <div className="alert alert-success">{successMessage}</div>}
-            {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-
-            <form onSubmit={handleSubmit}>
-                <div className="mb-2">
-                    <input
-                        type="text"
-                        placeholder="Nombre"
-                        className={`form-control ${nameError ? "is-invalid" : ""}`}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        // Disable browser autofill for name
-                        autoComplete="off"
-                    />
-                    {nameError && <div className="invalid-feedback">{nameError}</div>}
+            <div className="card shadow-sm">
+                <div className="card-header bg-primary text-white">
+                    <h2 className="mb-0 h4">Crear Nuevo Usuario o Residente</h2>
                 </div>
+                <div className="card-body">
+                    {/* Global messages */}
+                    {successMessage && <div className="alert alert-success">{successMessage}</div>}
+                    {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
-                <div className="mb-2">
-                    <input
-                        type="email"
-                        placeholder="Correo Electrónico"
-                        className={`form-control ${emailError ? "is-invalid" : ""}`}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        // Disable browser autofill for email
-                        autoComplete="off"
-                    />
-                    {emailError && <div className="invalid-feedback">{emailError}</div>}
+                    <form onSubmit={handleSubmit}>
+                        <div className="row">
+                            {/* Full Name */}
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label">Nombre Completo</label>
+                                <input
+                                    type="text"
+                                    className={`form-control ${nameError ? "is-invalid" : ""}`}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    autoComplete="off"
+                                    placeholder="Ej. Juan Pérez"
+                                />
+                                {nameError && <div className="invalid-feedback">{nameError}</div>}
+                            </div>
+
+                            {/* Email Address */}
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label">Correo Electrónico</label>
+                                <input
+                                    type="email"
+                                    className={`form-control ${emailError ? "is-invalid" : ""}`}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    autoComplete="off"
+                                    placeholder="correo@ejemplo.com"
+                                />
+                                {emailError && <div className="invalid-feedback">{emailError}</div>}
+                            </div>
+                        </div>
+
+                        <div className="row">
+                            {/* Phone Number - NEW UNIFIED FIELD */}
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label">Teléfono de Contacto</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
+                                    placeholder="10 dígitos"
+                                />
+                            </div>
+
+                            {/* Role Selection */}
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label">Rol del Sistema</label>
+                                <select
+                                    className={`form-control ${roleError ? "is-invalid" : ""}`}
+                                    value={selectedRole}
+                                    onChange={(e) => setSelectedRole(e.target.value)}
+                                >
+                                    <option value="">Seleccione un rol</option>
+                                    {roles.map((r) => (
+                                        <option key={r.id} value={r.name}>
+                                            {r.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {roleError && <div className="invalid-feedback">{roleError}</div>}
+                            </div>
+                        </div>
+
+                        <div className="row">
+                            {/* Password */}
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label">Contraseña</label>
+                                <input
+                                    type="password"
+                                    className={`form-control ${passwordError ? "is-invalid" : ""}`}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    autoComplete="new-password"
+                                />
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label">Confirmar Contraseña</label>
+                                <input
+                                    type="password"
+                                    className={`form-control ${passwordError ? "is-invalid" : ""}`}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    autoComplete="new-password"
+                                />
+                                {passwordError && <div className="invalid-feedback">{passwordError}</div>}
+                            </div>
+                        </div>
+
+                        {/* Comments - NEW UNIFIED FIELD */}
+                        <div className="mb-3">
+                            <label className="form-label">Comentarios / Notas Internas</label>
+                            <textarea
+                                className="form-control"
+                                rows="2"
+                                value={comments}
+                                onChange={(e) => setComments(e.target.value)}
+                                placeholder="Notas adicionales sobre el usuario o residente..."
+                            ></textarea>
+                        </div>
+
+                        <div className="d-flex gap-2">
+                            <button type="submit" className="btn btn-success px-4">
+                                <i className="fas fa-save me-1"></i> Guardar
+                            </button>
+                            <button type="button" className="btn btn-secondary" onClick={() => navigate("/users")}>
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <div className="mb-2">
-                    <input
-                        type="password"
-                        placeholder="Contraseña"
-                        className={`form-control ${passwordError ? "is-invalid" : ""}`}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        // Use 'new-password' to hint the browser not to autofill with login credentials
-                        autoComplete="new-password"
-                    />
-                </div>
-
-                <div className="mb-2">
-                    <input
-                        type="password"
-                        placeholder="Confirmar Contraseña"
-                        className={`form-control ${passwordError ? "is-invalid" : ""}`}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        // Use 'new-password' to hint the browser not to autofill with login credentials
-                        autoComplete="new-password"
-                    />
-                    {passwordError && <div className="invalid-feedback">{passwordError}</div>}
-                </div>
-
-                <div className="mb-3">
-                    <select
-                        className={`form-control ${roleError ? "is-invalid" : ""}`}
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value)}
-                    >
-                        <option value="">Seleccione un rol</option>
-                        {roles.map((r) => (
-                            <option key={r.id} value={r.name}>
-                                {r.name}
-                            </option>
-                        ))}
-                    </select>
-                    {roleError && <div className="invalid-feedback">{roleError}</div>}
-                </div>
-
-                <button type="submit" className="btn btn-success">
-                    Guardar
-                </button>
-            </form>
+            </div>
         </div>
     );
 };

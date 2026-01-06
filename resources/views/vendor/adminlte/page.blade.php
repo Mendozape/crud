@@ -15,19 +15,19 @@
     <div class="wrapper">
 
         {{-- Preloader Animation --}}
-        @if($layoutHelper->isPreloaderEnabled())
+        @if(config('adminlte.preloader.enabled'))
             @include('adminlte::partials.common.preloader')
         @endif
 
         {{-- Top Navbar --}}
-        @if($layoutHelper->isLayoutTopnavEnabled())
+        @if(config('adminlte.layout_topnav'))
             @include('adminlte::partials.navbar.navbar-layout-topnav')
         @else
             @include('adminlte::partials.navbar.navbar')
         @endif
         
         {{-- Left Main Sidebar --}}
-        @if(!$layoutHelper->isLayoutTopnavEnabled())
+        @if(!config('adminlte.layout_topnav'))
             @include('adminlte::partials.sidebar.left-sidebar')
         @endif
 

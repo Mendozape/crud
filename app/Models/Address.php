@@ -7,78 +7,60 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany; 
-use App\Models\AddressPayment;
+// Importamos el modelo User para la relación
+use App\Models\User;
 
 class Address extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
     protected $table = 'addresses';
 
     /**
      * The attributes that are mass assignable.
-     * Includes the new 'months_overdue' field.
-     *
-     * @var array<int, string>
+     * UPDATED: Changed resident_id to user_id and removed legacy resident_user/password.
      */
     protected $fillable = [
-        'resident_id',
-        'street_id',       // <-- Foreign key referencing the 'streets' table
+        'user_id',       // Links directly to the Users table
+        'street_id',
         'type',
         'street_number',
         'community',
         'comments',
-        'months_overdue',  // <-- NEW FIELD: Count of payment months currently overdue
+        'months_overdue',
     ];
 
-    /**
-     * The attributes that should be cast.
-     * Ensures 'months_overdue' is handled as an integer.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'months_overdue' => 'integer',
     ];
 
     /**
-     * Get the Resident that owns the Address. (Inverse 1:N relationship)
-     * An Address belongs to ONE Resident.
-     *
-     * @return BelongsTo
+     * Relationship with the User (Resident).
+     * An Address belongs to a User who has the 'Residente' role.
      */
-    public function resident(): BelongsTo
+    public function user(): BelongsTo
     {
-        // This relationship uses the 'resident_id' column on the current 'addresses' table
-        return $this->belongsTo(Resident::class, 'resident_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
     
     /**
-     * Get the Street that owns the Address. (Inverse 1:N relationship)
-     * An Address belongs to ONE Street.
-     *
-     * @return BelongsTo
+     * Relationship with the Street catalog.
      */
     public function street(): BelongsTo
     {
-        // This relationship uses the 'street_id' column on the current 'addresses' table
         return $this->belongsTo(Street::class, 'street_id');
     }
     
     /**
-     * Get the payments associated with the Address. (1:N relationship)
-     * An Address has many payments.
-     *
-     * @return HasMany
+     * Relationship with AddressPayment.
      */
     public function payments(): HasMany 
     {
-        // Uses AddressPayment::class as the payment model, aligning with the 'addressPayments' system.
         return $this->hasMany(AddressPayment::class, 'address_id');
     }
+
+    /**
+     * Note: generateResidentCredentials was removed because residents 
+     * now use their official User email/password for authentication.
+     */
 }

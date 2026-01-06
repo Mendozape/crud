@@ -3,37 +3,29 @@ import DataTable from 'react-data-table-component';
 import { MessageContext } from './MessageContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// 🚨 Import the hook
 import usePermission from "../hooks/usePermission"; 
 
 const endpoint = '/api/fees';
 
-// 🚨 Receive 'user' as a prop from App.jsx
 const FeesTable = ({ user }) => {
-    // State variables
     const [fees, setFees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filteredFees, setFilteredFees] = useState([]);
     
-    // States for soft deletion modal
     const [showModal, setShowModal] = useState(false);
     const [feeToDeactivate, setFeeToDeactivate] = useState(null); 
     const [deactivationReason, setDeactivationReason] = useState(''); 
 
-    // 🚨 Initialize the permission hook
     const { can } = usePermission(user);
 
-    // 🛡️ Extraction to constants for stable permission evaluation
     const canCreate = user ? can('Crear-cuotas') : false;
     const canEdit = user ? can('Editar-cuotas') : false;
     const canDeactivate = user ? can('Eliminar-cuotas') : false;
 
-    // Context hook for global messages
     const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
     const navigate = useNavigate();
 
-    // Function to fetch all fees
     const fetchFees = async () => {
         setLoading(true);
         try {
@@ -103,10 +95,21 @@ const FeesTable = ({ user }) => {
         deactivateFee(feeToDeactivate, deactivationReason);
     }
 
-    // 🚨 UseMemo for columns to handle button visibility based on permissions
+    // 🚨 UPDATED: Columns adjusted to show the two new amount fields
     const columns = useMemo(() => [
         { name: 'Nombre', selector: row => row.name, sortable: true },
-        { name: 'Monto', selector: row => row.amount, sortable: true },
+        { 
+            name: 'Monto Casa', 
+            selector: row => row.amount_house, 
+            sortable: true,
+            cell: row => `$${parseFloat(row.amount_house).toLocaleString()}` 
+        },
+        { 
+            name: 'Monto Terreno', 
+            selector: row => row.amount_land, 
+            sortable: true,
+            cell: row => `$${parseFloat(row.amount_land).toLocaleString()}` 
+        },
         { name: 'Descripción', selector: row => row.description, sortable: true },
         { 
             name: 'Estado', 
@@ -122,7 +125,6 @@ const FeesTable = ({ user }) => {
             name: 'Acciones',
             cell: row => (
                 <div style={{ display: 'flex', gap: '5px' }}>
-                    {/* 🛡️ Permission check for Edit button */}
                     {canEdit && (
                         <button 
                             className="btn btn-info btn-sm" 
@@ -133,7 +135,6 @@ const FeesTable = ({ user }) => {
                         </button>
                     )}
                     
-                    {/* 🛡️ Permission check for Deactivate button */}
                     {canDeactivate && (
                         <>
                             {row.deleted_at ? (
@@ -149,6 +150,7 @@ const FeesTable = ({ user }) => {
         },
     ], [canEdit, canDeactivate, navigate]);
 
+    // REST OF THE COMPONENT REMAINS THE SAME...
     const NoDataComponent = () => (
         <div style={{ padding: '24px', textAlign: 'center', fontSize: '1.1em', color: '#6c757d' }}>
             No hay registros para mostrar.
@@ -172,11 +174,10 @@ const FeesTable = ({ user }) => {
     return (
         <div className="row mb-4 border border-primary rounded p-3">
             <div className="col-md-6">
-                {/* 🛡️ Permission check for Create button */}
                 {canCreate ? (
                     <button className='btn btn-success btn-sm mt-2 mb-2 text-white' onClick={createFee}>Crear</button>
                 ) : (
-                    <div /> // Layout spacer
+                    <div /> 
                 )}
             </div>
             <div className="col-md-6 d-flex justify-content-end align-items-center">
@@ -208,15 +209,13 @@ const FeesTable = ({ user }) => {
                 />
             </div>
 
-            {/* Modal for Deactivation Confirmation */}
+            {/* Modal logic delete */}
             <div className={`modal ${showModal ? 'd-block' : 'd-none'}`} tabIndex="-1" role="dialog">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">
                         <div className="modal-header bg-danger text-white">
                             <h5 className="modal-title">Confirmar Baja de Cuota</h5>
-                            <button type="button" className="close" aria-label="Cerrar" onClick={toggleModal}>
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <button type="button" className="btn-close btn-close-white" onClick={toggleModal}></button>
                         </div>
                         <div className="modal-body">
                             <p>¿Está seguro de que desea dar de baja esta cuota?</p>

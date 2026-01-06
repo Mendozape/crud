@@ -4,34 +4,32 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFeesTableFinal extends Migration
+// Eliminamos "class CreateFeesTable" y usamos una clase anónima
+return new class extends Migration
 {
     /**
-     * Creates the fees table, including soft deletes and audit fields.
+     * Run the migrations to create the 'fees' table.
+     * This version replaces 'amount' with differentiated house and land values.
      */
     public function up()
     {
         Schema::create('fees', function (Blueprint $table) {
             $table->id();
-
-            // --- EXISTING BASE FIELDS (Not changed) ---
+            // --- CORE FIELDS ---
             $table->string('name')->unique();
-            $table->decimal('amount', 8, 2);
+            // New specific amount fields for different property types
+            $table->decimal('amount_house', 10, 2)->default(0.00);
+            $table->decimal('amount_land', 10, 2)->default(0.00);
             $table->text('description')->nullable();
             $table->boolean('active')->default(true);
-            
-            // --- EXISTING SOFT DELETES FIELD (Creates 'deleted_at') ---
+            // --- SOFT DELETES & AUDIT LOGS ---
             $table->softDeletes();
-            
-            // --- NEW AUDIT FIELDS FOR CANCELLATION ---
-            
-            // 1. REASON: Stores the justification for why the fee was logically deleted.
             $table->text('deletion_reason')->nullable(); 
 
-            // 2. AUDIT (WHO): Foreign key to the 'users' table, recording which user performed the deletion.
+            // Foreign key to track which user performed the soft delete
             $table->foreignId('deleted_by_user_id')
                   ->nullable()
-                  ->constrained('users') // Assumes a 'users' table exists
+                  ->constrained('users')
                   ->onDelete('set null');
 
             $table->timestamps();
@@ -39,10 +37,10 @@ class CreateFeesTableFinal extends Migration
     }
 
     /**
-     * Reverse the migrations (Drops the entire table).
+     * Reverse the migrations.
      */
     public function down()
     {
         Schema::dropIfExists('fees');
     }
-}
+}; 

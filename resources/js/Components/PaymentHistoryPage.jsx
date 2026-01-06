@@ -29,12 +29,13 @@ const PaymentHistoryPage = ({ user }) => {
     
     const [streetName, setStreetName] = useState('Cargando...'); 
 
-    // 🚨 Initialize the permission hook
+    // 🛡️ Initialize the permission hook
     const { can } = usePermission(user);
 
-    // 🛡️ Extraction to constant
+    // 🛡️ User permission check for cancellation action
     const canCancelPayment = user ? can('Eliminar-pagos') : false;
 
+    // Helper to get Spanish month names
     const getMonthName = (monthNum) => {
         const monthNames = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -43,19 +44,21 @@ const PaymentHistoryPage = ({ user }) => {
         return monthNum >= 1 && monthNum <= 12 ? monthNames[monthNum - 1] : 'N/A';
     };
     
+    // Formatting property address string
     const getFormattedAddress = () => {
         if (!addressDetails) return 'Cargando Dirección...';
         const { street_number, type } = addressDetails;
         return `${streetName} #${street_number} (${type})`;
     };
 
+    /**
+     * Fetch property details and payment history records
+     */
     const fetchPaymentHistory = async () => {
         setLoading(true);
         try {
-            const addressResponse = await axios.get(
-                `/api/addresses/${addressId}`, 
-                axiosOptions
-            );
+            // Fetch basic address data
+            const addressResponse = await axios.get(`/api/addresses/${addressId}`, axiosOptions);
             const addressData = addressResponse.data.data || addressResponse.data;
             setAddressDetails(addressData);
 
@@ -64,11 +67,10 @@ const PaymentHistoryPage = ({ user }) => {
                 setStreetName(streetResponse.data.name || 'Calle Desconocida');
             }
             
-            const paymentsResponse = await axios.get(
-                `/api/address_payments/history/${addressId}`, 
-                axiosOptions
-            );
+            // Fetch transaction history
+            const paymentsResponse = await axios.get(`/api/address_payments/history/${addressId}`, axiosOptions);
             const fetchedPayments = paymentsResponse.data?.data || paymentsResponse.data || [];
+            
             setPayments(fetchedPayments);
             setFilteredPayments(fetchedPayments);
             
@@ -84,6 +86,7 @@ const PaymentHistoryPage = ({ user }) => {
         if (addressId) fetchPaymentHistory();
     }, [addressId]); 
     
+    // Real-time filtering logic
     useEffect(() => {
         const paymentsArray = Array.isArray(payments) ? payments : []; 
         const result = paymentsArray.filter(payment => 
@@ -93,6 +96,9 @@ const PaymentHistoryPage = ({ user }) => {
         setFilteredPayments(result);
     }, [search, payments]);
 
+    /**
+     * Submit payment cancellation request
+     */
     const handleCancellation = async () => {
         if (!cancellationReason.trim()) {
             setErrorMessage('Debe especificar un motivo de cancelación.');
@@ -112,47 +118,60 @@ const PaymentHistoryPage = ({ user }) => {
         }
     };
 
+    // --- DATATABLE COLUMN DEFINITIONS ---
     const columns = useMemo(() => [
         { name: 'Cuota', selector: row => row.fee ? row.fee.name : 'N/A', sortable: true, wrap: true }, 
         { 
             name: 'Monto', 
-            selector: row => `$${parseFloat(row.amount || row.fee?.amount || 0).toFixed(2)}`, 
+            // 🟢 FIXED: Using 'amount_paid' to match backend field
+            selector: row => row.amount_paid, 
             sortable: true, 
+            cell: row => (
+                <span className="fw-bold">
+                    ${parseFloat(row.amount_paid || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </span>
+            ),
             right: true 
         },
-        { name: 'Periodo', selector: row => `${getMonthName(row.month)} ${row.year}`, sortable: false },
+        { 
+            name: 'Periodo', 
+            selector: row => `${row.year}${row.month}`, // sort selector
+            cell: row => `${getMonthName(row.month)} ${row.year}`,
+            sortable: true 
+        },
         { name: 'Fecha Pago', selector: row => row.payment_date, sortable: true },
         { 
             name: 'Estado', 
             selector: row => row.status, 
             cell: row => (
-                <span className={`badge ${row.status === 'Pagado' ? 'bg-info' : 'bg-danger'}`}>
-                    {row.status}
+                <span className={`badge ${
+                    row.deleted_at ? 'bg-secondary' : 
+                    row.status === 'Pagado' ? 'bg-success' : 
+                    row.status === 'Condonado' ? 'bg-info' : 'bg-danger'
+                }`}>
+                    {row.deleted_at ? 'Anulado' : row.status}
                 </span>
             ),
         },
-        { name: 'Motivo Cancelación', selector: row => row.deletion_reason || '', wrap: true },
+        { name: 'Motivo Cancelación', selector: row => row.deletion_reason || '', wrap: true, grow: 1.5 },
         {
             name: 'Acción',
             cell: row => (
                 <div className="d-flex justify-content-end w-100">
-                    {row.status === 'Anulado' ? (
-                        <span className="text-muted small">Anulado</span>
-                    ) : (
-                        /* 🛡️ Solo mostrar botón si tiene permiso Y el estado permite anular */
-                        canCancelPayment && (row.status === 'Pagado' || row.status === 'Condonado') && (
-                            <button 
-                                className="btn btn-outline-danger btn-sm" 
-                                onClick={() => {
-                                    setPaymentToCancel(row);
-                                    setShowCancelModal(true);
-                                    setCancellationReason('');
-                                }}
-                            >
-                                <i className="fas fa-times me-1"></i> Anular
-                            </button>
-                        )
-                    )}
+                    {!row.deleted_at && canCancelPayment && (row.status === 'Pagado' || row.status === 'Condonado') ? (
+                        <button 
+                            className="btn btn-outline-danger btn-sm" 
+                            onClick={() => {
+                                setPaymentToCancel(row);
+                                setShowCancelModal(true);
+                                setCancellationReason('');
+                            }}
+                        >
+                            <i className="fas fa-times me-1"></i> Anular
+                        </button>
+                    ) : row.deleted_at ? (
+                        <small className="text-muted italic">Sin acciones</small>
+                    ) : null}
                 </div>
             ),
             minWidth: '120px',
@@ -160,12 +179,14 @@ const PaymentHistoryPage = ({ user }) => {
     ], [canCancelPayment, navigate]);
 
     return (
-        <div className="row mb-4 border border-primary rounded p-3 mx-auto mt-4" style={{ maxWidth: '95%' }}>
+        <div className="row mb-4 border border-primary rounded p-3 mx-auto mt-4" style={{ maxWidth: '95%', backgroundColor: '#fff' }}>
             <div className="col-md-12">
                 {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
+                {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
                 
-                <div className="row justify-content-end mb-3">
-                    <div className="col-md-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h4 className="text-primary mb-0"><i className="fas fa-history me-2"></i>Historial: {getFormattedAddress()}</h4>
+                    <div className="w-25">
                         <input
                             type="text"
                             className="form-control form-control-sm"
@@ -176,31 +197,28 @@ const PaymentHistoryPage = ({ user }) => {
                     </div>
                 </div>
 
-                <div className="card shadow mb-4">
-                    <div className="card-header bg-primary text-white">
-                        <h5 className="mb-0">Historial de Transacciones</h5>
-                    </div>
+                <div className="card shadow-sm mb-4">
                     <div className="card-body p-0">
                         <DataTable
-                            title={getFormattedAddress()}
                             columns={columns}
                             data={filteredPayments}
                             progressPending={loading}
                             pagination
                             highlightOnHover
                             striped
-                            noDataComponent="No hay pagos registrados."
+                            responsive
+                            noDataComponent={<div className="p-4">No hay pagos registrados para este predio.</div>}
                         />
                     </div>
                 </div>
                 
                 <button className="btn btn-secondary btn-sm" onClick={() => navigate('/addresses')}>
-                    Volver a Direcciones
+                    <i className="fas fa-arrow-left me-1"></i> Volver a Direcciones
                 </button>
             </div>
             
-            {/* Modal de Anulación */}
-            <div className={`modal fade ${showCancelModal ? 'show d-block' : ''}`} tabIndex="-1">
+            {/* Cancellation Modal */}
+            <div className={`modal fade ${showCancelModal ? 'show d-block' : ''}`} tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header bg-danger text-white">
@@ -208,18 +226,18 @@ const PaymentHistoryPage = ({ user }) => {
                             <button type="button" className="btn-close btn-close-white" onClick={() => setShowCancelModal(false)}></button>
                         </div>
                         <div className="modal-body">
-                            <p>¿Confirma la anulación del pago por <strong>${parseFloat(paymentToCancel?.amount || 0).toFixed(2)}</strong>?</p>
+                            <p>¿Confirma la anulación del pago de <strong>{paymentToCancel?.fee?.name}</strong> por valor de <strong>${parseFloat(paymentToCancel?.amount_paid || 0).toFixed(2)}</strong>?</p>
                             <div className="form-group">
-                                <label className="fw-bold">Motivo de la Anulación *</label>
+                                <label className="fw-bold small">Motivo de la Anulación *</label>
                                 <textarea
                                     className="form-control"
                                     rows="3"
                                     value={cancellationReason}
                                     onChange={(e) => setCancellationReason(e.target.value)}
                                     placeholder="Explique por qué se anula este pago..."
+                                    required
                                 ></textarea>
                             </div>
-                            {errorMessage && <div className="alert alert-danger mt-2 small">{errorMessage}</div>}
                         </div>
                         <div className="modal-footer">
                             <button className="btn btn-secondary" onClick={() => setShowCancelModal(false)}>Cerrar</button>
@@ -230,7 +248,6 @@ const PaymentHistoryPage = ({ user }) => {
                     </div>
                 </div>
             </div>
-            {showCancelModal && <div className="modal-backdrop fade show"></div>}
         </div>
     );
 };

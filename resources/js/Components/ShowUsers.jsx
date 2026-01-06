@@ -3,239 +3,202 @@ import DataTable from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MessageContext } from "./MessageContext";
-// 🚨 Import the hook
 import usePermission from "../hooks/usePermission"; 
 
 const endpoint = "/api/usuarios";
 const axiosOptions = { withCredentials: true };
 
-// 🚨 Receive 'user' as a prop
 const ShowUsers = ({ user }) => {
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+    const [users, setUsers] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    
+    const [showModal, setShowModal] = useState(false);
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [modalMode, setModalMode] = useState(""); 
 
-  const [showModal, setShowModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+    const { can } = usePermission(user);
+    const canCreate = can('Crear-usuarios');
+    const canEdit = can('Editar-usuarios');
+    const canDelete = can('Eliminar-usuarios');
 
-  // 🚨 Initialize the permission hook
-  const { can } = usePermission(user);
+    const { setSuccessMessage, setErrorMessage, successMessage, errorMessage } = useContext(MessageContext);
+    const navigate = useNavigate();
 
-  // 🛡️ EXTRACTION TO CONSTANTS: This mimics the stable pattern from Stats.jsx
-  const canCreate = can('Crear-usuarios');
-  const canEdit = can('Editar-usuarios');
-  const canDelete = can('Eliminar-usuarios');
+    const fetchUsers = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get(endpoint, axiosOptions);
+            const data = res.data.data || res.data;
+            setUsers(data);
+            setFilteredUsers(data);
+        } catch (err) {
+            console.error("Error fetching users:", err);
+            setErrorMessage("Fallo al cargar los usuarios");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  // 🚨 DIAGNOSTIC LOGS
-  console.log("1. Full User Object:", user);
-  console.log("2. Permissions Array:", user?.permissions);
-  console.log("3. Result of can('Crear-usuarios'):", canCreate);
+    useEffect(() => { fetchUsers(); }, []);
 
-  const {
-    successMessage,
-    setSuccessMessage,
-    errorMessage,
-    setErrorMessage,
-  } = useContext(MessageContext);
+    useEffect(() => {
+        const result = users.filter((u) =>
+            u.name.toLowerCase().includes(search.toLowerCase()) ||
+            u.email.toLowerCase().includes(search.toLowerCase())
+        );
+        setFilteredUsers(result);
+    }, [search, users]);
 
-  const navigate = useNavigate();
+    const openConfirmModal = (id, mode) => {
+        setSelectedUserId(id);
+        setModalMode(mode);
+        setShowModal(true);
+    };
 
-  // Fetch users from API
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(endpoint, axiosOptions);
-      const data = res.data.data || res.data;
-      setUsers(data);
-      setFilteredUsers(data);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      let errorMsg = "Fallo al cargar los usuarios";
-      if (err.response) {
-        errorMsg = err.response.data.error || err.response.data.message || errorMsg;
-      }
-      setErrorMessage(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const handleModalAction = () => {
+        if (modalMode === 'delete') executeDelete();
+        else if (modalMode === 'restore') executeRestore();
+    };
 
-  // Load users on mount
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+    const executeDelete = async () => {
+        try {
+            await axios.delete(`${endpoint}/${selectedUserId}`, axiosOptions);
+            setShowModal(false);
+            fetchUsers(); 
+            setSuccessMessage("Usuario dado de baja exitosamente");
+        } catch (err) {
+            setErrorMessage(err.response?.data?.error || "Error al eliminar");
+            setShowModal(false);
+        }
+    };
 
-  // Filter users by search
-  useEffect(() => {
-    const result = users.filter((u) =>
-      u.name.toLowerCase().includes(search.toLowerCase())
+    const executeRestore = async () => {
+        try {
+            await axios.post(`${endpoint}/restore/${selectedUserId}`, {}, axiosOptions);
+            setShowModal(false);
+            setSuccessMessage("Usuario reactivado exitosamente");
+            fetchUsers();
+        } catch (err) {
+            setErrorMessage("Fallo al reactivar.");
+            setShowModal(false);
+        }
+    };
+
+    const columns = [
+        { name: "Nombre", selector: (u) => u.name, sortable: true, minWidth: "150px" },
+        { name: "Email", selector: (u) => u.email || "-", sortable: true, minWidth: "180px" },
+        { name: "Teléfono", selector: (u) => u.phone || "N/A", sortable: true, width: "120px" },
+        {
+            name: "Roles",
+            cell: (u) => (
+                <div className="d-flex flex-wrap gap-1">
+                    {u.roles?.map((r, idx) => (
+                        <span key={idx} className="badge bg-primary">{r.name}</span>
+                    ))}
+                </div>
+            ),
+            minWidth: "120px",
+        },
+        {
+            name: "Status",
+            selector: (u) => (u.deleted_at ? "Baja" : "Activo"),
+            sortable: true,
+            cell: (u) => (
+                <span className={`badge ${u.deleted_at ? 'bg-danger' : 'bg-success'}`} style={{ minWidth: '60px' }}>
+                    {u.deleted_at ? "Baja" : "Activo"}
+                </span>
+            ),
+            width: "100px",
+        },
+        // 🟢 RESTORED: PERMISSIONS COLUMN
+        {
+            name: "Permisos",
+            cell: (u) => (
+                <div className="d-flex flex-wrap gap-1">
+                    {u.permissions && u.permissions.length > 0
+                        ? u.permissions.map((p, idx) => (
+                              <span key={idx} className="badge bg-info text-dark" style={{ fontSize: '0.75em' }}>
+                                  {p.name}
+                              </span>
+                          ))
+                        : <small className="text-muted">Ninguno</small>}
+                </div>
+            ),
+            grow: 2,
+            minWidth: "250px",
+        },
+        {
+            name: "Acciones",
+            right: true,
+            cell: (u) => (
+                <div className="d-flex gap-2 justify-content-end">
+                    {!u.deleted_at ? (
+                        <>
+                            {canEdit && <button className="btn btn-info btn-sm text-white" onClick={() => navigate(`/users/edit/${u.id}`)}>Editar</button>}
+                            {canDelete && <button className="btn btn-danger btn-sm" onClick={() => openConfirmModal(u.id, 'delete')}>Eliminar</button>}
+                        </>
+                    ) : (
+                        canEdit && <button className="btn btn-success btn-sm" onClick={() => openConfirmModal(u.id, 'restore')}>Reactivar</button>
+                    )}
+                </div>
+            ),
+            width: "180px",
+        },
+    ];
+
+    return (
+        <div className="mb-4 border border-primary rounded p-3 bg-white">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                {canCreate ? (
+                    <button className="btn btn-warning btn-sm" onClick={() => navigate("/users/create")}>
+                        <i className="fas fa-user-plus"></i> Crear usuario
+                    </button>
+                ) : <div />}
+                <input type="text" placeholder="Buscar por nombre o correo..." className="form-control w-25 form-control-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+
+            {successMessage && <div className="alert alert-success text-center py-2">{successMessage}</div>}
+            {errorMessage && <div className="alert alert-danger text-center py-2">{errorMessage}</div>}
+
+            <DataTable
+                title="Gestión de Usuarios y Residentes"
+                columns={columns}
+                data={filteredUsers}
+                progressPending={loading}
+                pagination
+                highlightOnHover
+                striped
+                responsive
+                conditionalRowStyles={[{
+                    when: row => row.deleted_at,
+                    style: { backgroundColor: '#fff5f5', color: '#721c24' },
+                }]}
+            />
+
+            {/* MODAL */}
+            <div className={`modal fade ${showModal ? "show d-block" : "d-none"}`} style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className={`modal-header ${modalMode === 'delete' ? 'bg-danger' : 'bg-success'} text-white`}>
+                            <h5 className="modal-title">{modalMode === 'delete' ? 'Confirmar Baja' : 'Confirmar Reactivación'}</h5>
+                            <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
+                        </div>
+                        <div className="modal-body text-center p-4">
+                            <p>{modalMode === 'delete' ? '¿Está seguro de que desea desactivar a este usuario/residente?' : '¿Está seguro de que desea reactivar a este usuario/residente?'}</p>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
+                            <button className={`btn ${modalMode === 'delete' ? 'btn-danger' : 'btn-success'}`} onClick={handleModalAction}>
+                                {modalMode === 'delete' ? 'Confirmar Baja' : 'Confirmar Reactivación'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
-    setFilteredUsers(result);
-  }, [search, users]);
-
-  // Prepare delete modal
-  const confirmDelete = (id) => {
-    setUserToDelete(id);
-    setShowModal(true);
-  };
-
-  // Delete user
-  const deleteUser = async () => {
-    if (!userToDelete) return;
-    try {
-      await axios.delete(`${endpoint}/${userToDelete}`, axiosOptions);
-      setShowModal(false);
-      setUserToDelete(null);
-      fetchUsers();
-      setSuccessMessage("Usuario eliminado exitosamente");
-    } catch (err) {
-      console.error(err);
-      setShowModal(false);
-      setUserToDelete(null);
-      let errorMsg = "Error al eliminar usuario";
-      if (err.response) {
-        errorMsg = err.response.data.error || err.response.data.message || errorMsg;
-      }
-      setErrorMessage(errorMsg);
-    }
-  };
-
-  // DataTable columns
-  const columns = [
-    {
-      name: "Nombre",
-      selector: (u) => u.name,
-      sortable: true,
-      width: "150px",
-    },
-    {
-      name: "Email",
-      selector: (u) => u.email || "-",
-      sortable: true,
-      width: "200px",
-    },
-    {
-      name: "Roles",
-      cell: (u) => (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-          {u.roles && u.roles.length > 0
-            ? u.roles.map((r, idx) => (
-                <span key={idx} className="btn btn-primary btn-sm" style={{ cursor: "default" }}>
-                  {r.name}
-                </span>
-              ))
-            : "-"}
-        </div>
-      ),
-      grow: 1,
-      minWidth: "200px",
-    },
-    {
-      name: "Permisos",
-      cell: (u) => (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-          {u.permissions && u.permissions.length > 0
-            ? u.permissions.map((p, idx) => (
-                <span key={idx} className="btn btn-info btn-sm" style={{ cursor: "default" }}>
-                  {p.name}
-                </span>
-              ))
-            : "-"}
-        </div>
-      ),
-      grow: 2,
-    },
-    {
-      name: "Acciones",
-      right: true,
-      cell: (u) => (
-        <div className="d-flex gap-2 justify-content-end" style={{ whiteSpace: "nowrap" }}>
-          {/* 🛡️ USE CONSTANT: canEdit */}
-          {canEdit && (
-            <button
-              className="btn btn-info btn-sm"
-              onClick={() => navigate(`/users/edit/${u.id}`)}
-            >
-              Editar
-            </button>
-          )}
-          
-          {/* 🛡️ USE CONSTANT: canDelete */}
-          {canDelete && (
-            <button
-              className="btn btn-danger btn-sm"
-              onClick={() => confirmDelete(u.id)}
-            >
-              Eliminar
-            </button>
-          )}
-        </div>
-      ),
-      width: "150px",
-    },
-  ];
-
-  return (
-    <div className="mb-4 border border-primary rounded p-3">
-      {/* Top controls */}
-      <div className="d-flex justify-content-between mb-2">
-        {/* 🛡️ USE CONSTANT: canCreate */}
-        {canCreate ? (
-          <button
-            className="btn btn-warning btn-sm"
-            onClick={() => navigate("/users/create")}
-          >
-            Crear usuario
-          </button>
-        ) : (
-          <div></div> // Spacer to maintain layout
-        )}
-        
-        <input
-          type="text"
-          placeholder="Buscar por nombre"
-          className="form-control w-25 form-control-sm"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* Messages */}
-      {successMessage && <div className="alert alert-success text-center">{successMessage}</div>}
-      {errorMessage && <div className="alert alert-danger text-center">{errorMessage}</div>}
-
-      {/* Table */}
-      <DataTable
-        title="Lista de Usuarios"
-        columns={columns}
-        data={filteredUsers}
-        progressPending={loading}
-        pagination
-        highlightOnHover
-        striped
-      />
-
-      {/* Delete modal */}
-      <div className={`modal fade ${showModal ? "show d-block" : "d-none"}`} tabIndex="-1">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Confirmar Eliminación</h5>
-              <button type="button" className="close" onClick={() => setShowModal(false)}>
-                <span>&times;</span>
-              </button>
-            </div>
-            <div className="modal-body">¿Está seguro de eliminar el usuario?</div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
-              <button className="btn btn-danger" onClick={deleteUser}>Eliminar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 export default ShowUsers;

@@ -8,8 +8,6 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
@@ -19,17 +17,20 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            // --- NEW FIELDS FOR RESIDENTS/AUDIT ---
+            $table->string('phone')->nullable()->comment('Contact phone number');
+            $table->text('comments')->nullable()->comment('Internal notes about the user/resident');
             $table->rememberToken();
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
+            // --- SOFT DELETES ---
+            $table->softDeletes(); 
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

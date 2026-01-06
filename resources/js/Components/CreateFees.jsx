@@ -7,7 +7,9 @@ const endpoint = '/api/fees';
 
 export default function CreateResidents() {
     const [name, setName] = useState('');
-    const [amount, setAmount] = useState('');
+    // NEW: Separated states for house and land amounts
+    const [amountHouse, setAmountHouse] = useState('');
+    const [amountLand, setAmountLand] = useState('');
     const [description, setDescription] = useState('');
     const [formValidated, setFormValidated] = useState(false);
 
@@ -22,10 +24,13 @@ export default function CreateResidents() {
             e.stopPropagation();
             setErrorMessage('Por favor, complete todos los campos obligatorios.');
         } else {
+            // UPDATED: Sending the new field names to the API
             const formData = new FormData();
             formData.append('name', name);
-            formData.append('amount', amount);
+            formData.append('amount_house', amountHouse);
+            formData.append('amount_land', amountLand);
             formData.append('description', description);
+
             try {
                 await axios.post(endpoint, formData, {
                     withCredentials: true,
@@ -33,11 +38,11 @@ export default function CreateResidents() {
                         Accept: 'application/json',
                     },
                 });
-                setSuccessMessage('Pago creado exitosamente.');
+                setSuccessMessage('Tarifa creada exitosamente.');
                 setErrorMessage('');
                 navigate('/fees');
             } catch (error) {
-                setErrorMessage('Fallo al crear el pago.');
+                setErrorMessage('Fallo al crear la tarifa.');
                 console.error('Error creating fee:', error);
             }
         }
@@ -46,7 +51,7 @@ export default function CreateResidents() {
 
     return (
         <div>
-            <h2>Crear pago</h2>
+            <h2>Crear Tarifa</h2>
             <form onSubmit={store} noValidate className={formValidated ? 'was-validated' : ''}>
                 <div className="col-md-12 mt-4">
                     {errorMessage && (
@@ -55,6 +60,8 @@ export default function CreateResidents() {
                         </div>
                     )}
                 </div>
+
+                {/* Name Field */}
                 <div className='mb-3'>
                     <label className='form-label'>Nombre</label>
                     <input
@@ -62,39 +69,66 @@ export default function CreateResidents() {
                         onChange={(e) => setName(e.target.value)}
                         type='text'
                         className='form-control'
+                        placeholder="Ej. Mantenimiento"
                         required
                     />
                     <div className="invalid-feedback">
                         Por favor, ingrese un nombre.
                     </div>
                 </div>
-                <div className='mb-3'>
-                    <label className='form-label'>Monto</label>
-                    <input
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        type='number'
-                        className='form-control'
-                        required
-                    />
-                    <div className="invalid-feedback">
-                        Por favor, ingrese el monto.
+
+                <div className="row">
+                    {/* NEW: Amount House Field */}
+                    <div className='col-md-6 mb-3'>
+                        <label className='form-label'>Monto Casa</label>
+                        <input
+                            value={amountHouse}
+                            onChange={(e) => setAmountHouse(e.target.value)}
+                            type='number'
+                            step="0.01"
+                            className='form-control'
+                            placeholder="0.00"
+                            required
+                        />
+                        <div className="invalid-feedback">
+                            Ingrese el monto para casas.
+                        </div>
+                    </div>
+
+                    {/* NEW: Amount Land Field */}
+                    <div className='col-md-6 mb-3'>
+                        <label className='form-label'>Monto Terreno</label>
+                        <input
+                            value={amountLand}
+                            onChange={(e) => setAmountLand(e.target.value)}
+                            type='number'
+                            step="0.01"
+                            className='form-control'
+                            placeholder="0.00"
+                            required
+                        />
+                        <div className="invalid-feedback">
+                            Ingrese el monto para terrenos.
+                        </div>
                     </div>
                 </div>
+
+                {/* Description Field */}
                 <div className='mb-3'>
                     <label className='form-label'>Descripción</label>
-                    <input
+                    <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        type='text'
                         className='form-control'
+                        rows="3"
                         required
                     />
                     <div className="invalid-feedback">
                         Por favor, ingrese una descripción.
                     </div>
                 </div>
-                <button type='submit' className='btn btn-success'>Guardar</button>
+
+                <button type='submit' className='btn btn-success'>Guardar Tarifa</button>
             </form>
         </div>
     );

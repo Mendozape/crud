@@ -22,9 +22,9 @@ use App\Http\Controllers\ProfileController;
 use App\Models\User;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    $userId = $request->user()->id;
-    $user = User::findOrFail($userId); 
-    return response()->json($user);
+    return response()->json(
+        User::with(['address.street', 'roles'])->findOrFail($request->user()->id)
+    );
 });
 
 Route::post('/login', [ApiController::class, 'login']);
@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // --- GENERAL RESOURCES ---
     Route::post('/profile/update', [ProfileController::class, 'updateProfileInformation']);
+    
     //Route::apiResource('/articles', ArticleController::class);
     Route::get('/users', [ApiController::class, 'users']);
     Route::get('/users/count', [UserController::class, 'count']);
@@ -77,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::apiResource('permisos', PermisosController::class);
     Route::apiResource('roles', RolesController::class);
+    Route::post('/usuarios/restore/{id}', [UserController::class, 'restore']);
     Route::apiResource('usuarios', UserController::class);
 
     // --- REPORTS ROUTES ---

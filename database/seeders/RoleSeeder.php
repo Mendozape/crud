@@ -74,5 +74,6 @@ class RoleSeeder extends Seeder
         Permission::create(['name'=>'Eliminar-pagos'])->syncRoles([$tesorero,$admin]);
 
         Permission::create(['name'=>'Reportes'])->syncRoles([$presidente,$secretario,$tesorero,$admin]);
+        Permission::create(['name'=>'Ver-estado-cuenta'])->syncRoles([$presidente,$secretario,$tesorero,$residente,$admin]);
     }
 }

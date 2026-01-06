@@ -121,6 +121,7 @@ class MessageController extends Controller
      */
     public function sendMessage(Request $request)
     {
+        logger('AUTH ID', ['id' => Auth::id()]);
         // Validate input data
         $data = $request->validate([
             'receiver_id' => [
