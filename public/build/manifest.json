@@ -1,4 +1,7 @@
 {
+  "_axios-590845d0.js": {
+    "file": "assets/axios-590845d0.js"
+  },
   "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf": {
     "file": "assets/fa-brands-400-808443ae.ttf",
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf"
@@ -31,6 +34,37 @@
     "file": "assets/fa-v4compatibility-0ce9033c.woff2",
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
+  "node_modules/canvg/lib/index.es.js": {
+    "file": "assets/index.es-2888a2ad.js",
+    "imports": [
+      "_axios-590845d0.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "node_modules/canvg/lib/index.es.js"
+  },
+  "node_modules/dompurify/dist/purify.es.js": {
+    "file": "assets/purify.es-2de9db7f.js",
+    "isDynamicEntry": true,
+    "src": "node_modules/dompurify/dist/purify.es.js"
+  },
+  "node_modules/html2canvas/dist/html2canvas.esm.js": {
+    "file": "assets/html2canvas.esm-e0a7d97b.js",
+    "isDynamicEntry": true,
+    "src": "node_modules/html2canvas/dist/html2canvas.esm.js"
+  },
+  "resources/js/ReactApp.jsx": {
+    "dynamicImports": [
+      "node_modules/html2canvas/dist/html2canvas.esm.js",
+      "node_modules/dompurify/dist/purify.es.js",
+      "node_modules/canvg/lib/index.es.js"
+    ],
+    "file": "assets/ReactApp-3dbcd3a4.js",
+    "imports": [
+      "_axios-590845d0.js"
+    ],
+    "isEntry": true,
+    "src": "resources/js/ReactApp.jsx"
+  },
   "resources/js/app.css": {
     "file": "assets/app-a8e05328.css",
     "src": "resources/js/app.css"
@@ -49,7 +83,10 @@
     "css": [
       "assets/app-a8e05328.css"
     ],
-    "file": "assets/app-ed89e217.js",
+    "file": "assets/app-1b0ce980.js",
+    "imports": [
+      "_axios-590845d0.js"
+    ],
     "isEntry": true,
     "src": "resources/js/app.js"
   }

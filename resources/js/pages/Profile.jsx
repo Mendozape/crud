@@ -11,7 +11,7 @@ import axios from "axios";
  */
 const getProfilePhotoUrl = (profile) => {
     const defaultUrl = "/default-avatar.png";
-    const baseUrl = "http://127.0.0.1:8000/storage/";
+    const baseUrl = "/storage/images/";
 
     // Read the actual filename from the database
     const photoPath = profile.profile_photo_path;

@@ -18,9 +18,6 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // 🛑 IMPORTANT: Match Resident's photo storage path in the database field.
-        // Residents table field is 'photo'. Users table field is 'profile_photo_path'.
-        
         $validator = Validator::make($request->all(), [
             'name'  => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
@@ -31,28 +28,25 @@ class ProfileController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Handle profile photo upload
+        // --- PHOTO HANDLING ---
         if ($request->hasFile('photo')) {
 
-            // 1. Delete existing photo
+            // 1. Delete existing photo if it exists
             if ($user->profile_photo_path) {
-                // Resident's style of deleting: Use Storage::delete() on the full path
-                // Note: The full path here assumes the DB stores only the filename.
-                // If DB stores 'filename.png', the delete must prepend the folder path.
-                $deletePath = 'public/images/' . $user->profile_photo_path;
-                if (Storage::exists($deletePath)) {
-                    Storage::delete($deletePath);
-                }
+                // Since the disk 'public' points to 'storage/app/public', 
+                // we just look into the 'images' subfolder.
+                Storage::disk('public')->delete('images/' . $user->profile_photo_path);
             }
 
-            // 2. Store new file using the Resident's syntax
+            // 2. Generate unique filename
             $photoFileName = Carbon::now()->timestamp . '.' . $request->photo->extension();
-            
-            // 🛑 CRITICAL FIX: Use the exact Resident storage syntax to ensure the path is correct
-            // This stores the file in storage/app/public/images/
-            $request->photo->storeAs('public/images', $photoFileName);
-            
-            // 3. Update the user model with ONLY the filename (matching Resident's DB schema)
+
+            // 3. Store new file
+            // 'images' is the subfolder inside storage/app/public/
+            // 'public' is the disk name defined in config/filesystems.php
+            $request->photo->storeAs('images', $photoFileName, 'public');
+
+            // 4. Update the user model with ONLY the filename
             $user->profile_photo_path = $photoFileName;
         }
 
@@ -60,13 +54,12 @@ class ProfileController extends Controller
         $user->email = $request->input('email');
         $user->save();
 
-        // Get a fresh user instance (needed after save)
+        // Get fresh instance with updated data
         $freshUser = $user->fresh();
 
-        // Return the fresh model instance (which now includes 'profile_photo_path' via $appends)
         return response()->json([
             'message' => 'Perfil actualizado correctamente.',
-            'user' => $freshUser, 
+            'user' => $freshUser,
         ], 200);
     }
 

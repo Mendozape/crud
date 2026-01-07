@@ -8,6 +8,7 @@ const ResidentStatement = ({ user }) => {
     const [year, setYear] = useState(new Date().getFullYear());
     const [paidMonths, setPaidMonths] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isAuthorized, setIsAuthorized] = useState(true); 
     const { setErrorMessage } = useContext(MessageContext);
 
     const axiosOptions = {
@@ -15,7 +16,6 @@ const ResidentStatement = ({ user }) => {
         headers: { Accept: 'application/json' },
     };
 
-    // Month mapping for display in Spanish
     const months = [
         { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
         { value: 4, label: 'Abril' }, { value: 5, label: 'Mayo' }, { value: 6, label: 'Junio' },
@@ -27,38 +27,56 @@ const ResidentStatement = ({ user }) => {
     const availableYears = [currentYear - 1, currentYear, currentYear + 1];
 
     /**
-     * Effect: Load the property linked to the logged-in user.
-     * Refresh data from API to ensure synchronization.
+     * Effect: Load the property and verify permissions.
+     * Checks the fresh user data from the API to handle real-time permission changes.
      */
     useEffect(() => {
         const fetchMyAddress = async () => {
             try {
-                if (user && user.address) {
-                    setAddressDetails(user.address);
+                // Fetch fresh data from the server
+                const response = await axios.get('/api/user', axiosOptions);
+                const freshUser = response.data;
+
+                // 🛡️ PERMISSION CHECK (Case-insensitive)
+                // We verify if the required permission exists in the updated list from the server
+                const permissions = (freshUser.permissions || []).map(p => p.name.toLowerCase());
+                const requiredPermission = 'Ver-estado-cuenta'.toLowerCase();
+
+                if (!permissions.includes(requiredPermission)) {
+                    setIsAuthorized(false);
+                    // Force redirect to home if permission is gone
+                    window.location.href = '/home'; 
+                    return;
+                }
+
+                if (freshUser.address) {
+                    setAddressDetails(freshUser.address);
                 } else {
-                    const response = await axios.get('/api/user', axiosOptions);
-                    const freshUser = response.data;
-                    if (freshUser.address) {
-                        setAddressDetails(freshUser.address);
-                    } else {
-                        setErrorMessage("No se encontró ningún predio activo vinculado a su cuenta.");
-                    }
+                    setErrorMessage("No se encontró ningún predio activo vinculado a su cuenta.");
                 }
             } catch (error) {
-                console.error("Error detecting address:", error);
+                // Handle 403 Forbidden specifically (revoked access)
+                if (error.response && error.response.status === 403) {
+                    setIsAuthorized(false);
+                    window.location.href = '/home';
+                }
+                console.error("Error detecting address or permissions:", error);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchMyAddress();
     }, [user, setErrorMessage]);
 
     /**
-     * Effect: Fetch the payment records for the selected year.
+     * Effect: Fetch the payment records.
      */
     useEffect(() => {
         const fetchStatement = async () => {
-            if (!addressDetails || !year) return;
+            // Block data fetching if unauthorized or loading
+            if (!addressDetails || !year || !isAuthorized) return;
+
             try {
                 const response = await axios.get(
                     `/api/address_payments/paid-months/${addressDetails.id}/${year}`,
@@ -66,24 +84,28 @@ const ResidentStatement = ({ user }) => {
                 );
                 setPaidMonths(response.data.months || []);
             } catch (error) {
+                if (error.response && error.response.status === 403) {
+                    setIsAuthorized(false);
+                    window.location.href = '/home';
+                }
                 console.error("Error fetching payment status:", error);
-                setPaidMonths([]);
             }
         };
         fetchStatement();
-    }, [year, addressDetails]);
+    }, [year, addressDetails, isAuthorized]);
 
-    /**
-     * Finds if a specific month is registered in the paidMonths state.
-     */
     const getMonthStatus = (monthNum) => paidMonths.find(item => item.month === monthNum);
 
+    // 1. Loading State
     if (loading) return (
         <div className="text-center mt-5">
             <div className="spinner-border text-primary" role="status"></div>
-            <p className="mt-2">Cargando detalles de la cuenta...</p>
+            <p className="mt-2">Validating credentials...</p>
         </div>
     );
+
+    // 2. Unauthorized State (Final guard)
+    if (!isAuthorized) return null;
 
     return (
         <div className="container mt-4">
@@ -145,12 +167,8 @@ const ResidentStatement = ({ user }) => {
                                                             <span className="badge bg-danger w-75 p-2">Pendiente</span>
                                                         )}
                                                     </td>
-                                                    <td className="text-muted small">
-                                                        {status?.fee_name || '--'}
-                                                    </td>
-                                                    <td className="small text-muted">
-                                                        {status?.payment_date || '--'}
-                                                    </td>
+                                                    <td className="text-muted small">{status?.fee_name || '--'}</td>
+                                                    <td className="small text-muted">{status?.payment_date || '--'}</td>
                                                     <td className="text-end pe-4 fw-bold">
                                                         {status ? (
                                                             `$${parseFloat(status.amount_paid || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
@@ -168,8 +186,7 @@ const ResidentStatement = ({ user }) => {
                     ) : (
                         <div className="alert alert-warning border-warning shadow-sm">
                             <i className="fas fa-exclamation-circle me-2"></i>
-                            <strong>Sin predio asignado:</strong> No tienes una propiedad vinculada a tu cuenta. 
-                            Por favor, contacta al administrador para completar tu registro.
+                            <strong>Sin predio asignado:</strong> No tienes una propiedad vinculada.
                         </div>
                     )}
                 </div>

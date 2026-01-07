@@ -7,12 +7,11 @@ export default defineConfig({
         react(),
         laravel({
             input: [
-                //'resources/sass/app.scss',
                 'resources/js/app.js',
+                'resources/js/ReactApp.jsx',
             ],
             refresh: true,
         }),
-        
     ],
     resolve: {
         alias: {

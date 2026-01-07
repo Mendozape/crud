@@ -15,6 +15,5 @@
 
     {{-- Load Vite React assets --}}
     @viteReactRefresh
-    @vite('resources/js/ReactApp.jsx')
-    @vite('resources/js/bootstrap.js')
+    @vite(['resources/js/app.js', 'resources/js/ReactApp.jsx'])
 @stop

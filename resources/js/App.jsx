@@ -256,7 +256,7 @@ const App = () => {
 
                     <Route
                         path="/resident-access"
-                        element={<ResidentStatement user={user} />}
+                        element={can('Ver-estado-cuenta') ? <ResidentStatement user={user} /> : <Navigate to="/home" replace />}
                     />
 
                     {/* Catch-all: Redirects any unknown route to the home page */}
