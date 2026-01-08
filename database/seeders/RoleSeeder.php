@@ -39,7 +39,7 @@ class RoleSeeder extends Seeder
         Permission::create(['name'=>'Editar-permisos'])->syncRoles([$admin]);
         Permission::create(['name'=>'Eliminar-permisos'])->syncRoles([$admin]);
 
-        Permission::create(['name'=>'Ver-calles'])->syncRoles([$presidente,$secretario,$tesorero],$admin);
+        Permission::create(['name'=>'Ver-calles'])->syncRoles([$presidente,$secretario,$tesorero,$admin]);
         Permission::create(['name'=>'Crear-calles'])->syncRoles([$presidente,$secretario,$tesorero,$admin]);
         Permission::create(['name'=>'Editar-calles'])->syncRoles([$presidente,$secretario,$tesorero,$admin]);
         Permission::create(['name'=>'Eliminar-calles'])->syncRoles([$presidente,$secretario,$tesorero,$admin]);
