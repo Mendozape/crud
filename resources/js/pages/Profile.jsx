@@ -11,16 +11,11 @@ import axios from "axios";
  */
 const getProfilePhotoUrl = (profile) => {
     const defaultUrl = "/default-avatar.png";
-    const baseUrl = "/storage/images/";
-
-    // Read the actual filename from the database
     const photoPath = profile.profile_photo_path;
-
     if (photoPath) {
-        // Concatenate directly to /storage/
-        return `${baseUrl}${photoPath}`; 
+        // This works on both PC and Cloud because it's a relative path from the domain root
+        return `/storage/images/${photoPath}`;
     }
-
     return defaultUrl;
 };
 
@@ -97,7 +92,7 @@ const Profile = ({ user }) => {
             if (err.response?.data?.errors) {
                 setErrors(err.response.data.errors);
             } else {
-                setErrors({ general: "Error al actualizar el perfil." }); 
+                setErrors({ general: "Error al actualizar el perfil." });
             }
         }
     };
@@ -110,7 +105,7 @@ const Profile = ({ user }) => {
 
         try {
             await axios.put("/user/password", passwords);
-            setStatus("Contraseña actualizada exitosamente."); 
+            setStatus("Contraseña actualizada exitosamente.");
             setPasswords({
                 current_password: "",
                 password: "",
@@ -120,12 +115,12 @@ const Profile = ({ user }) => {
             if (err.response?.data?.errors) {
                 setErrors(err.response.data.errors);
             } else {
-                setErrors({ general: "Error al actualizar la contraseña." }); 
+                setErrors({ general: "Error al actualizar la contraseña." });
             }
         }
     };
 
-    if (!profile) return <div>Cargando información del usuario...</div>; 
+    if (!profile) return <div>Cargando información del usuario...</div>;
 
     // 🚨 Determine the final URL for the image display using the helper function
     const finalPhotoUrl = getProfilePhotoUrl(profile);
@@ -137,7 +132,7 @@ const Profile = ({ user }) => {
 
             {/* Profile Form */}
             <div className="card p-4 mb-4 shadow-sm border-0">
-                <h5 className="mb-3">Actualizar Información del Perfil</h5> 
+                <h5 className="mb-3">Actualizar Información del Perfil</h5>
 
                 <form onSubmit={updateProfile}>
                     {/* Profile Image */}
@@ -162,7 +157,7 @@ const Profile = ({ user }) => {
                             style={{ cursor: "pointer", fontWeight: "500" }}
                         >
                             <i className="bi bi-camera me-2"></i>
-                            {photo ? "Cambiar Foto" : "Seleccionar Foto"} 
+                            {photo ? "Cambiar Foto" : "Seleccionar Foto"}
                         </label>
                         <input
                             id="photo"
@@ -178,7 +173,7 @@ const Profile = ({ user }) => {
                     </div>
 
                     <div className="form-group mb-3">
-                        <label>Nombre</label> 
+                        <label>Nombre</label>
                         <input
                             type="text"
                             name="name"
@@ -190,7 +185,7 @@ const Profile = ({ user }) => {
                     </div>
 
                     <div className="form-group mb-4">
-                        <label>Correo Electrónico</label> 
+                        <label>Correo Electrónico</label>
                         <input
                             type="email"
                             name="email"
@@ -217,17 +212,17 @@ const Profile = ({ user }) => {
                         onMouseOut={(e) => (e.target.style.opacity = "1")}
                     >
                         <i className="bi bi-cloud-upload me-2"></i>
-                        Actualizar Perfil 
+                        Actualizar Perfil
                     </button>
                 </form>
             </div>
 
             {/* Password Form */}
             <div className="card p-4 shadow-sm border-0">
-                <h5 className="mb-3">Cambiar Contraseña</h5> 
+                <h5 className="mb-3">Cambiar Contraseña</h5>
                 <form onSubmit={updatePassword}>
                     <div className="form-group mb-2">
-                        <label>Contraseña Actual</label> 
+                        <label>Contraseña Actual</label>
                         <input
                             type="password"
                             name="current_password"
@@ -241,7 +236,7 @@ const Profile = ({ user }) => {
                     </div>
 
                     <div className="form-group mb-2">
-                        <label>Nueva Contraseña</label> 
+                        <label>Nueva Contraseña</label>
                         <input
                             type="password"
                             name="password"
@@ -255,7 +250,7 @@ const Profile = ({ user }) => {
                     </div>
 
                     <div className="form-group mb-4">
-                        <label>Confirmar Nueva Contraseña</label> 
+                        <label>Confirmar Nueva Contraseña</label>
                         <input
                             type="password"
                             name="password_confirmation"
@@ -266,7 +261,7 @@ const Profile = ({ user }) => {
                     </div>
 
                     <button type="submit" className="btn btn-outline-primary w-100 fw-bold">
-                        Actualizar Contraseña 
+                        Actualizar Contraseña
                     </button>
                 </form>
             </div>

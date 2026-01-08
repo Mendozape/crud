@@ -23,7 +23,11 @@ use App\Models\User;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json(
-        User::with(['address.street', 'roles'])->findOrFail($request->user()->id)
+        User::with([
+            'address.street', 
+            'roles.permissions', // Permissions assigned through Roles (Spatie)
+            'permissions'        // Direct permissions assigned to the user
+        ])->findOrFail($request->user()->id)
     );
 });
 

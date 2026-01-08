@@ -27,85 +27,91 @@ const ResidentStatement = ({ user }) => {
     const availableYears = [currentYear - 1, currentYear, currentYear + 1];
 
     /**
-     * Effect: Load the property and verify permissions.
-     * Checks the fresh user data from the API to handle real-time permission changes.
+     * Initial Effect: Loads the user's address.
+     * Permission is also checked here for the first load.
      */
     useEffect(() => {
-        const fetchMyAddress = async () => {
+        const fetchInitialData = async () => {
             try {
-                // Fetch fresh data from the server
                 const response = await axios.get('/api/user', axiosOptions);
                 const freshUser = response.data;
 
-                // 🛡️ PERMISSION CHECK (Case-insensitive)
-                // We verify if the required permission exists in the updated list from the server
-                const permissions = (freshUser.permissions || []).map(p => p.name.toLowerCase());
-                const requiredPermission = 'Ver-estado-cuenta'.toLowerCase();
-
-                if (!permissions.includes(requiredPermission)) {
+                // Check permissions
+                const perms = [...(freshUser.permissions || []), ...(freshUser.roles?.flatMap(r => r.permissions || []) || [])]
+                                .map(p => p.name.toLowerCase());
+                
+                if (!perms.includes('ver-estado-cuenta')) {
                     setIsAuthorized(false);
-                    // Force redirect to home if permission is gone
-                    window.location.href = '/home'; 
                     return;
                 }
 
                 if (freshUser.address) {
                     setAddressDetails(freshUser.address);
                 } else {
-                    setErrorMessage("No se encontró ningún predio activo vinculado a su cuenta.");
+                    setErrorMessage("No active property linked to this account.");
                 }
             } catch (error) {
-                // Handle 403 Forbidden specifically (revoked access)
-                if (error.response && error.response.status === 403) {
-                    setIsAuthorized(false);
-                    window.location.href = '/home';
-                }
-                console.error("Error detecting address or permissions:", error);
+                console.error("Error during initial data fetch:", error);
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchMyAddress();
-    }, [user, setErrorMessage]);
+        fetchInitialData();
+    }, []);
 
     /**
-     * Effect: Fetch the payment records.
+     * Effect: Fetch payments. 
+     * This runs every time the 'year' or 'addressDetails' changes.
+     * If the server returns 403, we know the permission was revoked.
      */
     useEffect(() => {
         const fetchStatement = async () => {
-            // Block data fetching if unauthorized or loading
-            if (!addressDetails || !year || !isAuthorized) return;
+            if (!addressDetails || !isAuthorized) return;
 
             try {
                 const response = await axios.get(
                     `/api/address_payments/paid-months/${addressDetails.id}/${year}`,
                     axiosOptions
                 );
+                
+                // If the request succeeds, it means the user STILL has permissions
                 setPaidMonths(response.data.months || []);
+                setIsAuthorized(true); 
             } catch (error) {
+                // 🛑 CRITICAL: If the backend returns 403 (Forbidden), permission was revoked
                 if (error.response && error.response.status === 403) {
                     setIsAuthorized(false);
-                    window.location.href = '/home';
+                    setPaidMonths([]); // Clear data to avoid showing "Pending"
                 }
                 console.error("Error fetching payment status:", error);
             }
         };
+
         fetchStatement();
-    }, [year, addressDetails, isAuthorized]);
+    }, [year, addressDetails]);
 
     const getMonthStatus = (monthNum) => paidMonths.find(item => item.month === monthNum);
 
-    // 1. Loading State
+    // 1. Loading View
     if (loading) return (
         <div className="text-center mt-5">
             <div className="spinner-border text-primary" role="status"></div>
-            <p className="mt-2">Validating credentials...</p>
+            <p className="mt-2">Verifying data...</p>
         </div>
     );
 
-    // 2. Unauthorized State (Final guard)
-    if (!isAuthorized) return null;
+    // 2. Unauthorized View (Permission Revoked)
+    // This will replace the entire interface if isAuthorized becomes false
+    if (!isAuthorized) return (
+        <div className="container mt-5">
+            <div className="alert alert-danger shadow-sm border-danger">
+                <h4 className="alert-heading"><i className="fas fa-lock me-2"></i>Acceso Denegado</h4>
+                <p>Sus permisos han sido actualizados. Ya no tiene autorización para ver este módulo.</p>
+                <hr />
+                <p className="mb-0 small">Por favor, contacte al administrador si cree que esto es un error.</p>
+            </div>
+        </div>
+    );
 
     return (
         <div className="container mt-4">
@@ -186,7 +192,7 @@ const ResidentStatement = ({ user }) => {
                     ) : (
                         <div className="alert alert-warning border-warning shadow-sm">
                             <i className="fas fa-exclamation-circle me-2"></i>
-                            <strong>Sin predio asignado:</strong> No tienes una propiedad vinculada.
+                            <strong>No Property Assigned:</strong> Please contact administration.
                         </div>
                     )}
                 </div>
